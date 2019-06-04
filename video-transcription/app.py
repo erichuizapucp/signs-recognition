@@ -3,7 +3,7 @@ import json
 # import requests
 
 
-def lambda_handler(event, context):
+def video_transcription_handler(event, context):
     """Sample pure Lambda function
 
     Parameters
@@ -32,7 +32,6 @@ def lambda_handler(event, context):
     #     print(e)
 
     #     raise e
-
 
     return {
         "statusCode": 200,
