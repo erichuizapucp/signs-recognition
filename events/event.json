@@ -1,5 +1,5 @@
 {
-  "body": "{\"message\": \"hello world\"}",
+  "body": "{\n  \"operation\": \"extract-audio\",\n  \"payload\": {\n    \"id\": \"not-annotated-videos/consultant-11/consultant-11--session-1--part5.mp4\"\n  }\n}",
   "resource": "/{proxy+}",
   "path": "/path/to/resource",
   "httpMethod": "POST",
