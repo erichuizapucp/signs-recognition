@@ -13,18 +13,29 @@ Resources:
   VideoProcessingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: video_processing_function/
-      Handler: app.video_processing_handler
+      CodeUri: main/
+      Handler: video_processing.handler
       Runtime: python3.7
-#      Events:
-#        VideoTranscription:
-#          Type: Api
-#          Properties:
-#            Path: /video_processing_function?id={id}
-#            Method: post
+#      Layers:
+#        - !Ref AudioLayer
+  #      Events:
+  #        VideoTranscription:
+  #          Type: Api
+  #          Properties:
+  #            Path: /video_processing_function?id={id}
+  #            Method: post
       Environment:
         Variables:
           S3_Bucket: erichuiza-bucket
+
+#  AudioLayer:
+#    Type: AWS::Serverless::LayerVersion
+#    Properties:
+#      LayerName: audio-dependencies
+#      ContentUri: audio/
+#      CompatibleRuntimes:
+#        - python3.7
+#      RetentionPolicy: Delete
 
 #Outputs:
 #  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

@@ -2,7 +2,7 @@
 from audio.audio_processor import AudioProcessor
 
 
-def video_processing_handler(event, context):
+def handler(event, context):
     payload = event['payload']
     operation = event['operation']
 
