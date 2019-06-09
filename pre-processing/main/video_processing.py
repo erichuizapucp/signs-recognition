@@ -1,24 +1,21 @@
-# import json
+import json
 from audio.audio_processor import AudioProcessor
 
 
-def handler(event, context):
-    payload = event['payload']
+def process_videos(event):
     operation = event['operation']
 
     operations = {
-        'extract-audio': lambda param: AudioProcessor().process(**param)
+        'extract-audio': lambda x: AudioProcessor().process(**x)
     }
 
     if operation in operations:
-        return operations[operation](payload)
+        return operations[operation](event.get('payload'))
     else:
         raise ValueError('Unrecognized operation "{}"'.format(operation))
 
-    # return {
-    #     "statusCode": 200,
-    #     "body": json.dumps({
-    #         "message": "hello world",
-    #         # "location": ip.text.replace("\n", "")
-    #     }),
-    # }
+
+with open('../resources/video_processing.json') as f:
+    data = json.load(f)
+
+process_videos(data)
