@@ -1,12 +1,14 @@
 import json
 from audio.audio_processor import AudioProcessor
+from transcription.transcription_processor import TranscriptionProcessor
 
 
 def process_videos(event):
     operation = event['operation']
 
     operations = {
-        'extract-audio': lambda x: AudioProcessor().process(**x)
+        'extract-audio': lambda x: AudioProcessor().process(**x),
+        'transcribe-audio': lambda x: TranscriptionProcessor(**x)
     }
 
     if operation in operations:
