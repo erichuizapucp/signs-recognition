@@ -7,7 +7,7 @@ from common.s3_utils import s3_exist_object
 class AudioProcessor:
     __source_videos_base = 'not-annotated-videos'
     __audio_clips_base = 'audio-clips'
-    __audio_clip_extension = '.mp3'
+    __audio_clip_extension = '.wav'
 
     def __init__(self):
         self.__s3 = boto3.client('s3')
