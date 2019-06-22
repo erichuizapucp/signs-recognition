@@ -1,2 +1,9 @@
 .DS_Store
 .idea/
+*.aux
+*.bbl
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.blg
