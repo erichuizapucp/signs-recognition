@@ -22,27 +22,25 @@
 \title{%
 	\vspace{-2.0cm}
 	\textbf{Talking with body expressions} \\	
-	\Large \textbf{A Method for detecting sings in a weakly annotated dataset}
+	\Large \textbf{A method for detecting signs in a weakly annotated dataset}
 }
 
 \maketitle
     
 \begin{abstract}
-People with deafness or hearing disabilities are aimed to use computer based systems, state of art video classification and human action recognition rely in a combination of traditional and new methods like optical flow and 3D CNN. In this article we show a method to detect Peruvian Sign Language elements from a weakly annotated videos dataset. Video annotation techniques were applied increasing the models performance, as a result we achieved XX precision and XX exhaustiveness by training a 3D CNN with optical flow inputs.   \\
+People with deafness or hearing disabilities who aim to use computer based systems, state of art video classification and human action recognition rely in a combination of traditional and new methods like optical flow and 3D CNN. In this article we show a method to detect Peruvian Sign Language elements from a weakly annotated videos dataset. Video annotation techniques were applied increasing the models performance, as a result we achieved XX precision and XX exhaustiveness by training a 3D CNN with optical flow inputs.   \\
 \keywords{video classification,human actions detection, optical flow, 3D CNN.}
 \end{abstract}
 
 \section{Introduction}\label{intro}
 
-The World Health Organization (WHO) stated that 466 million people world wide have disabling hearing loss, estimating that by 2050 over 900 million people will have disabling hearing loss and will represent a global cost of 750.00 million dollars annually \cite{deafness_and_hearing_loss_2019}. 
+The World Health Organization (WHO) stated that 466 million people world wide have disabling hearing loss, estimating that by 2050 over 900 million people will have disabling hearing loss and will represent a global cost of 750 million dollars annually \cite{deafness_and_hearing_loss_2019}. 
 
-The Peruvian Institute of Informatics and Statistics (INEI) executed a national disabilities survey with the objective to segment and better understand which disabilities affect the Peruvian population \cite{disabilities_survey_2012}, the results showed that 1.8\% of the Peruvian population present at least a partial or permanent deafness or hearing limitation. 
+The Peruvian Institute of Informatics and Statistics (INEI) conducted a national disabilities survey with the objective of segmenting and better understanding which disabilities affect the Peruvian population \cite{disabilities_survey_2012}, the results showed that 1.8\% of the Peruvian population suffer at least partial when not permanent deafness or hearing limitation. 
 
-As of today it is completely viable to think about systems able to detect and transcribe signs languages. However, in the same way as spoken languages, signs languages also present local variations e.g. people that lives in the Lima metro area are not expect to use the same set of signs as people leaving in different parts of the country. Developing a dataset that describes the Peruvian Sign Language (PRL) \cite{lsp_2015} that can be used to train an AI model is expensive and difficult to achieve. 
+As of today, thanks to deep learning models for computer vision and natural language processing, it is completely feasible to propose systems able to detect and transcribe sign languages. However, deep learning supervised models usually require large and well annotated datasets, and developing such a dataset for the Peruvian Sign Language (PSL) \cite{lsp_2015} is expensive and difficult to achieve. Furthermore, in the same way as spoken languages, signs languages also present local variations e.g. people who live in Lima metropolitan area are not expected to use the same set of signs as people leaving in other parts of the country. A need exists for approaching this task with self-supervised learning or by means of weakly labeled data.
 
-The Pontifical Catholic University of Peru (PUCP) Grammar and  Signs research group created a PRL dataset \cite{lsp_dataset} that is weekly annotated because it does not show exactly the relation between the instant when a sign that is emitted and its corresponding translation.
-
-This study was developed to obtain the Masters Degree in Informatics and Computer Science and proposes a novel Signs Detection Method (nSDm) that allows signs detection in a weakly annotated dataset and tries to answer the following questions:
+This article reports research conducted with the goal of proposing a method for detecting PSL signs using a weakly annotated dataset, and answering the following research questions:
 
 \begin{enumerate}[(i)]
 \item What are most relevant currently available techniques for training an AI model from  weakly annotated video and audio transcription?\label{q1}
@@ -50,7 +48,9 @@ This study was developed to obtain the Masters Degree in Informatics and Compute
 \item What is the relation between the number of samples and the detection of new LSP elements in terms of nSDm precision and recall?\label{q3}
 \end{enumerate}
 
-nSDm will take advantage of the PRL dataset \cite{lsp_dataset} and will contribute with the generalization and progressive signs detection that could be used as a starting point for future studies including software accessibility improvements and human computer interaction for people with deafness and hearing limitations.
+The Pontifical Catholic University of Peru (PUCP) Grammar and  Signs research group created a PSL dataset \cite{lsp_dataset} that is weakly annotated because it does not show exactly the relation between the instant when a sign that is emitted and its corresponding translation.
+
+nSDm will take advantage of the PSL dataset \cite{lsp_dataset} and will contribute with the generalization and progressive signs detection that could be used as a starting point for future studies including software accessibility improvements and human computer interaction for people with deafness and hearing limitations.
 
 The rest of the article is organized as follows. In sec \ref{relatedwork} we review the related work on video classification and body actions recognition using both Optical Flow+Two Stream CNN and 3D CNN architectures. In sec \ref{method} we introduce nSDm and specify its architecture and design. In sec \ref{experimentation} we evaluate nSDm precision and recall and provide answers for the research questions \ref{q1},\ref{q2},\ref{q3}. In sec \ref{datasetdesc} we describe and provide the dataset details. In sec \ref{videoannot} we describe the video annotation and data pre-processing techniques applied to the dataset and finally in sec \ref{conclusion} we present our conclusion and describe future work.
 \section{Related Work} \label{relatedwork}
