@@ -1,8 +1,0 @@
-{
-  "operation": "extract-audio",
-  "payload": {
-    "video": {
-      "id": "not-annotated-videos/consultant-11/consultant-11--session-1--part5.mp4"
-    }
-  }
-}
