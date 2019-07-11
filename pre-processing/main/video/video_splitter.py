@@ -1,10 +1,10 @@
-from subprocess import check_call
 import shlex
 import os
 import ntpath
-from datetime import datetime
 import time
 
+from subprocess import check_call
+from datetime import datetime
 from processor import Processor
 
 
@@ -18,9 +18,11 @@ class VideoSplitter(Processor):
         super().process(data)
         seqs = data['sequences']
 
-        [self.__split_video(seq['start'], seq['end'], idx) for idx, seq in enumerate(seqs)]
+        for idx, seq in enumerate(seqs):
+            self.__split_video(seq['start'], seq['end'], idx)
 
         exec_end = time.time()
+
         print('Video splittrer completed completed processing {} video chunks in {} seconds'.
               format(len(seqs), round(exec_end - exec_start, 2)))
 
@@ -37,7 +39,7 @@ class VideoSplitter(Processor):
         if not os.path.exists(os.path.dirname(chunk_path)):
             os.makedirs(os.path.dirname(chunk_path), exist_ok=True)
 
-        cmd = "ffmpeg -i {} -vcodec copy  -strict -2 -ss {} -t {} {} -loglevel panic".format(
+        cmd = "ffmpeg -i {} -ss {} -t {} {} -loglevel panic -y".format(
             self._video_file_path, start_time.strftime('%H:%M:%S'), str(duration), chunk_path)
 
         if check_call(shlex.split(cmd), universal_newlines=True) == 0:
