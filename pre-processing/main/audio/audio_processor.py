@@ -1,6 +1,5 @@
 import os
 from moviepy.editor import VideoFileClip
-from common.s3_utils import s3_exist_object
 from processor import Processor
 
 
@@ -26,12 +25,7 @@ class AudioProcessor(Processor):
 
         # check if the the audio clip exist in s3
         audio_key = self.__generate_audio_clip_key(audio_file_path)
-        if not s3_exist_object(self._s3, self._bucketName, audio_key):
-            # upload the audio clip to s3
-            self._s3.upload_file(audio_file_path, self._bucketName, audio_key)
-            print('the audio clip was uploaded to {}/{}'.format(self._bucketName, audio_key))
-        else:
-            print('the audio clip is already available at: {}'.format(audio_file_path))
+        self.upload_file(audio_file_path, audio_key)
 
     @staticmethod
     def __extract_audio(video_file_path, audio_file_path):

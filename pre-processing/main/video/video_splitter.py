@@ -1,11 +1,10 @@
 import shlex
-import os
-import ntpath
 import time
 
 from subprocess import check_call
 from datetime import datetime
 from processor import Processor
+from common import io_utils
 
 
 class VideoSplitter(Processor):
@@ -23,7 +22,7 @@ class VideoSplitter(Processor):
 
         exec_end = time.time()
 
-        print('Video splittrer completed completed processing {} video chunks in {} seconds'.
+        print('Video splitter completed processing {} video chunks in {} seconds'.
               format(len(seqs), round(exec_end - exec_start, 2)))
 
     def __split_video(self, start, end, idx):
@@ -33,14 +32,14 @@ class VideoSplitter(Processor):
         duration = \
             datetime.combine(datetime.today(), end_time.time()) - datetime.combine(datetime.today(), start_time.time())
 
-        base_dir = os.path.dirname(self._video_file_path)
-        chunk_path = os.path.join(base_dir, 'chunks', str(idx) + '-' + ntpath.basename(self._video_file_path))
-
-        if not os.path.exists(os.path.dirname(chunk_path)):
-            os.makedirs(os.path.dirname(chunk_path), exist_ok=True)
+        chunk_path = io_utils.get_video_chunk_path(self._video_file_path, idx)
+        io_utils.check_path_dir(chunk_path)
 
         cmd = "ffmpeg -i {} -ss {} -t {} {} -loglevel panic -y".format(
             self._video_file_path, start_time.strftime('%H:%M:%S'), str(duration), chunk_path)
 
         if check_call(shlex.split(cmd), universal_newlines=True) == 0:
             print('{} was created successfully'.format(chunk_path))
+
+            chunk_key = io_utils.get_video_chunk_path(self._video_key, idx)
+            self.upload_file(chunk_path, chunk_key)

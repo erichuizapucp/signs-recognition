@@ -1,0 +1,9 @@
+{
+  "video_path": "binary/not-annotated-videos/consultant-11/consultant-11-session-1-part-5.mp4",
+  "sequences" : [
+    {
+      "start": "00:30",
+      "end" : "00:48"
+    }
+  ]
+}

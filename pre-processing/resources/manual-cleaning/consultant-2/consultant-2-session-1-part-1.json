@@ -1,7 +1,7 @@
 {
   "operation": "video-split",
   "payload": {
-    "id": "not-annotated-videos/consultant-2/consultant-2--session-1-part1.mp4",
+    "id": "not-annotated-videos/consultant-2/consultant-2-session-1-part-1.mp4",
     "sequences": [
       {
         "start": "00:15",
