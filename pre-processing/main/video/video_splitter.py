@@ -1,5 +1,6 @@
 import shlex
 import time
+import os
 
 from subprocess import check_call
 from datetime import datetime
@@ -43,3 +44,7 @@ class VideoSplitter(Processor):
 
             chunk_key = io_utils.get_video_chunk_path(self._video_key, idx)
             self.upload_file(chunk_path, chunk_key)
+            print('{} was uploaded to s3 successfully.'.format(chunk_path))
+
+            os.remove(chunk_path)
+            print('{} was removed from local file system successfully.'.format(chunk_path))

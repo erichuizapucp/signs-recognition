@@ -2,6 +2,7 @@ import json
 import os
 from watchdog.events import PatternMatchingEventHandler
 from audio.audio_processor import AudioProcessor
+from transcription_processor import TranscriptionProcessor
 from video.video_splitter import VideoSplitter
 
 
@@ -14,7 +15,8 @@ class VideoProcessingWatcher(PatternMatchingEventHandler):
 
         operations = {
             'extract-audio': lambda x: AudioProcessor().process(x),
-            'video-split': lambda x: VideoSplitter().process(x)
+            'video-split': lambda x: VideoSplitter().process(x),
+            'audio-split': lambda x: TranscriptionProcessor.process(x)
         }
 
         if operation in operations:
