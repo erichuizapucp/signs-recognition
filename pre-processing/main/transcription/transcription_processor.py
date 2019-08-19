@@ -18,7 +18,7 @@ class TranscriptionProcessor(Processor):
 
         job_name = self.__generate_transcription_job_name()
         self._transcribe.start_transcription_job(
-            TranscriptionJobName=job_name
+            TranscriptionJobName=job_name, LanguageCode='es-ES',
         )
 
     @staticmethod

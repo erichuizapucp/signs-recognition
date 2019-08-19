@@ -10,13 +10,13 @@ class VideoProcessingWatcher(PatternMatchingEventHandler):
     patterns = ["*.json"]
 
     @staticmethod
-    def __process_videos(event):
+    def __do_process(event):
         operation = event['operation']
 
         operations = {
             'extract-audio': lambda x: AudioProcessor().process(x),
             'video-split': lambda x: VideoSplitter().process(x),
-            'audio-split': lambda x: TranscriptionProcessor.process(x)
+            'transcribe-audio': lambda x: TranscriptionProcessor.process(x)
         }
 
         if operation in operations:
@@ -28,7 +28,7 @@ class VideoProcessingWatcher(PatternMatchingEventHandler):
         if event.event_type == 'created' or event.event_type == 'modified':
             with open(event.src_path) as f:
                 data = json.load(f)
-                self.__process_videos(data)
+                self.__do_process(data)
 
             # delete the file when the process is completed
             os.remove(event.src_path)

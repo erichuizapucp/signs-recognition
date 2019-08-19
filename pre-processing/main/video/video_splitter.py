@@ -4,11 +4,12 @@ import os
 
 from subprocess import check_call
 from datetime import datetime
-from processor import Processor
+
+from downloader import Downloader
 from common import io_utils
 
 
-class VideoSplitter(Processor):
+class VideoSplitter(Downloader):
     def __init__(self):
         super().__init__()
 

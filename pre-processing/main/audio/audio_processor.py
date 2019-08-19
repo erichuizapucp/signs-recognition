@@ -1,9 +1,9 @@
 import os
 from moviepy.editor import VideoFileClip
-from processor import Processor
+from downloader import Downloader
 
 
-class AudioProcessor(Processor):
+class AudioProcessor(Downloader):
     __audio_clips_base = 'audio-clips'
     __audio_clip_extension = '.wav'
 
