@@ -17,7 +17,7 @@ class TranscriptionProcessor(Processor):
         video_chunks = self._s3.list_objects_v2(Bucket=self._bucketName, Prefix=prefix)
 
         for video_chunk in video_chunks['Contents']:
-            video_key = video_chunk['Key'];
+            video_key = video_chunk['Key']
 
             job_name = self.__generate_transcription_job_name(video_key)
             print(job_name)
