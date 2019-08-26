@@ -1,5 +1,5 @@
 import boto3
-import os
+import datetime
 
 from common import io_utils
 from processor import Processor
@@ -20,13 +20,14 @@ class TranscriptionProcessor(Processor):
             video_key = video_chunk['Key']
 
             job_name = self.__generate_transcription_job_name(video_key)
-            print(job_name)
             # response = self._transcribe.start_transcription_job(
             #     TranscriptionJobName=job_name,
             #     LanguageCode='es-ES',
             # )
 
-
     @staticmethod
-    def __generate_transcription_job_name(video_key):
-        return video_key
+    def __generate_transcription_job_name(video_key: str):
+        str_timestamp = str(datetime.datetime.now().timestamp()).replace('.', '-')
+        key_no_extension = io_utils.get_filename_without_extension(video_key)
+
+        return "_".join([str_timestamp, key_no_extension])
