@@ -40,12 +40,12 @@ loggers:
   common:
     level: DEBUG
     handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: no
+    propagate: yes
   transcription:
     level: DEBUG
     handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: no
+    propagate: yes
   video:
     level: DEBUG
     handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: no
+    propagate: yes

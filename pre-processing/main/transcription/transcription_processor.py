@@ -10,8 +10,8 @@ class TranscriptionProcessor(Processor):
     def __init__(self):
         super().__init__()
 
-        self._transcribe = boto3.client('transcribe')
         self.logger = logging.getLogger(__name__)
+        self._transcribe = boto3.client('transcribe')
 
     def process(self, data):
         super().process(data)
