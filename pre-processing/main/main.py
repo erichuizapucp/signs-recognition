@@ -11,30 +11,30 @@ from video_processing import VideoProcessing
 from video_processing_watcher import VideoProcessingWatcher
 
 
-if __name__ == '__main__':
-    def setup_logging(default_level=logging.INFO):
-        logging_config = 'logging.yaml'
+def setup_logging(working_folder, default_level=logging.INFO):
+    logging_config = 'logging.yaml'
 
-        logging_config = os.path.join(working_folder, logging_config)
+    logging_config = os.path.join(working_folder, logging_config)
 
-        if os.path.exists(logging_config):
-            with open(logging_config, 'r') as f:
-                try:
-                    config = yaml.safe_load(f.read())
-                    logging.config.dictConfig(config)
-                except Exception as e:
-                    print(e)
-                    print('Error in logging Configuration. Using default configs')
-                    logging.basicConfig(level=default_level)
-        else:
-            logging.basicConfig(level=default_level)
-            print('Failed to load configuration file. Using default configs')
+    if os.path.exists(logging_config):
+        with open(logging_config, 'r') as f:
+            try:
+                config = yaml.safe_load(f.read())
+                logging.config.dictConfig(config)
+            except Exception as e:
+                print(e)
+                print('Error in logging Configuration. Using default configs')
+                logging.basicConfig(level=default_level)
+    else:
+        logging.basicConfig(level=default_level)
+        print('Failed to load configuration file. Using default configs')
 
 
+def main():
     working_folder = os.getenv('WORK_DIR', './')
 
     # configure logging
-    setup_logging()
+    setup_logging(working_folder)
     logger = logging.getLogger(__name__)
 
     incoming_queue = os.path.join(working_folder, io_utils.INCOMING_QUEUE)
@@ -60,3 +60,7 @@ if __name__ == '__main__':
     observer.join()
 
     logger.info('ENDING THE VIDEO PRE-PROCESSING MODULE')
+
+
+if __name__ == '__main__':
+    main()
