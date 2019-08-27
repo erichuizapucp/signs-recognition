@@ -1,7 +1,9 @@
 import os
 import ntpath
 
-chunks_dir = 'chunks'
+CHUNKS_FOLDER = 'chunks'
+INCOMING_QUEUE = 'incoming-queue'
+BINARY_FOLDER = 'binary'
 
 
 def get_filename_without_extension(file_path):
@@ -20,11 +22,11 @@ def add_prefix_to_filename(file_path, prefix, separator='-'):
 
 def get_video_chunk_path(video_path, idx):
     base_dir = os.path.dirname(video_path)
-    return os.path.join(base_dir, chunks_dir, add_prefix_to_filename(video_path, str(idx)))
+    return os.path.join(base_dir, CHUNKS_FOLDER, add_prefix_to_filename(video_path, str(idx)))
 
 
 def get_video_chunk_base_key(video_key):
-    return os.path.join(os.path.dirname(video_key), chunks_dir)
+    return os.path.join(os.path.dirname(video_key), CHUNKS_FOLDER)
 
 
 def check_path_dir(file_path):

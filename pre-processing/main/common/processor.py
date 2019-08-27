@@ -1,5 +1,6 @@
 import boto3
 import os
+import io_utils
 
 from botocore.exceptions import ClientError
 
@@ -9,10 +10,11 @@ class Processor:
         self._video_key = None
         self._video_file_path = None
         self._s3 = boto3.client('s3')
-        self._bucketName = os.environ['S3_BUCKET']
-        self._binary_folder = os.environ['BINARY_FOLDER']
+        self._bucketName = os.getenv('S3_BUCKET', None)
+        self._work_dir = os.getenv('WORK_DIR', './')
+        self._binary_folder = os.path.join(self._work_dir, io_utils.BINARY_FOLDER)
         self._source_videos_base = 'not-annotated-videos'
-        self._always_upload = os.environ['ALWAYS_UPLOAD_S3'] == 'True'
+        self._always_upload = os.getenv('ALWAYS_UPLOAD_S3', 'True') == 'True'
 
     def process(self, data):
         self._video_key = data['id']

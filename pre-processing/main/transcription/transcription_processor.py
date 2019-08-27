@@ -24,7 +24,6 @@ class TranscriptionProcessor(Processor):
             #     TranscriptionJobName=job_name,
             #     LanguageCode='es-ES',
             # )
-            # this is a test
 
     @staticmethod
     def __generate_transcription_job_name(video_key: str):
