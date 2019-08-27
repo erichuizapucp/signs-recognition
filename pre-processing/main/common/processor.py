@@ -1,6 +1,6 @@
 import boto3
 import os
-import io_utils
+from common import io_utils
 
 from botocore.exceptions import ClientError
 
@@ -15,6 +15,8 @@ class Processor:
         self._binary_folder = os.path.join(self._work_dir, io_utils.BINARY_FOLDER)
         self._source_videos_base = 'not-annotated-videos'
         self._always_upload = os.getenv('ALWAYS_UPLOAD_S3', 'True') == 'True'
+
+        self.logger = None
 
     def process(self, data):
         self._video_key = data['id']

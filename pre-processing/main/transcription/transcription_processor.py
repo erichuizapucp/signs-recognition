@@ -1,14 +1,17 @@
+import logging
 import boto3
 import datetime
 
 from common import io_utils
-from processor import Processor
+from common.processor import Processor
 
 
 class TranscriptionProcessor(Processor):
     def __init__(self):
-        self._transcribe = boto3.client('transcribe')
         super().__init__()
+
+        self._transcribe = boto3.client('transcribe')
+        self.logger = logging.getLogger(__name__)
 
     def process(self, data):
         super().process(data)

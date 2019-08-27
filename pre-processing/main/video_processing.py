@@ -1,6 +1,6 @@
-from audio_processor import AudioProcessor
-from transcription_processor import TranscriptionProcessor
-from video_splitter import VideoSplitter
+from audio.audio_processor import AudioProcessor
+from transcription.transcription_processor import TranscriptionProcessor
+from video.video_splitter import VideoSplitter
 
 
 class VideoProcessing:
