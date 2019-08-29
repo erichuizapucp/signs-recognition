@@ -1,10 +1,10 @@
 import json
 import os
 from watchdog.events import PatternMatchingEventHandler
-from video_processing import VideoProcessing
+from file_processing_handler import FileProcessingHandler
 
 
-class VideoProcessingWatcher(PatternMatchingEventHandler):
+class IncomingQueueWatcher(PatternMatchingEventHandler):
     patterns = ["*.json"]
 
     @staticmethod
@@ -12,7 +12,7 @@ class VideoProcessingWatcher(PatternMatchingEventHandler):
         if event.event_type == 'created' or event.event_type == 'modified':
             with open(event.src_path) as f:
                 data = json.load(f)
-                VideoProcessing.process(data)
+                FileProcessingHandler().handle(data)
 
             # delete the file when the process is completed
             os.remove(event.src_path)

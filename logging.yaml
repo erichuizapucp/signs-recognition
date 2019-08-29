@@ -4,9 +4,9 @@ disable_existing_loggers: true
 
 formatters:
     standard:
-        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    error:
-        format: "%(levelname)s <PID %(process)d:%(processName)s> %(name)s.%(funcName)s(): %(message)s"
+        format: "%(asctime)s    %(levelname)s   %(name)s    %(message)s"
+#    error:
+#        format: "%(levelname)s  <PID %(process)d:%(processName)s> %(name)s.%(funcName)s():  %(message)s"
 
 handlers:
   console:
@@ -14,38 +14,47 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
-  pre_processing_file_handler:
+  core_file_handler:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
     formatter: standard
-    filename: logs/pre-processing.log
+    filename: logs/core.log
     maxBytes: 10485760 # 10MB
     backupCount: 20
     encoding: utf8
 
-  pre_processing_file_error_handler:
-    class: logging.handlers.RotatingFileHandler
-    level: ERROR
-    formatter: error
-    filename: logs/pre-processing.log
-    maxBytes: 10485760 # 10MB
-    backupCount: 20
-    encoding: utf8
+#  pre_processing_file_handler:
+#    class: logging.handlers.RotatingFileHandler
+#    level: DEBUG
+#    formatter: standard
+#    filename: logs/pre-processing.log
+#    maxBytes: 10485760 # 10MB
+#    backupCount: 20
+#    encoding: utf8
+#
+#  pre_processing_file_error_handler:
+#    class: logging.handlers.RotatingFileHandler
+#    level: ERROR
+#    formatter: error
+#    filename: logs/pre-processing.log
+#    maxBytes: 10485760 # 10MB
+#    backupCount: 20
+#    encoding: utf8
 
 root:
   level: DEBUG
-  handlers: [console]
+  handlers: [console,core_file_handler]
 
 loggers:
   common:
     level: DEBUG
-    handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: yes
+    handlers: [console,core_file_handler]
+    propagate: no
   transcription:
     level: DEBUG
-    handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: yes
+    handlers: [console,core_file_handler]
+    propagate: no
   video:
     level: DEBUG
-    handlers: [console,pre_processing_file_handler,pre_processing_file_error_handler]
-    propagate: yes
+    handlers: [console,core_file_handler]
+    propagate: no

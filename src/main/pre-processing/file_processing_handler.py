@@ -1,11 +1,15 @@
-from audio import AudioProcessor
+import logging
+
+from audio.audio_processor import AudioProcessor
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitter import VideoSplitter
 
 
-class VideoProcessing:
-    @staticmethod
-    def process(data):
+class FileProcessingHandler:
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
+    def handle(self, data):
         operation = data['operation']
 
         operations = {
@@ -15,6 +19,7 @@ class VideoProcessing:
         }
 
         if operation in operations:
+            self.logger.debug('An %s operation is started', operation)
             return operations[operation](data.get('payload'))
         else:
             raise ValueError('Unrecognized operation "{}"'.format(operation))
