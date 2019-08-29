@@ -6,7 +6,7 @@ from subprocess import check_call
 from datetime import datetime
 
 from downloader import Downloader
-from common import io_utils
+import io_utils
 
 
 class VideoSplitter(Downloader):

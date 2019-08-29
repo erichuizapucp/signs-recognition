@@ -12,3 +12,4 @@ binary
 __pycache__/
 incoming-queue
 logs
+venv

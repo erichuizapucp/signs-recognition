@@ -1,8 +1,8 @@
 import logging
 import boto3
 import datetime
+import io_utils
 
-from common import io_utils
 from common.processor import Processor
 
 

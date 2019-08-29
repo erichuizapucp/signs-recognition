@@ -1,4 +1,4 @@
-from audio.audio_processor import AudioProcessor
+from audio import AudioProcessor
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitter import VideoSplitter
 
