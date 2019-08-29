@@ -20,7 +20,7 @@ class TranscriptionProcessor(Processor):
         self.logger.debug('using %s for video chunks prefix', prefix)
 
         video_chunks = self._s3.list_objects_v2(Bucket=self._bucketName, Prefix=prefix)
-        if not video_chunks or 'Contents' not in video_chunks:
+        if not(video_chunks and 'Contents' in video_chunks):
             raise RuntimeError('There are not video chunks available for processing at the following location: {}'
                                .format(prefix))
 
