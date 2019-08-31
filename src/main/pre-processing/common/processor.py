@@ -41,10 +41,8 @@ class Processor:
         return True
 
     def s3_move_object(self, source_key, destination_key):
-        try:
-            self._s3.Object(self._bucketName, destination_key)\
-                .copy_from(CopySource={'Bucket': self._bucketName, 'Key': source_key})
-        except ClientError as e:
-            self.logger.error(e)
-            return False
-        return True
+        self._s3.copy_object(Bucket=self._bucketName, Key=destination_key,
+                             CopySource={'Bucket': self._bucketName, 'Key': source_key})
+
+    def s3_delete_object(self, source_key):
+        self._s3.delete_object(Bucket=self._bucketName, Key=source_key)

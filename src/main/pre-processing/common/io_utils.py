@@ -10,8 +10,9 @@ def get_filename_without_extension(file_path):
     return os.path.splitext(ntpath.basename(file_path))[0]
 
 
-def get_file_extension(file_path):
-    return os.path.splitext(ntpath.basename(file_path))[1]
+def get_file_extension(file_path, exclude_dot=False):
+    extension = os.path.splitext(ntpath.basename(file_path))[1]
+    return extension.replace('.', '') if exclude_dot else extension
 
 
 def add_prefix_to_filename(file_path, prefix, separator='-'):
@@ -32,3 +33,8 @@ def get_video_chunk_base_key(video_key):
 def check_path_dir(file_path):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+
+def change_extension(file_path, new_extension):
+    pre, ext = os.path.splitext(file_path)
+    return pre + new_extension

@@ -8,9 +8,10 @@ from common.processor import Processor
 
 
 class TranscriptionProcessor(Processor):
-    preferred_language_code = 'es-ES'
-    preferred_vocabulary_name = 'peruvian-expressions'
-    preferred_max_speakers = 3
+    __preferred_language_code = 'es-ES'
+    __preferred_vocabulary_name = 'peruvian-expressions'
+    __preferred_max_speakers = 3
+    __transcription_base = 'transcriptions'
 
     def __init__(self):
         super().__init__()
@@ -35,38 +36,39 @@ class TranscriptionProcessor(Processor):
             try:
                 if index >= max_no_jobs:
                     break
-
                 video_key = video_chunk['Key']
-                resp = self.__start_audio_transcription(video_key)
+                transcription_destination_key = self.__get_transcription_destination_key(video_key)
+                if self.s3_exist_object(transcription_destination_key):
+                    print()
 
-                job_name = resp['TranscriptionJob']['TranscriptionJobName']
-                resp = self.__wait_for_job_completion(job_name)
+                job_name = self.__generate_transcription_job_name(video_key)
+                media_format = io_utils.get_file_extension(video_key, exclude_dot=True)
+                media_url = self.__get_media_file_uri(video_key)
+                self.__start_audio_transcription(job_name, media_format, media_url)
 
-                transcript_file_uri = resp['TranscriptionJob']['Transcript']['TranscriptFileUri']
-                if self.s3_move_object(transcript_file_uri, '' + transcript_file_uri):
-                    print('')
+                transcript_file_uri = self.__wait_for_job_completion(job_name)
 
+                transcription_source_key = self.__get_transcription_source_key(transcript_file_uri)
+                self.s3_move_object(transcription_source_key, transcription_destination_key)
+                self.s3_delete_object(transcription_source_key)
+
+                self.logger.debug('Audio transcription for %s is available at %s', job_name, transcription_source_key)
             except Exception as e:
                 self.logger.error(e)
 
-    def __start_audio_transcription(self, video_key):
-        job_name = self.__generate_transcription_job_name(video_key)
-        media_format = io_utils.get_file_extension(video_key)
-        media_url = self.__get_media_file_uri(video_key)
-
+    def __start_audio_transcription(self, job_name, media_format, media_url):
         response = self._transcribe.start_transcription_job(
             TranscriptionJobName=job_name,
-            LanguageCode=self.preferred_language_code,
+            LanguageCode=self.__preferred_language_code,
             MediaFormat=media_format,
             Media={
                 'MediaFileUri': media_url
             },
             OutputBucketName=self._bucketName,
             Settings={
-                'VocabularyName': self.preferred_vocabulary_name,
-                'ShowSpeakersLabels': True,
-                'MaxSpeakersLabels': self.preferred_max_speakers,
-                'ChannelIdentification': False
+                'VocabularyName': self.__preferred_vocabulary_name,
+                'ShowSpeakerLabels': True,
+                'MaxSpeakerLabels': self.__preferred_max_speakers
             }
         )
 
@@ -87,10 +89,17 @@ class TranscriptionProcessor(Processor):
             self.logger.debug('The transcription job %s is not completed yet', job_name)
             time.sleep(5)
 
-        return resp
+        return resp['TranscriptionJob']['Transcript']['TranscriptFileUri']
 
     def __get_media_file_uri(self, video_key):
         return 'https://{}.s3.amazonaws.com/{}'.format(self._bucketName, video_key)
+
+    def __get_transcription_source_key(self, transcript_file_uri):
+        return transcript_file_uri.replace('/'.join(['https://s3.amazonaws.com', self._bucketName + '/']), '')
+
+    def __get_transcription_destination_key(self, video_key):
+        return io_utils.change_extension(
+            video_key.replace(self._source_videos_base, self.__transcription_base), '.json')
 
     @staticmethod
     def __generate_transcription_job_name(video_key: str):
