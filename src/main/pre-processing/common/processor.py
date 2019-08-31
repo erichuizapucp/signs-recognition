@@ -1,4 +1,5 @@
 import boto3
+import logging
 import os
 from common import io_utils
 
@@ -16,7 +17,7 @@ class Processor:
         self._source_videos_base = 'not-annotated-videos'
         self._always_upload = os.getenv('ALWAYS_UPLOAD_S3', 'True') == 'True'
 
-        self.logger = None
+        self.logger = logging.getLogger(__name__)
 
     def process(self, data):
         self._video_key = data['id']
@@ -35,5 +36,15 @@ class Processor:
         try:
             self._s3.head_object(Bucket=self._bucketName, Key=key)
         except ClientError as e:
-            return int(e.response['Error']['Code']) != 404
+            self.logger.error(e)
+            return False
+        return True
+
+    def s3_move_object(self, source_key, destination_key):
+        try:
+            self._s3.Object(self._bucketName, destination_key)\
+                .copy_from(CopySource={'Bucket': self._bucketName, 'Key': source_key})
+        except ClientError as e:
+            self.logger.error(e)
+            return False
         return True
