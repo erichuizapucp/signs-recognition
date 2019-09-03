@@ -1,6 +1,0 @@
-{
-  "operation": "transcribe-audio",
-  "payload": {
-    "id": "not-annotated-videos/consultant-2/consultant-2--session-1-part1.mp4"
-  }
-}

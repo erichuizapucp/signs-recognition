@@ -1,0 +1,7 @@
+{
+  "operation": "extract-audio",
+  "payload": {
+    "id": "not-annotated-videos/consultant-02/consultant-02--session-01-part01.mp4",
+    "chunks": "binary/not-annotated-videos/consultant-02/chunks"
+  }
+}

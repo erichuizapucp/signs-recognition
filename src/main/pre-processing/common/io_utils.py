@@ -23,7 +23,7 @@ def add_prefix_to_filename(file_path, prefix, separator='-'):
 
 def get_video_chunk_path(video_path, idx):
     base_dir = os.path.dirname(video_path)
-    return os.path.join(base_dir, CHUNKS_FOLDER, add_prefix_to_filename(video_path, str(idx)))
+    return os.path.join(base_dir, CHUNKS_FOLDER, add_prefix_to_filename(video_path, str(idx).zfill(2)))
 
 
 def get_video_chunk_base_key(video_key):

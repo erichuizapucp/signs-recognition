@@ -19,7 +19,7 @@ class TranscriptionProcessor(Processor):
         self.logger = logging.getLogger(__name__)
         self._transcribe = boto3.client('transcribe')
 
-    def process(self, data, max_no_jobs=1):
+    def process(self, data, max_no_jobs=10):
         super().process(data)
 
         prefix = io_utils.get_video_chunk_base_key(self._video_key)
@@ -31,6 +31,7 @@ class TranscriptionProcessor(Processor):
                                .format(prefix))
 
         self.logger.debug('%d video chunks were found', len(video_chunks['Contents']))
+        self.logger.debug('This operation will process %d transcription job', max_no_jobs)
 
         for index, video_chunk in enumerate(video_chunks['Contents']):
             try:
@@ -39,7 +40,9 @@ class TranscriptionProcessor(Processor):
                 video_key = video_chunk['Key']
                 transcription_destination_key = self.__get_transcription_destination_key(video_key)
                 if self.s3_exist_object(transcription_destination_key):
-                    print()
+                    self.logger.debug('The video %s has been already transcribed, this transcription will be skipped',
+                                      video_key)
+                    continue
 
                 job_name = self.__generate_transcription_job_name(video_key)
                 media_format = io_utils.get_file_extension(video_key, exclude_dot=True)
@@ -51,6 +54,7 @@ class TranscriptionProcessor(Processor):
                 transcription_source_key = self.__get_transcription_source_key(transcript_file_uri)
                 self.s3_move_object(transcription_source_key, transcription_destination_key)
                 self.s3_delete_object(transcription_source_key)
+                self._transcribe.delete_transcription_job(TranscriptionJobName=job_name)
 
                 self.logger.debug('Audio transcription for %s is available at %s', job_name, transcription_source_key)
             except Exception as e:
@@ -81,7 +85,7 @@ class TranscriptionProcessor(Processor):
             resp = self._transcribe.get_transcription_job(TranscriptionJobName=job_name)
             status = resp['TranscriptionJob']['TranscriptionJobStatus']
             if status in ['COMPLETED', 'FAILED']:
-                self.logger.debug('The transcription job %s has completed with status of: %s', status)
+                self.logger.debug('The transcription job %s has completed with status of: %s', job_name, status)
                 if status == 'FAILED':
                     failed_reason = resp['TranscriptionJob']['TranscriptionJob']
                     raise RuntimeError(failed_reason)

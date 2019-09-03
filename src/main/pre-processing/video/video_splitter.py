@@ -1,31 +1,38 @@
 import shlex
 import time
 import os
+import logging
+import io_utils
 
 from subprocess import check_call
 from datetime import datetime
 
 from downloader import Downloader
-import io_utils
 
 
 class VideoSplitter(Downloader):
     def __init__(self):
         super().__init__()
 
+        self.logger = logging.getLogger(__name__)
+
     def process(self, data):
         exec_start = time.time()
+        self.logger.debug('Video splitting process started at %s', exec_start)
 
         super().process(data)
         seqs = data['sequences']
 
-        for idx, seq in enumerate(seqs):
-            self.__split_video(seq['start'], seq['end'], idx)
+        for index, seq in enumerate(seqs):
+            try:
+                chunk_path = self.__split_video(seq['start'], seq['end'], index)
+                self.logger.debug('%s processed is complete', chunk_path)
+            except Exception as e:
+                self.logger.error(e)
 
         exec_end = time.time()
-
-        print('Video splitter completed processing {} video chunks in {} seconds'.
-              format(len(seqs), round(exec_end - exec_start, 2)))
+        self.logger.debug('Video splitting completed processing %s video chunks in %s seconds',
+                          len(seqs), round(exec_end - exec_start, 2))
 
     def __split_video(self, start, end, idx):
         start_time = datetime.strptime(start, '%M:%S')
@@ -41,11 +48,13 @@ class VideoSplitter(Downloader):
             self._video_file_path, start_time.strftime('%H:%M:%S'), str(duration), chunk_path)
 
         if check_call(shlex.split(cmd), universal_newlines=True) == 0:
-            print('{} was created successfully'.format(chunk_path))
+            self.logger.debug('%s was created successfully', chunk_path)
 
             chunk_key = io_utils.get_video_chunk_path(self._video_key, idx)
             self.upload_file(chunk_path, chunk_key)
-            print('{} was uploaded to s3 successfully.'.format(chunk_path))
+            self.logger.debug('%s was uploaded to s3 successfully.', chunk_path)
 
             os.remove(chunk_path)
-            print('{} was removed from local file system successfully.'.format(chunk_path))
+            self.logger.debug('%s was removed from local file system successfully.', chunk_path)
+
+        return chunk_path
