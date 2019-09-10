@@ -4,6 +4,8 @@ from processor import Processor
 
 
 class KeywordsDetectionProcessor(Processor):
+    __preferred_language_code = 'es'
+
     def __init__(self):
         super().__init__()
 
@@ -20,5 +22,11 @@ class KeywordsDetectionProcessor(Processor):
             },
             OutputDataConfig={
                 'S3Uri': output_location
-            }
+            },
+            JobName=self.__get_job_name(),
+            LanguageCode=self.__preferred_language_code
         )
+
+    @staticmethod
+    def __get_job_name(self):
+        return ''
