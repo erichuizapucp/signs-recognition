@@ -2,7 +2,7 @@ import logging
 
 from audio.audio_processor import AudioProcessor
 from text_analisis.keywords_detection_processor import KeywordsDetectionProcessor
-from text_analisis.text_aggregation_processor import TextAggregationProcessor
+from text_analisis.audio_transcription_aggregation_processor import AudioTranscriptionAggregationProcessor
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitter import VideoSplitter
 
@@ -18,7 +18,7 @@ class FileProcessingHandler:
             'extract-audio': lambda x: AudioProcessor().process(x),
             'video-split': lambda x: VideoSplitter().process(x),
             'transcribe-audio': lambda x: TranscriptionProcessor().process(x),
-            'text-aggregation': lambda x: TextAggregationProcessor(x),
+            'audio-transcript-aggregation': lambda x: AudioTranscriptionAggregationProcessor().process(x),
             'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x)
         }
 

@@ -31,7 +31,7 @@ def setup_logging(default_level=logging.INFO):
 
 
 def main():
-    incoming_queue = os.path.join(working_folder, io_utils.INCOMING_QUEUE)
+    incoming_queue = os.path.join(working_folder, io_utils.incoming_queue_folder)
 
     logger.info('Pre-processing is initiated with the following parameters')
     logger.info('Incoming Queue: %s', incoming_queue)

@@ -13,7 +13,7 @@ class Processor:
         self._s3 = boto3.client('s3')
         self._bucketName = os.getenv('S3_BUCKET', None)
         self._work_dir = os.getenv('WORK_DIR', './')
-        self._binary_folder = os.path.join(self._work_dir, io_utils.BINARY_FOLDER)
+        self._binary_folder = os.path.join(self._work_dir, io_utils.binary_folder)
         self._source_videos_base = 'not-annotated-videos'
         self._always_upload = os.getenv('ALWAYS_UPLOAD_S3', 'True') == 'True'
 
