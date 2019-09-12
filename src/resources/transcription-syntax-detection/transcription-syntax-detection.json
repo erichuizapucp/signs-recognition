@@ -1,0 +1,7 @@
+{
+  "operation": "transcription-syntax-detection",
+  "payload": {
+    "localPath": "/Users/erichuiza/Documents/maestria - informatica/signs-recognition/transcriptions/",
+    "s3Path": "transcriptions/nouns/"
+  }
+}

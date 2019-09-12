@@ -1,7 +1,7 @@
 {
   "operation": "keywords-detection",
   "payload": {
-    "inputLocation": "",
-    "outputLocation": ""
+    "inputLocation": "s3://erichuiza-bucket/transcriptions/audio-transcription-aggregation.txt",
+    "outputLocation": "s3://erichuiza-bucket/transcriptions/"
   }
 }

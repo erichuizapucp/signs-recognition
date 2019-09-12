@@ -1,7 +1,0 @@
-{
-  "operation": "audio-transcript-aggregation",
-  "payload": {
-    "localFileName": "/Users/erichuiza/Documents/maestria - informatica/signs-recognition/transcriptions/audio-transcription-aggregation.txt",
-    "s3Key": "transcriptions/audio-transcription-aggregation.txt"
-  }
-}
