@@ -2,7 +2,7 @@ import logging
 
 from audio.audio_processor import AudioProcessor
 from text_analisis.keywords_detection_processor import KeywordsDetectionProcessor
-from text_analisis.transcription_syntax_detection_processor import AudioTranscriptionSyntaxDetectionProcessor
+from text_analisis.transcription_syntax_detection_processor import TranscriptionSyntaxDetectionProcessor
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitter import VideoSplitter
 
@@ -18,7 +18,7 @@ class FileProcessingHandler:
             'extract-audio': lambda x: AudioProcessor().process(x),
             'video-split': lambda x: VideoSplitter().process(x),
             'transcribe-audio': lambda x: TranscriptionProcessor().process(x),
-            'transcription-syntax-detection': lambda x: AudioTranscriptionSyntaxDetectionProcessor().process(x),
+            'transcription-syntax-detection': lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
             'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x)
         }
 
