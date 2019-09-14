@@ -1,0 +1,7 @@
+{
+  "operation": "samples-generation",
+  "payload": {
+    "syntax_local_path": "",
+    "syntax_s3_path": ""
+  }
+}

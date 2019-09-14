@@ -4,7 +4,8 @@ from audio.audio_processor import AudioProcessor
 from text_analisis.keywords_detection_processor import KeywordsDetectionProcessor
 from text_analisis.transcription_syntax_detection_processor import TranscriptionSyntaxDetectionProcessor
 from transcription.transcription_processor import TranscriptionProcessor
-from video.video_splitter import VideoSplitter
+from video.video_splitting_processor import VideoSplittingProcessor
+from video.samples_generation_processor import SamplesGenerationProcessor
 
 
 class FileProcessingHandler:
@@ -16,10 +17,11 @@ class FileProcessingHandler:
 
         operations = {
             'extract-audio': lambda x: AudioProcessor().process(x),
-            'video-split': lambda x: VideoSplitter().process(x),
+            'video-split': lambda x: VideoSplittingProcessor().process(x),
             'transcribe-audio': lambda x: TranscriptionProcessor().process(x),
             'transcription-syntax-detection': lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
-            'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x)
+            'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x),
+            'samples-generation': lambda x: SamplesGenerationProcessor().process(x)
         }
 
         if operation in operations:

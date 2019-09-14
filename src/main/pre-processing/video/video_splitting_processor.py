@@ -10,7 +10,7 @@ from datetime import datetime
 from downloader import Downloader
 
 
-class VideoSplitter(Downloader):
+class VideoSplittingProcessor(Downloader):
     def __init__(self):
         super().__init__()
 
