@@ -47,3 +47,6 @@ class SamplesGenerationProcessor(Processor):
 
             for syntax_entry in reader:
                 print(syntax_entry)
+
+    # TODO: add a method to search the syntax entry (e.g. Cine) in all the transcription files to start creating the
+    #  RGB files and Optical Flow
