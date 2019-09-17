@@ -1,7 +1,7 @@
 {
   "operation": "transcription-syntax-detection",
   "payload": {
-    "localPath": "transcriptions/",
-    "s3Path": "transcriptions/"
+    "localPath": "detected-syntax/",
+    "s3Path": "detected-syntax/"
   }
 }

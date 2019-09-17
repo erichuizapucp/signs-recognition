@@ -1,7 +1,13 @@
 {
   "operation": "samples-generation",
   "payload": {
-    "syntax_local_path": "",
-    "syntax_s3_path": ""
+    "syntax": {
+      "localFolderPath": "detected-syntax/",
+      "s3Path": "detected-syntax/"
+    },
+    "transcriptions": {
+      "localFolderPath": "transcriptions/",
+      "s3Path": "transcriptions/"
+    }
   }
 }
