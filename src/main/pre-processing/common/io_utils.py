@@ -1,6 +1,8 @@
 import os
 import ntpath
 
+from pathlib import Path
+
 chunks_folder = 'chunks'
 incoming_queue_folder = 'incoming-queue'
 binary_folder = 'binary'
@@ -42,3 +44,7 @@ def check_path_dir(file_path):
 def change_extension(file_path, new_extension):
     pre, ext = os.path.splitext(file_path)
     return pre + new_extension
+
+
+def get_files_in_folder(root_path, local_folder_path, extension):
+    return [os.path.join(root_path, str(file_path)) for file_path in list(Path(local_folder_path).rglob(extension))]

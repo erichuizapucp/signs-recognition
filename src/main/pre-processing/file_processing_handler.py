@@ -5,7 +5,7 @@ from text_analisis.keywords_detection_processor import KeywordsDetectionProcesso
 from text_analisis.transcription_syntax_detection_processor import TranscriptionSyntaxDetectionProcessor
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitting_processor import VideoSplittingProcessor
-from video.samples_generation_processor import SamplesGenerationProcessor
+from text_analisis.samples_metadata_generation_processor import SamplesMetadataGenerationProcessor
 
 
 class FileProcessingHandler:
@@ -21,7 +21,7 @@ class FileProcessingHandler:
             'transcribe-audio': lambda x: TranscriptionProcessor().process(x),
             'transcription-syntax-detection': lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
             'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x),
-            'samples-generation': lambda x: SamplesGenerationProcessor().process(x)
+            'samples-generation': lambda x: SamplesMetadataGenerationProcessor().process(x)
         }
 
         if operation in operations:
