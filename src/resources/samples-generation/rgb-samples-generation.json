@@ -1,0 +1,8 @@
+{
+  "operation": "rgb-samples-generation",
+  "payload": {
+    "metadata": "detected-syntax/samples-generation-metadata.csv",
+    "reset_dataset": "true",
+    "translation_delay_factor": "3"
+  }
+}

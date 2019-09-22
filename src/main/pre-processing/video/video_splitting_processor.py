@@ -42,7 +42,7 @@ class VideoSplittingProcessor(Downloader):
             datetime.combine(datetime.today(), end_time.time()) - datetime.combine(datetime.today(), start_time.time())
 
         chunk_path = io_utils.get_video_chunk_path(self._video_file_path, idx)
-        io_utils.check_path_dir(chunk_path)
+        io_utils.check_path_file(chunk_path)
 
         cmd = "ffmpeg -i {} -ss {} -t {} {} -loglevel panic -y".format(
             self._video_file_path, start_time.strftime('%H:%M:%S'), str(duration), chunk_path)

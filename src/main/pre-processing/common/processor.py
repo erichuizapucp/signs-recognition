@@ -32,6 +32,10 @@ class Processor:
         else:
             print('the file is already available at: {}'.format(key))
 
+    def download_file(self, key, file_path):
+        self._s3.download_file(self._bucketName, key, file_path)
+        self.logger.debug('%s was downloaded to %s', key, file_path)
+
     def s3_exist_object(self, key):
         try:
             self._s3.head_object(Bucket=self._bucketName, Key=key)
@@ -59,6 +63,6 @@ class Processor:
                 continue
 
             file_local_path = os.path.join(self._work_dir, file_key)
-            io_utils.check_path_dir(file_local_path)
+            io_utils.check_path_file(file_local_path)
             self._s3.download_file(self._bucketName, file_key, file_local_path)
             self.logger.debug('%s was downloaded to %s', file_key, file_local_path)

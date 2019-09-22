@@ -76,7 +76,7 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
             os.remove(local_file_path)
             self.logger.debug('local file %s was deleted', local_file_path)
 
-        io_utils.check_path_dir(local_file_path)
+        io_utils.check_path_file(local_file_path)
 
         return local_file_path, s3_key
 

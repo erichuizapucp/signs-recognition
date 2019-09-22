@@ -1,11 +1,11 @@
 {
-  "operation": "samples-generation",
+  "operation": "samples-metadata-generation",
   "payload": {
     "syntax": {
       "localFolderPath": "detected-syntax/",
       "s3Path": "detected-syntax/"
     },
-    "transcriptions": {
+    "transcription": {
       "localFolderPath": "transcriptions/",
       "s3Path": "transcriptions/"
     }

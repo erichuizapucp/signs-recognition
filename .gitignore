@@ -15,3 +15,5 @@ logs
 venv
 transcriptions/
 detected-syntax
+not-annotated-videos
+dataset

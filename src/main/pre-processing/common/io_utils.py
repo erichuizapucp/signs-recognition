@@ -36,10 +36,14 @@ def get_video_chunk_base_key(video_key):
     return os.path.join(os.path.dirname(video_key), chunks_folder)
 
 
-def check_path_dir(file_path):
+def check_path_file(file_path):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
+
+def check_path_dir(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
 
 def change_extension(file_path, new_extension):
     pre, ext = os.path.splitext(file_path)
