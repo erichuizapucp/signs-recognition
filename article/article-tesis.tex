@@ -1,4 +1,4 @@
-\documentclass[twocolumn]{article}
+\documentclass[twocolumn,conference]{article}
 
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{xcolor}
@@ -7,6 +7,12 @@
 \usepackage{graphicx}
 \usepackage{authblk}
 \usepackage{enumerate}
+\usepackage{caption}
+
+\usepackage{array,booktabs,longtable,tabularx}
+\usepackage{ltablex}
+\usepackage{wrapfig,lipsum,booktabs}
+\usepackage{multirow}
 
 \providecommand{\keywords}[1]
 {
@@ -25,14 +31,14 @@
 
 \title{%
 	\vspace{-2.0cm}
-	\textbf{Talking with body expressions} \\	
+	\textbf{Talking with signs} \\	
 	\Large \textbf{A method for detecting signs in a weakly annotated dataset}
 }
 
 \maketitle
     
 \begin{abstract}
-People with deafness or hearing disabilities who aim to use computer based systems, state of art video classification and human action recognition rely in a combination of traditional and new methods like optical flow and 3D CNN. In this article we show a method to detect Peruvian Sign Language elements from a weakly annotated videos dataset. Video annotation techniques were applied increasing the models performance, as a result we achieved XX precision and XX exhaustiveness by training a 3D CNN with optical flow inputs.   \\
+People with deafness or hearing disabilities who aim to use computer based systems, state of art video classification and human action recognition rely in a combination of traditional and new methods like optical flow and 3D CNN. In this article we show a novel method to detect Peruvian Sign Language elements (nSDm) from a weakly annotated videos dataset. Video annotation techniques were applied increasing the models performance, as a result we achieved XX precision and XX exhaustiveness by training a 3D CNN with optical flow inputs.   \\
 \keywords{video classification,human actions detection, optical flow, 3D CNN.}
 \end{abstract}
 
@@ -67,25 +73,125 @@ Feature trajectory detection are much improved using statistical methods like \t
 \section{Method}\label{method}
 \section{Experimentation}\label{experimentation}
 \subsection{Dataset Description \cite{lsp_dataset}}\label{datasetdesc}
-The LSP dataset was developed by the PUCP Grammar and Signs research group in 2014 and consists in a set of videos recorded during the interviews of 24 individuals, 12 male and 12 female informants, all of them are Lima Peru residents and reported to be borne with a permanent deafness condition or acquired the condition before the acquisition of Spanish. 
+The PSL dataset was developed by the PUCP Grammar and Signs research group in 2014 and consists in a set of videos recorded during the interviews of 24 individuals, 12 male and 12 female informants, all of them are Lima Peru residents and reported to be borne with a permanent deafness condition or acquired the condition before the acquisition of Spanish. 
 
 The dataset consists in 718 video clips recorded with a ADR-CX220 SONY HD camera which included an embedded microphone. The camera focused only the informant but also recorded questions, instructions and translations.
 
-The video clips were recorded in three sessions with the following participants: A coordinator, a LSP \cite{lsp_2015} translator and a informant.\\
+The video clips were recorded in three sessions with the following participants: A coordinator, a PSL \cite{lsp_2015} translator and a informant.\\
 
 \textbf{Recording Session 1}: A 45-60 minutes semi structured interview that included: Biographic information as well as habits, anecdotes, opinion about cultural subjects and elicitation of names, states and actions. 
 
 \textbf{Recording Session 2}: The informant was presented with a set of 55 cards describing actions and were asked to choose a set of them in order to build a coherent story that was subsequently told by the informant.
 
-\textbf{Recording Session 3}: A LSP \cite{lsp_2015} conversation facilitated by the coordinator happening between the informant and the translator.\\
+\textbf{Recording Session 3}: A PSL \cite{lsp_2015} conversation facilitated by the coordinator happening between the informant and the translator.\\
 
-During all the sessions a LSP \cite{lsp_2015} translator performs a translation after a word or phrase is completed. The dataset is weakly annotated given there is not direct relation between the translation and the instant when the sign is emitted.
+During all the sessions a PSL \cite{lsp_2015} translator performs a translation after a word or phrase is completed.
 
 \subsection{Video Annotation}\label{videoannot}
-\begin{figure}[ht!]
-\includegraphics[width=\linewidth]{video-annotation-pipeline.png}
+The PSL dataset is weakly annotated because there is no a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered, nSDm proposes a semi automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an annotated PSL dataset that can be used for training the nSDm model using supervised learning. The pipeline is described in detail in \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/video-annotation-pipeline.png}
 \caption{Video annotation process}
+\label{fig:video-annotation-pipeline}
 \end{figure}
+
+\subsubsection{Manual Video Clean Up}\label{manual-video-cleanup}
+The PSL recordings contain a considerable amount of noise introduced during the recording sessions, it makes difficult to find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator, the noise factors are listed in the following list:
+\begin{itemize}
+	\item Multiple participants speaking during the session.
+	\item Conversations between participants that are not relevant to emitted sings
+	\item High frequency of silent periods 
+\end{itemize}
+A manual video cleanup process is required to find noise free video segments (table \ref{table:noise-free-video-segments} lists a noise free video segments), it is a long process that required watching all the videos available in the PSL dataset and manually writing in a database when an informant started emitting signs and when the translator finished delivering a translation.
+\begin{table}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{lrrc}
+\toprule
+\multicolumn{1}{c}{\textbf{Video}} & 
+	\multicolumn{1}{c}{\textbf{Start}} &
+	\multicolumn{1}{c}{\textbf{End}} &
+	\multicolumn{1}{c}{\textbf{Alignment}}\\
+\midrule
+\multirow{5}{7.5em}{\textbf{consultant-02-session-01-part-01.mp4}} & 00:15 & 00:21 & center\\
+& 00:15 & 00:21 & center\\
+& 00:53 & 01:07 & center\\
+& 02:43 & 02:47 & center\\
+& 17:33 & 18:01 & left\\
+\bottomrule
+\end{tabular}
+\captionsetup{font=footnotesize}
+\caption{Noise free video segments extract} \label{table:noise-free-video-segments}
+\end{table}
+The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the PSL annotated dataset.
+\begin{table}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{cc}
+\toprule
+\multicolumn{1}{c}{\textbf{Center Aligned}} & 
+	\multicolumn{1}{c}{\textbf{Left Aligned}}\\
+\midrule
+\includegraphics{images/informant-center-alignment.png}& \includegraphics{images/informant-left-alignment.png}\\
+\bottomrule
+\end{tabular}
+\caption{Informant Alignment} \label{table:informant-alignment}
+\end{table}
+
+\subsubsection{Video Pre-Processing}\label{video-pre-processing}
+\subsubsection{Audio Transcription and Text Analysis}\label{audio-transcription-analysis}
+\begin{table}[!htb]
+\captionsetup{size=footnotesize}
+\begin{tabular}{ p{16em} c}
+\toprule
+\multicolumn{1}{c}{\textbf{Token}} & 
+	\multicolumn{1}{c}{\textbf{Frequency}}\\
+\midrule
+\textbf{pareja}&	4\\
+\textbf{cosas}&	3\\
+\textbf{cine}&	2\\
+\textbf{noche}&	2\\
+\textbf{terror}&	1\\
+\textbf{parque}&	1\\
+\textbf{casa}&	1\\
+\textbf{montón}&	1\\
+\textbf{apariciones}&	1\\
+\textbf{fantasmas}&	1\\
+\textbf{dos}&	1\\
+\bottomrule
+\end{tabular}
+\caption{Most relevant tokens detection frequency in the PSL dataset} \label{tab:token-freq}
+\end{table}
+
+\begin{table}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{ l p{10em} r r }
+%\resizebox{\textwidth}{!}{\begin{tabular}{ llrr }
+\toprule
+\multicolumn{1}{c}{\textbf{Token}} & 
+	\multicolumn{1}{c}{\textbf{Video}} &
+	\multicolumn{1}{c}{\textbf{Start}} &
+	\multicolumn{1}{c}{\textbf{End}}\\
+\midrule
+\textbf{cine}&	consultant-02-session-01-part-01-00.mp4&	4.19&	4.75\\
+\textbf{cine}&	consultant-02-session-01-part-01-01.mp4&	1.19&	1.75\\
+\textbf{terror}&	consultant-02-session-01-part-01-01.mp4&	3.82&	4.4\\
+\textbf{parque}&	consultant-02-session-01-part-01-03.mp4&	8.97&	9.3\\
+\textbf{casa}&	consultant-02-session-01-part-01-03.mp4&	10.12&	10.57\\
+\textbf{pareja}&	consultant-02-session-01-part-01-04.mp4&	3.91&	4.36\\
+\textbf{noche}&	consultant-02-session-01-part-01-04.mp4&	4.49&	4.92\\
+\textbf{noche}&	consultant-02-session-01-part-01-04.mp4&	7.91&	8.2\\
+\textbf{mont\'on}&	consultant-02-session-01-part-01-04.mp4&	8.5&	8.78\\
+\textbf{cosas}&	consultant-02-session-01-part-01-04.mp4&	8.88&	9.38\\
+\bottomrule
+\end{tabular}
+%\end{tabular}}
+\caption{Shows metadata extacted from the PSL dataset: (1)\textit{Token} could be a noun or a number (2)\textit{Video Path} shows the video where the token was detected (3)\textit{Start Time} time when the token reproduction starts (4)\textit{End Time} time when the token reproduction ends.}
+\end{table}
+
+\subsubsection{Samples Generation}\label{samples-generation} 
 \section{Conclusion}\label{conclusion}
 
 \bibliographystyle{ieeetr}
