@@ -8,7 +8,7 @@ from rgb_video_frames_handler import RGBVideoFramesHandler
 from common import io_utils
 
 
-class RGBSamplesGenerationProcessor(Processor):
+class RGBSamplesProcessor(Processor):
     __videos_dataset_rgb_path = 'dataset/rgb'
 
     def __init__(self):
@@ -23,7 +23,7 @@ class RGBSamplesGenerationProcessor(Processor):
             return
 
         reset_dataset = bool(data['reset_dataset'])
-        if reset_dataset and os.path.exists(self.__videos_dataset_rgb_path):
+        if reset_dataset and os.path.exists(os.path.join(self._work_dir, self.__videos_dataset_rgb_path)):
             shutil.rmtree(os.path.join(self._work_dir, self.__videos_dataset_rgb_path))
 
         delay_factor = float(data['translation_delay_factor'])

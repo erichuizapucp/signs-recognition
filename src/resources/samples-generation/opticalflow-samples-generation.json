@@ -1,0 +1,6 @@
+{
+  "operation": "opticalflow-samples-generation",
+  "payload": {
+    "reset_dataset": "true"
+  }
+}

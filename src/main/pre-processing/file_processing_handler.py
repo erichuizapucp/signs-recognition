@@ -6,7 +6,8 @@ from text_analisis.transcription_syntax_detection_processor import Transcription
 from transcription.transcription_processor import TranscriptionProcessor
 from video.video_splitting_processor import VideoSplittingProcessor
 from text_analisis.samples_metadata_generation_processor import SamplesMetadataGenerationProcessor
-from video.rgb_samples_generation_processor import RGBSamplesGenerationProcessor
+from video.rgb_samples_processor import RGBSamplesProcessor
+from video.opticalflow_samples_processor import OpticalFLowSamplesProcessor
 
 
 class FileProcessingHandler:
@@ -23,7 +24,8 @@ class FileProcessingHandler:
             'transcription-syntax-detection': lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
             'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x),
             'samples-metadata-generation': lambda x: SamplesMetadataGenerationProcessor().process(x),
-            'rgb-samples-generation': lambda x: RGBSamplesGenerationProcessor().process(x)
+            'rgb-samples-generation': lambda x: RGBSamplesProcessor().process(x),
+            'opticalflow-samples-generation': lambda x: OpticalFLowSamplesProcessor().process(x)
         }
 
         if operation in operations:
