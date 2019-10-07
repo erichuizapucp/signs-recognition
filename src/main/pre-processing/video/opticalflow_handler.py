@@ -26,7 +26,7 @@ class OpticalFlowHandler(Handler):
         color = [255, 0, 128]
 
         frame_index = 1
-        no_frames = len([name for name in os.listdir(rgb_sample_folder_path)])
+        no_frames = len([name for name in os.listdir(rgb_sample_folder_path) if name != '.DS_Store'])
         frame_file_name = os.path.join(rgb_sample_folder_path, 'frame' + str(frame_index) + '.jpg')
 
         # Take first frame and find corners in it

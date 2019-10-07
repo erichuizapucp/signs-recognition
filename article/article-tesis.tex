@@ -71,24 +71,8 @@ Human action recognition is a extensively studied field, action recognition data
 \textbf{Bag of Words (BoW)} or \textbf{Bag of Visual Words (BoVW)} based on natural language processing techniques is one of the simplest and oldest local descriptor encoding strategies. In its simplest form, it consists of (i) clustering with k-means a collection of descriptor vectors from the training set to build so-called visual vocabulary, (ii) as signing each descriptor to its nearest cluster center from the visual dictionary, and (iii) aggregating the one-hot assignment vectors via average pooling \cite{wang2019hallucinating}, when applied to Computer Vision is a technique used to create images representations or features vectors used that can be learned by CNNs, resulting on improved images classification and video classification. 
 Feature trajectory detection are much improved using statistical methods like \textbf{Fisher Vectors} obtaining better results over traditional BoW \textbf{Fussing parallel CNN.}, the Bag of Visual Words representation suffers from sparsity and high dimensionality, in the other hand representations obtained using the Fisher Vectors kernel are more compact and dense which results on better results on image and video classification problems.
 \section{Method}\label{method}
-\section{Experimentation}\label{experimentation}
-\subsection{Dataset Description \cite{lsp_dataset}}\label{datasetdesc}
-The PSL dataset was developed by the PUCP Grammar and Signs research group in 2014 and consists in a set of videos recorded during the interviews of 24 individuals, 12 male and 12 female informants, all of them are Lima Peru residents and reported to be borne with a permanent deafness condition or acquired the condition before the acquisition of Spanish. 
-
-The dataset consists in 718 video clips recorded with a ADR-CX220 SONY HD camera which included an embedded microphone. The camera focused only the informant but also recorded questions, instructions and translations.
-
-The video clips were recorded in three sessions with the following participants: A coordinator, a PSL \cite{lsp_2015} translator and a informant.\\
-
-\textbf{Recording Session 1}: A 45-60 minutes semi structured interview that included: Biographic information as well as habits, anecdotes, opinion about cultural subjects and elicitation of names, states and actions. 
-
-\textbf{Recording Session 2}: The informant was presented with a set of 55 cards describing actions and were asked to choose a set of them in order to build a coherent story that was subsequently told by the informant.
-
-\textbf{Recording Session 3}: A PSL \cite{lsp_2015} conversation facilitated by the coordinator happening between the informant and the translator.\\
-
-During all the sessions a PSL \cite{lsp_2015} translator performs a translation after a word or phrase is completed.
-
 \subsection{Video Annotation}\label{videoannot}
-The PSL dataset is weakly annotated because there is no a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered, nSDm proposes a semi automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an annotated PSL dataset that can be used for training the nSDm model using supervised learning. The pipeline is described in detail in \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
+The PSL dataset is weakly annotated because there is not a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered, nSDm proposes a semi automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an annotated PSL dataset that can be used for training the nSDm model using supervised learning. The pipeline is described in detail in \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
 
 \begin{figure}[hbt!]
 \includegraphics[width=\linewidth]{images/video-annotation-pipeline.png}
@@ -96,14 +80,18 @@ The PSL dataset is weakly annotated because there is no a direct relation betwee
 \label{fig:video-annotation-pipeline}
 \end{figure}
 
-\subsubsection{Manual Video Clean Up}\label{manual-video-cleanup}
-The PSL recordings contain a considerable amount of noise introduced during the recording sessions, it makes difficult to find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator, the noise factors are listed in the following list:
+\subsubsection{Manual Automatic Video Clean Up}\label{manual-video-cleanup}
+The PSL recordings described on \ref{datasetdesc} contain a considerable amount of noise introduced during the recording sessions which makes difficult to easily find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator, the noise factors are listed in the following list:
 \begin{itemize}
 	\item Multiple participants speaking during the session.
-	\item Conversations between participants that are not relevant to emitted sings
-	\item High frequency of silent periods 
+	\item Conversations between participants that are not relevant to emitted sings.
+	\item High frequency of silent periods.
 \end{itemize}
-A manual video cleanup process is required to find noise free video segments (table \ref{table:noise-free-video-segments} lists a noise free video segments), it is a long process that required watching all the videos available in the PSL dataset and manually writing in a database when an informant started emitting signs and when the translator finished delivering a translation.
+A manual video cleanup process is required to find noise free video intervals, it is a manual process that requires watching all the videos available in the PSL dataset and manually annotating the instant when an informant started emitting sings and the instant when the translator completed delivering a translation, table \ref{table:noise-free-video-segments} shows an annotation example. 
+
+The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the PSL annotated dataset.
+
+% Noise free video segment extract table
 \begin{table}[!htb]
 \captionsetup{font=footnotesize}
 \centering
@@ -113,6 +101,11 @@ A manual video cleanup process is required to find noise free video segments (ta
 	\multicolumn{1}{c}{\textbf{Start}} &
 	\multicolumn{1}{c}{\textbf{End}} &
 	\multicolumn{1}{c}{\textbf{Alignment}}\\
+\midrule
+\multirow{5}{7.5em}{\textbf{consultant-01-session-01-part-01.mp4}} & 00:30 & 00:55 & center\\
+& 01:15 & 01:29 & center\\
+& 00:53 & 01:07 & center\\
+& 08:12 & 09:01 & center\\
 \midrule
 \multirow{5}{7.5em}{\textbf{consultant-02-session-01-part-01.mp4}} & 00:15 & 00:21 & center\\
 & 00:15 & 00:21 & center\\
@@ -124,7 +117,8 @@ A manual video cleanup process is required to find noise free video segments (ta
 \captionsetup{font=footnotesize}
 \caption{Noise free video segments extract} \label{table:noise-free-video-segments}
 \end{table}
-The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the PSL annotated dataset.
+
+% Informat aligment
 \begin{table}[!htb]
 \captionsetup{font=footnotesize}
 \centering
@@ -140,7 +134,13 @@ The recordings show the informant in two alignments (centered and left), the man
 \end{table}
 
 \subsubsection{Video Pre-Processing}\label{video-pre-processing}
-\subsubsection{Audio Transcription and Text Analysis}\label{audio-transcription-analysis}
+Weakly PSL annotated videos require processing before any metadata can be extracted, we propose a sequence of pre-processing tasks that take advantage of the annotation generated on \ref{manual-video-cleanup}. A \textbf{video splitting processor} generates a set of video chunks using the \textit{ffmpeg} multimedia framework and stores the produced chunks in Amazon S3 for later usage. The audio within the video chunks is then transcribed by an \textbf{audio transcription processor}, using the Amazon Transcription service, we selected the Amazon Transcription service because it provides an accurate mapping between audio participants and transcribed words along with useful metadata that describes the start and end time when words are pronounced. 
+
+At the moment of writing this work Amazon Transcription service only supported Spanish for Spain and the US, it caused certain words that are specific for Peruvian Spanish not being fully recognized, in order to improve transcription accuracy we provided a custom vocabulary containing Peruvian expressions which improved  Peruvian words recognition, for the matters of this work unrecognized Peruvian words were omitted and not processed.
+
+\subsubsection{Audio Transcription Analysis}\label{audio-transcription-analysis}
+Audio transcription requires additional processing in order to produce useful information that leads to a successful PSL signs detection. Bag of Embedding Words (BoEW) is a widely used technique on Natural Language Processing tasks providing a easy and flexible way to list the most relevant words based on frequency. This work is focused on detecting nouns and numbers (nSDm is a ongoing method that will be progressively improved to handle a wider set of PSL elements) assuming that nouns (numbers are a subset of nouns) suffer less variations in spoken Spanish than verbs, pronouns, adverbs and adjectives, and provide more semantic value than conjunctions, prepositions and interjections. 
+
 \begin{table}[!htb]
 \captionsetup{size=footnotesize}
 \begin{tabular}{ p{16em} c}
@@ -148,27 +148,39 @@ The recordings show the informant in two alignments (centered and left), the man
 \multicolumn{1}{c}{\textbf{Token}} & 
 	\multicolumn{1}{c}{\textbf{Frequency}}\\
 \midrule
-\textbf{pareja}&	4\\
-\textbf{cosas}&	3\\
-\textbf{cine}&	2\\
-\textbf{noche}&	2\\
-\textbf{terror}&	1\\
-\textbf{parque}&	1\\
-\textbf{casa}&	1\\
-\textbf{montón}&	1\\
-\textbf{apariciones}&	1\\
-\textbf{fantasmas}&	1\\
-\textbf{dos}&	1\\
+\textbf{pareja}&	40\\
+\textbf{cosas}&	30\\
+\textbf{cine}&	20\\
+\textbf{noche}&	20\\
+\textbf{terror}&	10\\
+\textbf{parque}&	10\\
+\textbf{casa}&	10\\
+\textbf{montón}&	10\\
+\textbf{apariciones}&	10\\
+\textbf{fantasmas}&	10\\
+\textbf{dos}&	10\\
 \bottomrule
 \end{tabular}
 \caption{Most relevant tokens detection frequency in the PSL dataset} \label{tab:token-freq}
 \end{table}
 
+We used Amazon comprehend for text analysis, specifically the syntax detection functionality which will provide a comprehensive list of detected language elements along with a score from 0.0 to 1.0 indicating the detection accuracy, we have selected the ones that have at least a 0.8 accuracy score and omitted the rest, this process was automated using a \textbf{transcription detection processor} which uses BoEW to provide a list of most relevant nouns and numbers based on appearance frequency. Table \ref{tab:token-freq} shows a list of nouns and numbers and their frequencies in the PSL dataset.
+
+Once a weighted list of nouns and numbers is generated a mapping showing when nouns and numbers appear in videos is required, moving forward called \textbf{Samples Metadata}. Table \ref{tab:token-video-mapping} shows mapping metadata extracted from PSL.
+
+\subsubsection{Samples Generation}\label{samples-generation} 
+nSDm requires PSL elements to be represented as a set of RGB frames and a calculated Optical Flow using the Lucas-Kanade method, both representations are inputs of two different models as presented on \ref{nsdm}.
+
+\textbf{Translation Delay Factor: } The difference in time between the instant when a sign is emitted and when a translation for that given sign is delivered is uncertain, we are calling that uncertainty as the \textit{translation delay factor} which we are trying to approximate using a constant value, we have chosen a 3 seconds translation delay factor assuming that most of the translations will occur between three seconds after a sign is emitted.
+
+A \textbf{RGB Samples generation processor} uses samples metadata in combination with the translation delay factor to determine frames that represent a given PSL element. We use \textit{OpenCV} to extract frames and store them following a hierarchical folder structure (listing \ref{list:rgb-samples-folders}) that nSDm data loaders will use to feed data into the RGM branch on the nSDm model architecture during training and testing.
+
+A \textbf{Optical Flow Samples generation processor} uses video frames and the hierarchical folder structure generated by the RGM samples generation processor to calculate an Optical Flow representation for PSL elements and store them in a hierarchical folder structure that will also used by the nSDm data loaders to feed the optical flow branch on the nSDm model architecture during training and testing. We selected optical flow as a samples generation strategy because its ability to represent movement traces from previous frames, it is particular useful for representing PSL elements, a PSL element is composed on different body movements including: elbow, arms, neck, eyes, shoulders and hands, which are performed quickly, a way to detect movement traces between frames allows to generate a single image representation of all movement involved on a sign emitting (Figure \ref{fig:opticalflow-two}). 
+
 \begin{table}[!htb]
 \captionsetup{font=footnotesize}
 \centering
 \begin{tabular}{ l p{10em} r r }
-%\resizebox{\textwidth}{!}{\begin{tabular}{ llrr }
 \toprule
 \multicolumn{1}{c}{\textbf{Token}} & 
 	\multicolumn{1}{c}{\textbf{Video}} &
@@ -189,9 +201,83 @@ The recordings show the informant in two alignments (centered and left), the man
 \end{tabular}
 %\end{tabular}}
 \caption{Shows metadata extacted from the PSL dataset: (1)\textit{Token} could be a noun or a number (2)\textit{Video Path} shows the video where the token was detected (3)\textit{Start Time} time when the token reproduction starts (4)\textit{End Time} time when the token reproduction ends.}
+\label{tab:token-video-mapping}
 \end{table}
 
-\subsubsection{Samples Generation}\label{samples-generation} 
+\subsection{Novel Signs Detection Method (nSDm)}\label{nsdm}
+\subsubsection{Architecture}\label{nsdm-architecture}
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/network-architecture.png}
+\caption{nSDm network architecture}
+\label{fig:opticalflow-two}
+\end{figure}
+\subsection{New Videos Testing}
+
+\section{Experimentation}\label{experimentation}
+\subsection{Dataset Description \cite{lsp_dataset}}\label{datasetdesc}
+The PSL dataset was developed by the PUCP Grammar and Signs research group in 2014 and consists in a set of videos recorded during the interviews of 24 individuals, 12 male and 12 female informants, all of them are Lima Peru residents and reported to be borne with a permanent deafness condition or acquired the condition before the acquisition of Spanish. 
+
+The dataset consists in 718 video clips recorded with a ADR-CX220 SONY HD camera which included an embedded microphone. The camera focused only the informant but also recorded questions, instructions and translations.
+
+The video clips were recorded in three sessions with the following participants: A coordinator, a PSL \cite{lsp_2015} translator and a informant.\\
+
+\textbf{Recording Session 1}: A 45-60 minutes semi structured interview that included: Biographic information as well as habits, anecdotes, opinion about cultural subjects and elicitation of names, states and actions. 
+
+\textbf{Recording Session 2}: The informant was presented with a set of 55 cards describing actions and were asked to choose a set of them in order to build a coherent story that was subsequently told by the informant.
+
+\textbf{Recording Session 3}: A PSL \cite{lsp_2015} conversation facilitated by the coordinator happening between the informant and the translator.\\
+
+During all the sessions a PSL \cite{lsp_2015} translator performs a translation after a word or phrase is completed.
+
+\subsection{Video Annotation Results}
+The video annotation pipeline described on \ref{videoannot} produced an annotated PSL dataset suitable for using it in a supervised learning experiment. The annotated dataset is divided in two main parts (RGB and Optical Flow samples)
+
+\textbf{RGB Samples folder structure} is a hierarchical folder structure where each detected noun or number is represented as a first level folder, all instances of a detected sign received an identifier which is an auto incremental integer, detected instances represent the second level folders, detected signs video represent the third level, Figure \ref{fig:rgb-two}.
+\begin{lstlisting}[caption=RGB Samples Folder Structure example, basicstyle=\ttfamily\small]
+L1:dos
+	L2:1
+		L3:rgb-frame01.jpg
+		L3:rgb-frame02.jpg
+		L3:rgb-frame03.jpg
+		...
+		L3:rgb-frame08.jpg
+L1:cine
+	L2:1
+		L3:rgb-frame01.jpg
+		L3:rgb-frame02.jpg
+		L3:rgb-frame03.jpg
+		...
+		L3:rgb-frame15.jpg
+	L2:2
+		L3:rgb-frame01.jpg
+		L3:rgb-frame02.jpg
+		L3:rgb-frame03.jpg
+		...
+		L3:rgb-frame11.jpg
+\end{lstlisting}\label{list:rgb-samples-folders}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/dos-rgb-frames.png}
+\caption{PSL number "Two" RGB representation}
+\label{fig:rgb-two}
+\end{figure}
+
+\textbf{Optical Flow samples folder structure} is a hierarchical folder structure based on the RGB samples folder structure, it is a more simple based on two levels instead of three, the nature of Optical Flow of tracing movement between frames allow to produce a single image for each detected PSL element instance (listing \ref{list:opticalflow-samples-folders}), Figure \ref{fig:opticalflow-two} shows an example of an optical flow generated sample
+\begin{lstlisting}[caption=Optical Flow Samples Folder Structure example, basicstyle=\ttfamily\small]
+L1:dos
+	L2:oflow-dos-01.jpg
+L1:cine
+	L2:oflow-cine-01.jpg
+	L2:oflow-cine-02.jpg
+\end{lstlisting}\label{list:opticalflow-samples-folders}
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/dos-opticalflow.jpg}
+\caption{PSL number "Two" OpticalFlow representation}
+\label{fig:opticalflow-two}
+\end{figure}
+
+\subsection{nSDm results}
+
 \section{Conclusion}\label{conclusion}
 
 \bibliographystyle{ieeetr}
