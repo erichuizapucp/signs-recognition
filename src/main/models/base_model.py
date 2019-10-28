@@ -20,6 +20,8 @@ class BaseModel:
     def get_loss_function(self):
         pass
 
+
+
     def train(self):
         pass
 
