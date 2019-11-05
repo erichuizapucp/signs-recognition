@@ -8,16 +8,16 @@ optical_flow_network_name = 'opticalflow'
 rgb_network_name = 'rgb'
 
 
-def get_opticalflow_network(x):
+def get_opticalflow_network():
     dataset_path = os.path.join(base_dataset_path, 'opticalflow')
-    nn = OpticalFlowNetwork(dataset_path, **x)
+    nn = OpticalFlowNetwork(dataset_path, **kwargs)
     nn.load_dataset()
     return nn
 
 
-def get_rgb_network(x):
+def get_rgb_network():
     dataset_path = os.path.join(base_dataset_path, 'rgb')
-    nn = RGBNetwork(dataset_path, **x)
+    nn = RGBNetwork(dataset_path, **kwargs)
     nn.load_dataset()
     return nn
 
@@ -47,10 +47,11 @@ if __name__ == '__main__':
         'opticalflow': get_opticalflow_network,
         'rgb': get_rgb_network,
     }
-    network = networks[args.network](kwargs)
+    network = networks[args.network]()
 
     operations = {
-        'train': network.train_network(),
-        'evaluate': network.evaluate_network(),
-        'predict': network.predict(),
+        'train': network.train_network,
+        'evaluate': network.evaluate_network,
+        'predict': network.predict,
     }
+    operations[args.operation]()
