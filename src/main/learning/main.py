@@ -1,7 +1,7 @@
 import os
 
-from models.networks.opticalflow_network import OpticalFlowNetwork
-from models.networks.rgb_network import RGBNetwork
+from learning.models.opticalflow_model import OpticalFlowNetwork
+from learning.models.rgb_model import RGBNetwork
 from argparse import ArgumentParser
 
 optical_flow_network_name = 'opticalflow'
@@ -11,14 +11,14 @@ rgb_network_name = 'rgb'
 def get_opticalflow_network():
     dataset_path = os.path.join(base_dataset_path, 'opticalflow')
     nn = OpticalFlowNetwork(dataset_path, **kwargs)
-    nn.load_dataset()
+    nn.configure()
     return nn
 
 
 def get_rgb_network():
     dataset_path = os.path.join(base_dataset_path, 'rgb')
     nn = RGBNetwork(dataset_path, **kwargs)
-    nn.load_dataset()
+    nn.configure()
     return nn
 
 

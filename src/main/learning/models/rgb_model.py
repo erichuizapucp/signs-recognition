@@ -1,8 +1,8 @@
 import tensorflow as tf
-from networks.base_network import BaseNetwork
+from models.base_model import BaseModel
 
 
-class RGBNetwork(BaseNetwork):
+class RGBNetwork(BaseModel):
     def __init__(self, dataset_name, **kwargs):
         pass
 
