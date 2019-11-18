@@ -2,7 +2,7 @@ import tensorflow as tf
 from models.base_model import BaseModel
 
 
-class RGBNetwork(BaseModel):
+class RGBModel(BaseModel):
     def __init__(self, dataset_name, **kwargs):
         pass
 

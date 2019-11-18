@@ -3,7 +3,7 @@ import tensorflow as tf
 from models.base_model import BaseModel
 
 
-class OpticalFlowNetwork(BaseModel):
+class OpticalFlowModel(BaseModel):
     def __init__(self, dataset_name, **kwargs):
         super().__init__(dataset_name, **kwargs),
 

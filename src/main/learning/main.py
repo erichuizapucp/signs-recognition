@@ -1,29 +1,39 @@
+import logging
 import os
 
-from learning.models.opticalflow_model import OpticalFlowNetwork
-from learning.models.rgb_model import RGBNetwork
+from learning.models.opticalflow_model import OpticalFlowModel
+from learning.models.rgb_model import RGBModel
 from argparse import ArgumentParser
+
+from logger_config import setup_logging
 
 optical_flow_network_name = 'opticalflow'
 rgb_network_name = 'rgb'
 
 
-def get_opticalflow_network():
+def get_opticalflow_model():
     dataset_path = os.path.join(base_dataset_path, 'opticalflow')
-    nn = OpticalFlowNetwork(dataset_path, **kwargs)
+    nn = OpticalFlowModel(dataset_path, **kwargs)
     nn.configure()
     return nn
 
 
-def get_rgb_network():
+def get_rgb_model():
     dataset_path = os.path.join(base_dataset_path, 'rgb')
-    nn = RGBNetwork(dataset_path, **kwargs)
+    nn = RGBModel(dataset_path, **kwargs)
     nn.configure()
     return nn
 
 
 if __name__ == '__main__':
     working_folder = os.getenv('WORK_DIR', './')
+
+    # configure logging
+    setup_logging(working_folder, 'learning-logging.yaml')
+    logger = logging.getLogger(__name__)
+
+    logger.debug("test")
+
     base_dataset_path = os.path.join(working_folder, 'dataset')
 
     parser = ArgumentParser()
@@ -44,8 +54,8 @@ if __name__ == '__main__':
     }
 
     networks = {
-        'opticalflow': get_opticalflow_network,
-        'rgb': get_rgb_network,
+        'opticalflow': get_opticalflow_model,
+        'rgb': get_rgb_model,
     }
     network = networks[args.network]()
 

@@ -2,32 +2,13 @@ import json
 import time
 import os
 import io_utils
-import logging
 import logging.config
-import yaml
 
 from watchdog.observers import Observer
 from incoming_queue_watcher import IncomingQueueWatcher
 from file_processing_handler import FileProcessingHandler
 
-
-def setup_logging(default_level=logging.INFO):
-    logging_config = 'logging.yaml'
-
-    logging_config = os.path.join(working_folder, logging_config)
-
-    if os.path.exists(logging_config):
-        with open(logging_config, 'rt') as f:
-            try:
-                config = yaml.safe_load(f.read())
-                logging.config.dictConfig(config)
-            except Exception as e:
-                print(e)
-                print('Error in logging Configuration. Using default configs')
-                logging.basicConfig(level=default_level)
-    else:
-        logging.basicConfig(level=default_level)
-        print('Failed to load configuration file. Using default configs')
+from logger_config import setup_logging
 
 
 def main():
@@ -62,7 +43,7 @@ if __name__ == '__main__':
     working_folder = os.getenv('WORK_DIR', './')
 
     # configure logging
-    setup_logging()
+    setup_logging(working_folder, 'pre-processing-logging.yaml')
     logger = logging.getLogger(__name__)
 
     # execute video pre-processing logic

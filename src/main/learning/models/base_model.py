@@ -1,8 +1,10 @@
 import tensorflow as tf
 import pathlib
 import os
+
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
+from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 
 
 class BaseModel(tf.keras.Model):
