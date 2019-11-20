@@ -25,6 +25,19 @@ def get_rgb_model():
     return nn
 
 
+def get_cmd_args():
+    parser = ArgumentParser()
+
+    parser.add_argument('-n', '--model', help='Model Name', required=True)
+    parser.add_argument('-o', '--operation', help='Operation', default='train')
+
+    parser.add_argument('-bs', '--batch_size', help='Batch Size', default=10)
+    parser.add_argument('-nc', '--no_classes', help='Number of classes', default=10)
+    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=20)
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
     working_folder = os.getenv('WORK_DIR', './')
 
@@ -32,20 +45,8 @@ if __name__ == '__main__':
     setup_logging(working_folder, 'learning-logging.yaml')
     logger = logging.getLogger(__name__)
 
-    logger.debug("test")
-
     base_dataset_path = os.path.join(working_folder, 'dataset')
-
-    parser = ArgumentParser()
-
-    parser.add_argument('-n', '--network', help='Network Name', required=True)
-    parser.add_argument('-o', '--operation', help='Operation', default='train')
-
-    parser.add_argument('-bs', '--batch_size', help='Batch Size', default=10)
-    parser.add_argument('-nc', '--no_classes', help='Number of classes', default=10)
-    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=20)
-
-    args = parser.parse_args()
+    args = get_cmd_args()
 
     kwargs = {
         'BatchSize': args.batch_size,
@@ -53,15 +54,15 @@ if __name__ == '__main__':
         'NoEpochs': args.no_epochs,
     }
 
-    networks = {
+    models = {
         'opticalflow': get_opticalflow_model,
         'rgb': get_rgb_model,
     }
-    network = networks[args.network]()
+    model = models[args.model]()
 
     operations = {
-        'train': network.train_network,
-        'evaluate': network.evaluate_network,
-        'predict': network.predict,
+        'train': model.train_network,
+        'evaluate': model.evaluate_network,
+        'predict': model.predict,
     }
     operations[args.operation]()

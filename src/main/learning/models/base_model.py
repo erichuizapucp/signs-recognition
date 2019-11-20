@@ -12,9 +12,6 @@ class BaseModel(tf.keras.Model):
         super(BaseModel, self).__init__()
 
         self._dataset_path = dataset_path
-        self._batch_size = kwargs['BatchSize']
-        self._no_classes = kwargs['NoClasses']
-        self._epochs = kwargs['NoEpochs']
         self._model = None
 
         self.data_folder = pathlib.Path(self._dataset_path)
@@ -23,7 +20,7 @@ class BaseModel(tf.keras.Model):
         pass
 
     def configure(self):
-        pass
+        self._model.compile()
 
     def get_class_names(self):
         pass
