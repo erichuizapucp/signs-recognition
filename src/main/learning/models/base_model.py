@@ -1,26 +1,45 @@
-import tensorflow as tf
-import pathlib
+import logging
 import os
+import pathlib
+import tensorflow as tf
 
-from tensorflow.keras import layers
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 
 
-class BaseModel(tf.keras.Model):
-    def __init__(self, dataset_path, **kwargs):
-        super(BaseModel, self).__init__()
+class BaseModel:
+    DEFAULT_NO_CLASSES = 10
+    DEFAULT_LEARNING_RATE = 0.001
+    DEFAULT_NO_EPOCHS = 50
 
-        self._dataset_path = dataset_path
-        self._model = None
+    SAVED_MODEL_FOLDER_NAME = 'saved-models/'
 
-        self.data_folder = pathlib.Path(self._dataset_path)
+    def __init__(self, working_folder, **kwargs):
+        self.working_folder = working_folder
 
-    def call(self, inputs, training=None, mask=None):
+        self.learning_rate = kwargs['LearningRate'] or self.DEFAULT_LEARNING_RATE
+        self.no_classes = kwargs['NoClasses'] or self.DEFAULT_NO_CLASSES
+        self.no_epochs = kwargs['NoEpochs'] or self.DEFAULT_NO_EPOCHS
+
+        self.model: Model = Model()  # using a default model if not assigned
+        self.model_history = None
+        self.pre_trained_model: Model
+
+        self.logger = logging.getLogger(__name__)
+
+    def get_model(self):
         pass
 
-    def configure(self):
-        self._model.compile()
+    def show_sample(self):
+        pass
+
+    def train(self):
+        pass
+
+    def evaluate(self):
+        pass
+
+    def predict(self):
+        pass
 
     def get_class_names(self):
         pass
@@ -28,14 +47,7 @@ class BaseModel(tf.keras.Model):
     def load_dataset(self):
         pass
 
-    def configure_model(self):
-        pass
-
-    def train_network(self):
-        self.configure_model()
-
-    def evaluate_network(self):
-        pass
-
-    def predict(self):
-        pass
+    def __save_model(self):
+        saved_model_path = os.path.join(self.working_folder, self.SAVED_MODEL_FOLDER_NAME)
+        tf.saved_model.save(self.model, saved_model_path)
+        self.logger.debug('model saved to %s', saved_model_path)

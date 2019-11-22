@@ -14,14 +14,12 @@ rgb_network_name = 'rgb'
 def get_opticalflow_model():
     dataset_path = os.path.join(base_dataset_path, 'opticalflow')
     nn = OpticalFlowModel(dataset_path, **kwargs)
-    nn.configure()
     return nn
 
 
 def get_rgb_model():
     dataset_path = os.path.join(base_dataset_path, 'rgb')
     nn = RGBModel(dataset_path, **kwargs)
-    nn.configure()
     return nn
 
 
@@ -61,8 +59,8 @@ if __name__ == '__main__':
     model = models[args.model]()
 
     operations = {
-        'train': model.train_network,
-        'evaluate': model.evaluate_network,
+        'train': model.train,
+        'evaluate': model.evaluate,
         'predict': model.predict,
     }
     operations[args.operation]()
