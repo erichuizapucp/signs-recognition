@@ -8,7 +8,6 @@ from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras import Input
-from tensorflow.keras.activations import sigmoid
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Recall, AUC, Precision
@@ -37,26 +36,23 @@ class OpticalFlowModel(BaseModel):
 
         # Opticalflow model definition
         inputs = Input(shape=(self.img_width, self.img_height, self.no_channels), name='inputs')
-        x = pre_trained_model.trainable(inputs)
-        x = GlobalAveragePooling2D(name='global avg pooling')(x)
-        outputs = Dense(no_classes, activation=sigmoid(), name='classifier')(x)
+        x = pre_trained_model(inputs)
+        x = GlobalAveragePooling2D(name='OpticalflowGlobalAvgPooling')(x)
+        outputs = Dense(no_classes, activation='softmax', name='OpticalflowClassifier')(x)
 
         # Opticalflow model assembling
-        model = Model(inputs=inputs, outputs=outputs, name='opticalflow model')
-        self.logger.debug('Opticalflow model summary: \n %s', self.model.summary())
+        model = Model(inputs=inputs, outputs=outputs, name='OpticalflowModel')
+        self.logger.debug('Opticalflow model summary: \n %s', model.summary())
 
         # Opticalflow model compilation
         optimizer = Adam(self.learning_rate)
         model.compile(optimizer=optimizer, loss=CategoricalCrossentropy(), metrics=[Recall(), AUC(), Precision()])
+
         return model
 
     def get_dataset(self) -> tf.data.Dataset:
         dataset = tf.data.Dataset.list_files(self.dataset_path + '/*/*')
         labeled_dataset = dataset.map(self.__process_image_path, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-        # for image, label in labeled_dataset.take(5):
-        #     print("Image shape: {}", image.numpy().shape)
-        #     print("Label: {}", label.numpy())
 
         return labeled_dataset
 
