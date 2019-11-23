@@ -11,15 +11,15 @@ class CombinedModel(BaseModel):
     OPTICALFLOW_MODEL_FOLDER_NAME = 'saved-models/opticalflow/'
     RGB_MODEL_FOLDER_NAME = 'saved-models/rgb/'
 
-    def __init__(self, working_folder, **kwargs):
-        super(CombinedModel, self).__init__(working_folder, **kwargs)
+    def __init__(self, working_folder, dataset_path, **kwargs):
+        super(CombinedModel, self).__init__(working_folder, dataset_path, **kwargs)
 
         self.opticalflow_model_path = os.path.join(self.working_folder, OpticalFlowModel.SAVED_MODEL_FOLDER_NAME)
         self.rgb_model_path = os.path.join(self.working_folder, RGBModel.SAVED_MODEL_FOLDER_NAME)
 
         self.logger = logging.getLogger(__name__)
 
-    def load_dataset(self):
+    def get_dataset(self):
         pass
 
     def get_model(self):

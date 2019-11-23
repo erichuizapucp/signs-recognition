@@ -6,12 +6,12 @@ from models.base_model import BaseModel
 class RGBModel(BaseModel):
     SAVED_MODEL_FOLDER_NAME = 'saved-models/rgb/'
 
-    def __init__(self, working_folder, **kwargs):
-        super().__init__(working_folder, **kwargs)
+    def __init__(self, working_folder, dataset_path, **kwargs):
+        super().__init__(working_folder, dataset_path, **kwargs)
 
         self.logger = logging.getLogger(__name__)
 
-    def load_dataset(self):
+    def get_dataset(self):
         pass
 
     def get_model(self):

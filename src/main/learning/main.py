@@ -7,19 +7,22 @@ from argparse import ArgumentParser
 
 from logger_config import setup_logging
 
+DEFAULT_NO_CLASSES = 10
+DEFAULT_LEARNING_RATE = 0.001
+DEFAULT_NO_EPOCHS = 50
+DEFAULT_BATCH_SIZE = 10
+
 optical_flow_network_name = 'opticalflow'
 rgb_network_name = 'rgb'
 
 
 def get_opticalflow_model():
-    dataset_path = os.path.join(base_dataset_path, 'opticalflow')
-    nn = OpticalFlowModel(dataset_path, **kwargs)
+    nn = OpticalFlowModel(working_folder, dataset_path, **kwargs)
     return nn
 
 
 def get_rgb_model():
-    dataset_path = os.path.join(base_dataset_path, 'rgb')
-    nn = RGBModel(dataset_path, **kwargs)
+    nn = RGBModel(working_folder, dataset_path, **kwargs)
     return nn
 
 
@@ -28,10 +31,10 @@ def get_cmd_args():
 
     parser.add_argument('-n', '--model', help='Model Name', required=True)
     parser.add_argument('-o', '--operation', help='Operation', default='train')
-
-    parser.add_argument('-bs', '--batch_size', help='Batch Size', default=10)
-    parser.add_argument('-nc', '--no_classes', help='Number of classes', default=10)
-    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=20)
+    parser.add_argument('-ds', '--dataset_path', help='Dataset Path', required=True)
+    parser.add_argument('-bs', '--batch_size', help='Batch Size', default=DEFAULT_BATCH_SIZE)
+    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
+    parser.add_argument('-lr', '--learning_rate', help='Leaning Rate', default=DEFAULT_LEARNING_RATE)
 
     return parser.parse_args()
 
@@ -43,13 +46,13 @@ if __name__ == '__main__':
     setup_logging(working_folder, 'learning-logging.yaml')
     logger = logging.getLogger(__name__)
 
-    base_dataset_path = os.path.join(working_folder, 'dataset')
     args = get_cmd_args()
 
+    dataset_path = args.dataset_path
     kwargs = {
         'BatchSize': args.batch_size,
-        'NoClasses': args.no_classes,
         'NoEpochs': args.no_epochs,
+        'LearningRate': args.learning_rate
     }
 
     models = {
