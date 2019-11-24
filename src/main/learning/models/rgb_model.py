@@ -8,14 +8,7 @@ class RGBModel(BaseModel):
 
     def __init__(self, working_folder, dataset_path, **kwargs):
         super().__init__(working_folder, dataset_path, **kwargs)
-
         self.logger = logging.getLogger(__name__)
-
-    def get_dataset(self):
-        pass
-
-    def get_model(self):
-        pass
 
     def train(self):
         self.logger.debug('Opticalflow model train started with the following parameters')

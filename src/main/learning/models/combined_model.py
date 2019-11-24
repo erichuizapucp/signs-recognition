@@ -19,10 +19,7 @@ class CombinedModel(BaseModel):
 
         self.logger = logging.getLogger(__name__)
 
-    def get_dataset(self):
-        pass
-
-    def get_model(self):
+    def __get_model(self):
         if not os.path.exists(self.opticalflow_model_path):
             self.logger.error('the pre-trained opticalflow model does not exist at %s', self.opticalflow_model_path)
 
