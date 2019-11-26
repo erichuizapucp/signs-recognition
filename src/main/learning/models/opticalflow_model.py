@@ -59,7 +59,7 @@ class OpticalFlowModel(BaseModel):
 
         # Opticalflow model assembling
         model = Model(inputs=inputs, outputs=outputs, name='OpticalflowModel')
-        self.logger.debug('Opticalflow model summary: \n %s', model.summary())
+        # self.logger.debug('Opticalflow model summary: \n %s', model.summary())
 
         # Opticalflow model compilation
         optimizer = Adam(learning_rate)
