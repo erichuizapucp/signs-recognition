@@ -8,11 +8,11 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Recall, AUC, Precision
 
 
-class RGBModel(BaseModel):
-    SAVED_MODEL_FOLDER_NAME = 'saved-models/rgb/'
+class RGBRecurrentModel(BaseModel):
+    MODEL_NAME = 'rgb'
 
     def __init__(self, working_folder, dataset_root_path):
-        super(RGBModel, self).__init__(working_folder, dataset_root_path)
+        super(RGBRecurrentModel, self).__init__(working_folder, dataset_root_path)
         self.logger = logging.getLogger(__name__)
 
     def get_dataset(self, dataset_path, **kwargs) -> tf.data.Dataset:

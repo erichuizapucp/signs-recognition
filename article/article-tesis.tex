@@ -32,7 +32,7 @@
 \title{%
 	\vspace{-2.0cm}
 	\textbf{Talking with signs} \\	
-	\Large \textbf{A method for progressively detect signs in a non annotated signs language corpus}
+	\Large \textbf{A simple method to detect nouns and numbers in a non annotated signs language corpus}
 }
 
 \maketitle
@@ -45,25 +45,31 @@ People with deafness or hearing disabilities who aim to use computer based syste
 \section{Introduction}\label{intro}
 The World Health Organization (WHO) stated that 466 million people world wide have disabling hearing loss, estimating that by 2050 over 900 million people will have disabling hearing loss that will represent a global cost of 750 million dollars annually \cite{deafness_and_hearing_loss_2019}. 
 
-The Peruvian Institute of Informatics and Statistics (INEI) conducted a national disabilities survey with the objective of segmenting and acquire a better understanding about disabilities that affect the Peruvian population \cite{disabilities_survey_2012}, the results showed that 1.8\% of the Peruvian population suffer of at least partial when not permanent deafness or hearing limitations. 
+The Peruvian Institute of Informatics and Statistics (INEI) conducted a national disabilities survey with the objective of segmenting and acquire a better understanding about disabilities that affect the Peruvian population \cite{disabilities_survey_2012}, the results showed that 1.8\% of the Peruvian population suffer at least partial when not permanent deafness or hearing limitations. 
 
-With today's Deep Learning techniques for Computer Vision and Natural Language Processing it is completely feasible to propose and design systems that are able to detect and transcribe sign languages elements improving in systems accessibility for people with physical limitations. Sings detection is usually a supervised learning task that requires a large and fully labeled dataset in order to achieve satisfactory results during model training and inference tasks. At the time  of writing this work there were no labeled data sets available for the PSL \cite{lsp_2015}, previous work was done by the \textit{Grammar and Signs research group of the Pontifical Catholic University of Peru (PUCP)} who created the first PSL corpus \cite{lsp_dataset}, this corpus is not annotated because there is no available metadata that describes signs being emitted and
+Peruvians with deafness or hearing limitations use the Peruvian Signs Language (PSL) as their main communication medium. PSL is of mandatory usage at universities and certain public institutions, here the importance of designing systems that are capable to support PSL inputs and outputs. Furthermore, in the same way as spoken languages, signs languages also present local variations e.g. people who live in Lima metropolitan area are not expected to use the same set of signs as people in other parts of the territory. This work uses the PSL variation used in Lima due to the difficulty or inability to find datasets for other PSL variations. 
 
-  on annotating a Peruvian Sign Language (PSL) \cite{lsp_2015} a dataset, configuring an expensive and difficult task to achieve. The Pontifical Catholic University of Peru (PUCP) Grammar and  Signs research group created a non annotated PSL dataset \cite{lsp_dataset} because it does not show exactly the relation between the instant when a sign that is emitted and its corresponding translation.
+\textit{The Grammar and Signs research group of the Pontifical Catholic University of Peru (PUCP)} built the first PSL corpus \cite{lsp_dataset} which is publicly available at the university digital archives, it is important to highlight that the corpus is neither labeled or annotated and cannot be used as it is for training or testing a model.
 
-Furthermore, in the same way as spoken languages, signs languages also present local variations e.g. people who live in Lima metropolitan area are not expected to use the same set of signs as people leaving in other parts of the country. A need exists for approaching this task with self-supervised learning or by means of weakly or nonexistent labeled data.
+In this work we are approaching signs detection as a supervised learning task. Supervised learning requires labeled dataset to achieve satisfactory results during training and inference tasks. At the time of writing this work there were no labeled datasets available for PSL \cite{lsp_2015}, it configures a gap that could prevent or hinder research work on Human-Computer-Interaction at the Peruvian or Latin American space.
 
-This work reports research conducted with the goal of proposing a method for detecting PSL elements using a not annotated dataset, and answering the following research questions:
+Current advances in Computer Vision (CV) and Natural Language Processing (NLP) make it possible to conceive systems that are capable of detecting and transcribing elements of sign languages thereby improving systems accessibility for people with physical limitations. This work reports results of a research conducted with the goal of producing a labeled PSL dataset for a set of signs limited to nouns and numbers as well as a novel method for detecting PSL signs by answering the following research questions:
 
 \begin{enumerate}[(i)]
-\item What are most relevant and currently available techniques for training an AI model from not annotated videos and audio transcription?\label{q1}
-\item How precise and exhaustive is the model described in the above question on the recognition of a reduced set of signs in a not annotated dataset?\label{q2}
-\item What is the relation between the number of samples and the detection of new LSP elements in terms of nSDm precision and recall?\label{q3}
+\item What are the currently available techniques for producing a labeled dataset for a set of signs limited to nouns and number from the non annotated PSL corpus?\label{q1}
+\item What are most relevant and currently available techniques for training a model with the labeled dataset described in the question above for detecting PSL nouns and numbers?\label{q2}
+\item How precise and exhaustive is the model described in the above question on the detection of PSL nouns and numbers?\label{q3}
 \end{enumerate}
 
-nSDm will take advantage of the PSL dataset \cite{lsp_dataset} and will contribute with the generalization and progressive signs detection that could be used as a starting point for future studies including software accessibility improvements and human computer interaction for people with deafness and hearing limitations.
+This work has the main objective of producing a simple method that can be used as a baseline for other researchers interested on studying signs language and their different applications on the Human-Computer-Interaction field, we believe this work will produce a positive impact on the artificial intelligence community towards to an increase in the number of research works using PSL which can contribute to increasing the number of people with deafness or hearing disabilities that can use computer based systems. We have divided this work main objective into following specific objectives for better traceability:
 
-The rest of the article is organized as follows. In sec \ref{relatedwork} we review the related work on video classification and body actions recognition using both Optical Flow+Two Stream CNN and 3D CNN architectures. In sec \ref{method} we introduce nSDm and specify its architecture and design. In sec \ref{experimentation} we evaluate nSDm precision and recall and provide answers for the research questions \ref{q1},\ref{q2},\ref{q3}. In sec \ref{datasetdesc} we describe and provide the dataset details. In sec \ref{videoannot} we describe the video annotation and data pre-processing techniques applied to the dataset and finally in sec \ref{conclusion} we present our conclusion and describe future work.
+\begin{enumerate}[(i)]
+\item Produce a labeled PSL dataset limited to nouns and number\label{o1}
+\item Design a train a novel signs detection model (nSDm) for detecting signs at the labeled PSL dataset\label{o2}
+\item Determine what is the performance of nSDm in terms of precision and recall\label{o3}
+\end{enumerate}
+
+The rest of the article is organized as follows. In section \ref{relatedwork} we review the related work on video classification for human actions recognition using network architectures that combine CNNs, 3D CNNs and movement patterns  for better features learning, we also review state of art pose estimation techniques. In section \ref{method} we introduce nSDm describing its design and architecture. In section \ref{experimentation} we evaluate nSDm precision and recall and answer research questions \ref{q1},\ref{q2},\ref{q3}. In section \ref{datasetdesc} we describe the PSL dataset produced at PUCP. In section \ref{videoannot} we describe the video annotation and data pre-processing techniques applied to produce the labeled PSL dataset and finally in section \ref{conclusion} we present our conclusions and future work.
 \section{Related Work} \label{relatedwork}
 \subsection{Action Recognition}
 Human action recognition is a extensively studied field, action recognition dataset like UCF101, HMDB51, THUMOS14  are available, researches tried to solve the human action recognition problem using different approaches including Optical Flow and 3D CNN \cite{qiu2017learning}.  \textbf{Optical Flow,} is defined as the pattern obtained from the motion of objects, surfaces and edges in a visual scene caused by the relative motion between the observer and a scene, it is achieved by distributing movement velocities and brightness across frames. It is a  key concept in action recognition from videos \cite{wang2019hallucinating}. Optical flow estimation is treated as an image reconstruction problem. Given a frame set, the optical flow is generated and allows to reconstruct one frame from the others \cite{zhu2018hidden}. Formally, taking the optical flow displacement field as input and training a CNN with it, then the network should have learned useful representations of the underlying motions. Even though Optical Flow represents the movement between a set of frames, if camera motion is considered as an action motion, it may corrupt the action classification \cite{wang2013dense}. Various types of camera motion can be observed in realistic videos, e.g., zooming, tilting, rotation, etc. \textbf{Motion Boundary Histogram (MBH),} It is a simple an efficient way to achieve robustness during human action detection when camera movements are mixed within the recorded actions by computing derivatives separately for the horizontal and vertical components of the optical flow. Since MBH represents the gradient of optical flow, locally constant camera motion is removed and information about changes in the flow field is kept. MBH is more robust to camera motion than optical flow, thus more discriminative for action recognition.\cite{wang2013dense}. 3D CNN are not as effective as optical flow to detect human actions on its own, 3D CNN can be trained to learn optical flow so we can avoid costly computation and storage and obtain task-specific motion representation  \cite{zhu2018hidden} and increase models performance, precision and exhaustiveness on human action recognition.
@@ -78,7 +84,7 @@ The datasets MPII and COCO have been used in state of art methods obtaining good
 Feature trajectory detection are much improved using statistical methods like \textbf{Fisher Vectors} obtaining better results over traditional BoW \textbf{Fussing parallel CNN.}, the Bag of Visual Words representation suffers from sparsity and high dimensionality, in the other hand representations obtained using the Fisher Vectors kernel are more compact and dense which results on better results on image and video classification problems.
 \section{Method}\label{method}
 \subsection{Video Annotation}\label{videoannot}
-The PSL dataset is weakly annotated because there is not a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered, nSDm proposes a semi automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an annotated PSL dataset that can be used for training the nSDm model using supervised learning. The pipeline is described in detail in \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
+The PSL dataset is non annotated because there is not a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered, we propose a semi automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an labeled PSL dataset that can be used for training nSDm using supervised learning. The pipeline is described in detail in sections  \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
 
 \begin{figure}[hbt!]
 \includegraphics[width=\linewidth]{images/video-annotation-pipeline.png}
@@ -87,15 +93,15 @@ The PSL dataset is weakly annotated because there is not a direct relation betwe
 \end{figure}
 
 \subsubsection{Manual Automatic Video Clean Up}\label{manual-video-cleanup}
-The PSL recordings described on \ref{datasetdesc} contain a considerable amount of noise introduced during the recording sessions which makes difficult to easily find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator, the noise factors are listed in the following list:
+The PSL recordings described on \ref{datasetdesc} contain a considerable amount of noise introduced during recording sessions. It makes difficult to easily find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator, the noise factors are listed in the following list:
 \begin{itemize}
 	\item Multiple participants speaking during the session.
 	\item Conversations between participants that are not relevant to emitted sings.
-	\item High frequency of silent periods.
+	\item High frequency of large silent periods.
 \end{itemize}
-A manual video cleanup process is required to find noise free video intervals, it is a manual process that requires watching all the videos available in the PSL dataset and manually annotating the instant when an informant started emitting sings and the instant when the translator completed delivering a translation, table \ref{table:noise-free-video-segments} shows an annotation example. 
+A manual video cleanup process is required to find noise free video intervals, it is a process that requires watching all the videos available at the PSL corpus for manually annotating the instant when an informant started emitting sings along with the instant when the translator delivered a translation, table \ref{table:noise-free-video-segments} shows a manual annotation example.
 
-The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the PSL annotated dataset.
+The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the labeled PSL dataset.
 
 % Noise free video segment extract table
 \begin{table}[!htb]
@@ -140,12 +146,12 @@ The recordings show the informant in two alignments (centered and left), the man
 \end{table}
 
 \subsubsection{Video Pre-Processing}\label{video-pre-processing}
-Weakly PSL annotated videos require processing before any metadata can be extracted, we propose a sequence of pre-processing tasks that take advantage of the annotation generated on \ref{manual-video-cleanup}. A \textbf{video splitting processor} generates a set of video chunks using the \textit{ffmpeg} multimedia framework and stores the produced chunks in Amazon S3 for later usage. The audio within the video chunks is then transcribed by an \textbf{audio transcription processor}, using the Amazon Transcription service, we selected the Amazon Transcription service because it provides an accurate mapping between audio participants and transcribed words along with useful metadata that describes the start and end time when words are pronounced. 
+Non annotated PSL videos require processing before any metadata can be extracted, we propose a sequence of pre-processing tasks that take advantage of the annotation generated on \ref{manual-video-cleanup}. A \textbf{video splitting processor} generates a set of video chunks using the \textit{ffmpeg} multimedia framework and stores produced video chunks in Amazon S3 for later usage. Audio within video chunks is then transcribed by an \textbf{audio transcription processor}, using the Amazon Transcription service, we selected the Amazon Transcription service because it provides an accurate mapping between audio participants and transcribed words along with useful metadata that describes the start and end time when words are pronounced by the translator. 
 
-At the moment of writing this work Amazon Transcription service only supported Spanish for Spain and the US, it caused certain words that are specific for Peruvian Spanish not being fully recognized, in order to improve transcription accuracy we provided a custom vocabulary containing Peruvian expressions which improved  Peruvian words recognition, for the matters of this work unrecognized Peruvian words were omitted and not processed.
+At the moment of writing this work Amazon Transcription service only supported Spain and US Spanish, it caused certain words that are specific for Peruvian Spanish not being fully recognized, in order to improve transcription accuracy we built a custom vocabulary containing Peruvian expressions which improved  Peruvian words recognition, for the matters of this work Peruvian words that remained unrecognized were omitted and not processed.
 
 \subsubsection{Audio Transcription Analysis}\label{audio-transcription-analysis}
-Audio transcription requires additional processing in order to produce useful information that leads to a successful PSL signs detection. Bag of Embedding Words (BoEW) is a widely used technique on Natural Language Processing tasks providing a easy and flexible way to list the most relevant words based on frequency. This work is focused on detecting nouns and numbers (nSDm is a ongoing method that will be progressively improved to handle a wider set of PSL elements) assuming that nouns (numbers are a subset of nouns) suffer less variations in spoken Spanish than verbs, pronouns, adverbs and adjectives, and provide more semantic value than conjunctions, prepositions and interjections. 
+Audio transcription requires additional processing in order to produce useful information that leads to a successful PSL signs detection. Bag of Embedding Words (BoEW) is a widely used technique on Natural Language Processing tasks providing a easy and flexible way to list the most relevant words based on frequency. This work is focused on detecting nouns and numbers (our method is designed to be progressively improved to handle a wider set of PSL elements) assuming that nouns (numbers are a subset of nouns) suffer less variations in spoken Spanish than verbs, pronouns, adverbs and adjectives, and provide more semantic value than conjunctions, prepositions and interjections. 
 
 \begin{table}[!htb]
 \captionsetup{size=footnotesize}
@@ -175,13 +181,13 @@ We used Amazon comprehend for text analysis, specifically the syntax detection f
 Once a weighted list of nouns and numbers is generated a mapping showing when nouns and numbers appear in videos is required, moving forward called \textbf{Samples Metadata}. Table \ref{tab:token-video-mapping} shows mapping metadata extracted from PSL.
 
 \subsubsection{Samples Generation}\label{samples-generation} 
-nSDm requires PSL elements to be represented as a set of RGB frames and a calculated Optical Flow using the Lucas-Kanade method, both representations are inputs of two different models as presented on \ref{nsdm}.
+Our method requires PSL elements to be represented as a set of RGB frames and a calculated Optical Flow using the Lucas-Kanade method, both representations are inputs of two different models as presented on \ref{nsdm}.
 
-\textbf{Translation Delay Factor: } The difference in time between the instant when a sign is emitted and when a translation for that given sign is delivered is uncertain, we are calling that uncertainty as the \textit{translation delay factor} which we are trying to approximate using a constant value, we have chosen a 3 seconds translation delay factor assuming that most of the translations will occur between three seconds after a sign is emitted.
+\textbf{Translation Delay Factor: } The difference in time between the instant when a sign is emitted and when a translation for that given sign is delivered is uncertain, we are calling that uncertainty \textit{the translation delay factor}, we are trying to approximate it using a constant value, we chose a three seconds translation delay factor assuming that most of the translations will occur between three seconds after a sign is emitted.
 
-A \textbf{RGB Samples generation processor} uses samples metadata in combination with the translation delay factor to determine frames that represent a given PSL element. We use \textit{OpenCV} to extract frames and store them following a hierarchical folder structure (listing \ref{list:rgb-samples-folders}) that nSDm data loaders will use to feed data into the RGM branch on the nSDm model architecture during training and testing.
+A \textbf{RGB Samples generation processor} uses samples metadata in combination with the translation delay factor to determine frames that represent a given PSL element. We use \textit{OpenCV} to extract frames and store them following a hierarchical folder structure (listing \ref{list:rgb-samples-folders}) that nSDm data loaders will use to feed data into the RGB branch in the nSDm model architecture \ref{nsdm-architecture} during training and testing.
 
-A \textbf{Optical Flow Samples generation processor} uses video frames and the hierarchical folder structure generated by the RGM samples generation processor to calculate an Optical Flow representation for PSL elements and store them in a hierarchical folder structure that will also used by the nSDm data loaders to feed the optical flow branch on the nSDm model architecture during training and testing. We selected optical flow as a samples generation strategy because its ability to represent movement traces from previous frames, it is particular useful for representing PSL elements, a PSL element is composed on different body movements including: elbow, arms, neck, eyes, shoulders and hands, which are performed quickly, a way to detect movement traces between frames allows to generate a single image representation of all movement involved on a sign emitting (Figure \ref{fig:opticalflow-two}). 
+A \textbf{Optical Flow Samples generation processor} uses video frames and the hierarchical folder structure generated by the RGB samples generation processor to calculate an Optical Flow representation for PSL elements and store them in a hierarchical folder structure that will also used by the nSDm data loaders to feed the optical flow branch on the nSDm model architecture \ref{nsdm-architecture} during training and testing. We selected optical flow as a samples generation strategy because its ability to represent movement traces from previous frames, it is particular useful for representing body movement patterns executed by informant while emitting a PSL sign, a PSL sign is made up of different body movements including: elbow, arms, neck, eyes, shoulders and hands, which are performed quickly, a way to detect movement traces between frames allows to generate a single image representation of all movement involved on a sign emitting (Figure \ref{fig:opticalflow-two}). 
 
 \begin{table}[!htb]
 \captionsetup{font=footnotesize}
@@ -210,13 +216,42 @@ A \textbf{Optical Flow Samples generation processor} uses video frames and the h
 \label{tab:token-video-mapping}
 \end{table}
 
-\subsection{Novel Signs Detection Method (nSDm)}\label{nsdm}
+\subsection{Novel Signs Detection Model (nSDm)}\label{nsdm}
+We propose a novel model for signs detection that combine two neural networks architectures, a CNN and a RNN with the objective to learn visual features like edges, corners and ridges (CNN) and at the same time patterns learned from a time based series of inputs (RNN). CNN network receives optical flow inputs and the RNN branch receives RGB frames extracted from the labeled PSL dataset described in \ref{videoannot}.
+
+For this work we selected the Tensorflow/Keras functional API for its ability to define combined models along with a versatile data extraction and transformation layer. More details and usage are provided in sections \ref{nsdm-architecture} and \ref{new-videos-testing}
+
+Implementation details can be found at https://github.com/erichuizapucp/signs-recognition
 \subsubsection{Architecture}\label{nsdm-architecture}
+nSDm is composed of several layers \ref{video-annotation-results}\\
+\textbf{Samples feeding layer:} A custom layer with the responsibility direct PSL samples \\
+\textbf{Optical flow model layer:} \\
+\textbf{Recurrent RGB model layer:} \\
+\textbf{Concatenation layer:} \\
+\textbf{Fully connected layer:} \\
+
 \begin{figure}[hbt!]
-\includegraphics[width=\linewidth]{images/composite-model-architecture.png}
+\includegraphics[width=\linewidth]{images/nsdm-model-architecture.png}
 \caption{nSDm model architecture}
 \label{fig:opticalflow-two}
 \end{figure}
+
+\begin{table}[!htb]
+\captionsetup{size=footnotesize}
+\begin{tabular}{ p{16em} c}
+\toprule
+\multicolumn{1}{c}{\textbf{Hyper parameter}} & 
+	\multicolumn{1}{c}{\textbf{Value}}\\
+\midrule
+\textbf{Learning Rate}&	0.001\\
+\textbf{No Epochs}&	5\\
+\textbf{No Steps per Epoch}&	5\\
+\textbf{Batch Size}&	10\\
+\textbf{Shuffle Buffer Size}&	50\\
+\bottomrule
+\end{tabular}
+\caption{nSDm training hyper parameters} \label{tab:nSDm-hyperparams}
+\end{table}
 
 \begin{figure}[hbt!]
 \includegraphics[width=\linewidth]{images/opticalflow-model-architecture.png}
@@ -230,7 +265,13 @@ A \textbf{Optical Flow Samples generation processor} uses video frames and the h
 \label{fig:opticalflow-two}
 \end{figure}
 
-\subsection{New Videos Testing}
+\subsection{Sign detection testing}\label{new-videos-testing}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/new-video-test-architecture.png}
+\caption{Signs detection testing process architecture}
+\label{fig:opticalflow-two}
+\end{figure}
 
 \section{Experimentation}\label{experimentation}
 \subsection{Dataset Description \cite{lsp_dataset}}\label{datasetdesc}
@@ -248,7 +289,7 @@ The video clips were recorded in three sessions with the following participants:
 
 During all the sessions a PSL \cite{lsp_2015} translator performs a translation after a word or phrase is completed.
 
-\subsection{Video Annotation Results}
+\subsection{Video Annotation Results}\label{video-annotation-results}
 The video annotation pipeline described on \ref{videoannot} produced an annotated PSL dataset suitable for using it in a supervised learning experiment. The annotated dataset is divided in two main parts (RGB and Optical Flow samples)
 
 \textbf{RGB Samples folder structure} is a hierarchical folder structure where each detected noun or number is represented as a first level folder, all instances of a detected sign received an identifier which is an auto incremental integer, detected instances represent the second level folders, detected signs video represent the third level, Figure \ref{fig:rgb-two}.
@@ -295,7 +336,7 @@ L1:cine
 \label{fig:opticalflow-two}
 \end{figure}
 
-\subsection{nSDm results}
+\subsection{Sign detection results}
 
 \section{Conclusion}\label{conclusion}
 

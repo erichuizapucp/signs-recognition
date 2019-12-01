@@ -69,7 +69,7 @@ class BaseModel:
 
     def get_labels(self, train=True) -> list:
         dataset_folder_name = self.TRAIN_DATASET_FOLDER_NAME if train else self.TEST_DATASET_FOLDER_NAME
-        path = self.get_dataset_path(dataset_folder_name)
+        path = os.path.join(self.get_dataset_path(dataset_folder_name), 'opticalflow')
         return [label for label in os.listdir(path) if os.path.isdir(os.path.join(path, label))]
 
     def get_saved_model(self) -> Model:
@@ -83,7 +83,7 @@ class BaseModel:
         self.logger.debug('model saved to %s', saved_model_path)
 
     def get_dataset_path(self, operation_folder_name):
-        dataset_path = os.path.join(self.dataset_root_path, operation_folder_name, self.MODEL_NAME)
+        dataset_path = os.path.join(self.dataset_root_path, operation_folder_name)
 
         if not os.path.exists(dataset_path):
             self.logger.error('The provided dataset path %s does not exist.', dataset_path)

@@ -43,8 +43,8 @@ if __name__ == '__main__':
     working_folder = os.getenv('WORK_DIR', './')
 
     # configure logging
-    setup_logging(working_folder, 'pre-processing-logging.yaml')
+    setup_logging(working_folder, 'pre_processing-logging.yaml')
     logger = logging.getLogger(__name__)
 
-    # execute video pre-processing logic
+    # execute video pre_processing logic
     main()

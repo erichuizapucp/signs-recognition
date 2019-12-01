@@ -1,8 +1,10 @@
 import logging
 import os
+import tensorflow as tf
 
 from learning.models.opticalflow_model import OpticalFlowModel
-from learning.models.rgb_model import RGBModel
+from learning.models.rgb_recurrent_model import RGBRecurrentModel
+from learning.models.novel_signs_detection_model import NovelSignsDetectionModel
 from argparse import ArgumentParser
 
 from logger_config import setup_logging
@@ -52,7 +54,8 @@ def get_train_params(args):
 def get_model(working_folder, dataset_root_path, model_name):
     models = {
         'opticalflow': lambda: OpticalFlowModel(working_folder, dataset_root_path),
-        'rgb': lambda: RGBModel(working_folder, dataset_root_path),
+        'rgb': lambda: RGBRecurrentModel(working_folder, dataset_root_path),
+        'nsdm': lambda: NovelSignsDetectionModel(working_folder, dataset_root_path)
     }
     model = models[model_name]()
     return model
