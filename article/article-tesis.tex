@@ -349,8 +349,10 @@ L1:cine
 \end{figure}
 
 \subsection{Sign detection results}
-We trained nSDm with the train PSL dataset and validated it with the validation PSL dataset, preliminary we trained the model only for five epochs obtaining the results in Table \ref{tab:signs-detection-results}
-% Sign detection results
+We trained nSDm with the train PSL dataset and validated it with the validation PSL dataset, we trained the model  for five epochs using five and ten percent of the dataset obtaining the results in Tables \ref{tab:signs-detection-results-5-percent} and \ref{tab:signs-detection-results-10-percent}
+
+Train results shows a trend indicating that the more PSL samples we use the nSDm performance improves highlighting the need for processing additional videos at the PSL corpus.
+% Sign detection results 5% of the dataset
 \begin{table}[!htb]
 \captionsetup{font=footnotesize}
 \centering
@@ -359,16 +361,57 @@ We trained nSDm with the train PSL dataset and validated it with the validation 
 \multicolumn{1}{c}{\textbf{Epoch}} & 
 	\multicolumn{1}{c}{\textbf{AUC}}\\
 \midrule
-\textbf{Epoch 1}&	0.0368\\
-\textbf{Epoch 2}&	0.5994\\
-\textbf{Epoch 3}&	0.0412\\
-\textbf{Epoch 4}&	0.0703\\
-\textbf{Epoch 5}&	0.0680\\
+\textbf{Epoch 1}&	0.0708\\
+\textbf{Epoch 2}&	0.0539\\
+\textbf{Epoch 3}&	0.0558\\
+\textbf{Epoch 4}&	0.1175\\
+\textbf{Epoch 5}&	0.0368\\
 \bottomrule
 \end{tabular}
-\caption{Shows results of training nSDm with the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{AUC} area under the precision-recall curve (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall.}
-\label{tab:signs-detection-results}
+\caption{Shows results of training nSDm with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{AUC} area under the precision-recall curve (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall.}
+\label{tab:signs-detection-results-5-percent}
 \end{table}
+
+% Sign detection results 10% of the dataset
+\begin{table}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{ p{16em} c }
+\toprule
+\multicolumn{1}{c}{\textbf{Epoch}} & 
+	\multicolumn{1}{c}{\textbf{AUC}}\\
+\midrule
+\textbf{Epoch 1}&	0.3686\\
+\textbf{Epoch 2}&	0.5994\\
+\textbf{Epoch 3}&	0.1412\\
+\textbf{Epoch 4}&	0.1703\\
+\textbf{Epoch 5}&	0.1680\\
+\bottomrule
+\end{tabular}
+\caption{Shows results of training nSDm with the 10\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{AUC} area under the precision-recall curve (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall.}
+\label{tab:signs-detection-results-10-percent}
+\end{table}
+
+Results of infer PSL samples are presented on Figure \ref{fig:rgb-pareja-sample} we observed the noun \textit{Pareja} being correctly classified, in the other hand we observe that silent periods are being incorrectly classified as shown on Figure \ref{fig:rgb-pareja-wrong-sample}, adding one additional class for \textit{silent} could improve our classifier allowing it to infer when a consultant is to performing any action.
+
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/pareja-rgb-frames.png}
+\caption{PSL noun "Pareja" RGB Frames correctly classified}
+\label{fig:rgb-pareja-sample}
+\end{figure}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\linewidth]{images/pareja-rgb-frame-wrong.png}
+\caption{PSL noun "Pareja" RGB Frames incorrectly recognized. The classifier is incorrectly classifying silent periods where the consultant is not performing any action}
+\label{fig:rgb-pareja-wrong-sample}
+\end{figure}
+
+\section{Discussion and Future Work}\label{discussion-future-work}
+\begin{enumerate}[i]
+\item Manual video annotation to be replaced for a fully automated process
+\item Adding an additional class called \textit{silent} which we can use to label PSL samples where the consultant is not performing any action.
+
+\end{enumerate}
 
 \section{Conclusion}\label{conclusion}
 \begin{enumerate}[i]

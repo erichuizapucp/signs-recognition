@@ -11,7 +11,7 @@ from logger_config import setup_logging
 
 DEFAULT_LEARNING_RATE = 0.001
 DEFAULT_NO_EPOCHS = 5
-DEFAULT_NO_STEPS_EPOCHS = 2
+DEFAULT_NO_STEPS_EPOCHS = 4
 DEFAULT_BATCH_SIZE = 1
 DEFAULT_NO_CHANNELS = 3  # Color images
 DEFAULT_IMG_WIDTH = 224  # Imagenet default image width
