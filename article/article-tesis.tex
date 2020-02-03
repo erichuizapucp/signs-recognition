@@ -407,20 +407,27 @@ Results of infer PSL samples are presented on Figure \ref{fig:rgb-pareja-sample}
 \end{figure}
 
 \section{Discussion and Future Work}\label{discussion-future-work}
-\begin{enumerate}[i]
-\item Manual video annotation to be replaced for a fully automated process
-\item Adding an additional class called \textit{silent} which we can use to label PSL samples where the consultant is not performing any action.
+\begin{enumerate}[•]
+\item The ability to detect all participants in recording sessions individually is mandatory for a successful video annotation pipelines based on video transcriptions as the one we presented at \ref{videoannot}. Future work about annotating videos based on patterns recognized in video content itself using non supervised learning approaches may improve the generated dataset driving to better results.
+\item Existing video annotation pipelines require large amounts of manual annotation work, generally for cleaning and validation tasks. Even though several steps within the overall annotation process can be fully automated human intervention for ensuring the quality of the generated dataset. Future work that use Reinforcement Learning for training an agent trained to clean and validate non-annotated videos before and after they are passed through the annotation pipeline may minimize or remove the need of human intervention during video annotation tasks. 
+\item Not all the corporal movements executed by a PSL consultant are valid PSL signs or elements. Not handling these exceptions correctly could affect greatly the nSDm performance. Future work that add support for an additional class called \textit{invalid} and labeling invalid signs or corporal movements could help nSDm to learn invalid PSL actions and obtain better results.
+\item Optical flow represents movement patterns between video frames allowing models to learn these given movement patterns. However, Optical flow could consider camera unintentional movements and camera focus switches incorrectly as valid movement patterns between frames. Future work that adds Motion Boundary Histogram (MBH) \cite{wang2013dense} support to the optical flow gradient could add robustness to the ability to detect camera movements driving to a better optical flow samples generation.
+\item nSDm internal models (CNN and RNN models) as described on \ref{nsdm-architecture} can be trained independently using different hyper parameters, optimizers and loss functions. Pre-trained models will boost the nSDm training process enabling future works to use PSL to train nSDm using more epochs, data and being more flexible on using single models (CNN or RNN) or combining them as in nSDm. 
+\item Improving they way people with deafness or hearing disabilities interact with computers requires delivering an output after PSL signs are detected. Future work that use Auto Encoder or Adversarial Generative Networks can be used to generate output in the form of signs that are recognizable completing the cycle of a bidirectional communication.
+\item Training nSDm with more PSL samples greatly improves its performance. Future work on annotating more videos including PSL content will increase nSDm performance.
 
 \end{enumerate}
 
 \section{Conclusion}\label{conclusion}
-\begin{enumerate}[i]
-\item The ability of detecting recording sessions participants and a mapping between transcripted words and video instants are necessary for a correct video annotation because it allows differentiating PSL translations from other recording session transcriptions.
-\item Video annotation requires a considerable amount of manual work, even though several steps in the proposed video annotation pipeline can be automated e.g. video splitting, audio transcription, syntax detection and metadata generation, pre video annotation and post verification steps are executed manually.
-\item Post samples verification steps are required due to the \textit{Delay Factor}, frames not related to a sign are deleted to improve the labeled PSL dataset quality.
+\begin{enumerate}[•]
+\item Video annotation pipelines based on video transcriptions require recognizing all video participants for a correct video annotation.
+\item The \textit{Delay Factor} introduced noise to the generated labeled PSL dataset. Post annotation human intervention is needed to reduce the delay factor effect.
+\item Annotating more PSL videos and training nSDm with these new generated samples increases the model performance.
+\item Optical flow successfully represents PSL consultant corporal movements over time.
+\item Transfering weights learned a ResNet152 model trained with ImageNet influence positively Optical flow patterns learning.
 \item Using optical flow for movement pattern representation allow capturing all actions and movements executed by a PSL consultant.
-\item A CNN can be trained with optical flow samples to recognize human actions making possible to learn PSL signs movement patterns.
-\item RGB video frames extracted from video fragments can be used to train a RNN for learning human actions, the network learns movement sequences between frames making possible to learn PSL signs movement sequences.
+\item RGB video frames extracted from video fragments allow networks to learn sequences of movement over time.
+\item Using LSTM cells allow successfully usage of larger PSL sequences (a larger number of frames) due to its better handling of the vanishing gradients.
 \item Combining a CNN and a RNN in a composite model improves signs detection performance, while CNNs learns visual features in optical flow samples RNNs learns sequences of actions, networks outputs can be pondered for training a better classifier.
 \item The area under the precision-recall curve allow measuring how well is nSDm detecting because it summarizes the trade-off between the true positive signs rate and the predicted signs.
 \end{enumerate}

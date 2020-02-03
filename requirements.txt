@@ -1,3 +1,4 @@
+beautifulsoup4
 matplotlib
 absl-py==0.8.0
 argh==0.26.2
@@ -33,9 +34,9 @@ requests==2.22.0
 s3transfer==0.2.1
 scipy==1.3.1
 six==1.12.0
-tensorboard==2.0.0
-tensorflow==2.0.0
-tensorflow-estimator==2.0.0
+tensorboard==2.1.0
+tensorflow==2.1.0
+tensorflow-estimator==2.1.0
 termcolor==1.1.0
 tf-estimator-nightly==2.0.0.dev2019100101
 tqdm==4.36.1
