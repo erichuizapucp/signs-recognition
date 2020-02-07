@@ -1,6 +1,5 @@
 import logging
 import os
-import tensorflow as tf
 
 from learning.models.opticalflow_model import OpticalFlowModel
 from learning.models.rgb_recurrent_model import RGBRecurrentModel

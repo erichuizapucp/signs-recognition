@@ -45,6 +45,7 @@ def check_path_dir(dir_path):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path, exist_ok=True)
 
+
 def change_extension(file_path, new_extension):
     pre, ext = os.path.splitext(file_path)
     return pre + new_extension
