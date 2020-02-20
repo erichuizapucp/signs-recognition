@@ -24,15 +24,23 @@ def get_cmd_args():
     parser.add_argument('-m', '--model', help='Model Name', required=True)
     parser.add_argument('-o', '--operation', help='Operation', required=True)
     parser.add_argument('-ds', '--dataset_path', help='Dataset Path', required=True)
-    parser.add_argument('-bs', '--batch_size', help='Batch Size', default=DEFAULT_BATCH_SIZE)
-    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
-    parser.add_argument('-lr', '--learning_rate', help='Leaning Rate', default=DEFAULT_LEARNING_RATE)
-    parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
-    parser.add_argument('-nc', '--no_channels', help='Number of channels', default=DEFAULT_NO_CHANNELS)
-    parser.add_argument('-iw', '--img_width', help='Image width', default=DEFAULT_IMG_WIDTH)
-    parser.add_argument('-ih', '--img_height', help='Image height', default=DEFAULT_IMG_HEIGHT)
+    parser.add_argument('-bs', '--batch_size', help='Batch Size',
+                        default=DEFAULT_BATCH_SIZE)
+    parser.add_argument('-ne', '--no_epochs', help='Number of epochs',
+                        default=DEFAULT_NO_EPOCHS)
+    parser.add_argument('-lr', '--learning_rate', help='Leaning Rate',
+                        default=DEFAULT_LEARNING_RATE)
+    parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch',
+                        default=DEFAULT_NO_STEPS_EPOCHS)
+    parser.add_argument('-nc', '--no_channels', help='Number of channels',
+                        default=DEFAULT_NO_CHANNELS)
+    parser.add_argument('-iw', '--img_width', help='Image width',
+                        default=DEFAULT_IMG_WIDTH)
+    parser.add_argument('-ih', '--img_height', help='Image height',
+                        default=DEFAULT_IMG_HEIGHT)
     parser.add_argument('-bf', '--shuffle_buffer_size', help='Dataset shuffle buffer size',
                         default=DEFAULT_SHUFFLE_BUFFER_SIZE)
+
     return parser.parse_args()
 
 
