@@ -3,8 +3,8 @@ import json
 import csv
 import os
 
-from common.processor import Processor
-from common import io_utils
+from pre_processing.common.processor import Processor
+from pre_processing.common import io_utils
 
 
 class SamplesMetadataGenerationProcessor(Processor):

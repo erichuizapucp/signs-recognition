@@ -1,6 +1,6 @@
 import os
 from moviepy.editor import VideoFileClip
-from common.downloader import Downloader
+from pre_processing.common.downloader import Downloader
 
 
 class AudioProcessor(Downloader):

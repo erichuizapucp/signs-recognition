@@ -3,8 +3,8 @@ import numpy as np
 import os
 import logging
 
-from common import io_utils
-from common.handler import Handler
+from pre_processing.common import io_utils
+from pre_processing.common.handler import Handler
 
 
 class OpticalFlowHandler(Handler):

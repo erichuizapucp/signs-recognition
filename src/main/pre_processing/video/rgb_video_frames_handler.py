@@ -1,7 +1,7 @@
 import cv2
 import os
 
-from common.handler import Handler
+from pre_processing.common.handler import Handler
 
 
 class RGBVideoFramesHandler(Handler):

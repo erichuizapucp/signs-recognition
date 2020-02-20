@@ -3,9 +3,9 @@ import shutil
 import logging
 import glob
 
-from common.processor import Processor
+from pre_processing.common.processor import Processor
 from opticalflow_handler import OpticalFlowHandler
-from common import io_utils
+from pre_processing.common import io_utils
 
 
 class OpticalFLowSamplesProcessor(Processor):

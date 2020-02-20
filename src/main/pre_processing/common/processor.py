@@ -1,7 +1,7 @@
 import boto3
 import logging
 import os
-from common import io_utils
+from pre_processing.common import io_utils
 
 from botocore.exceptions import ClientError
 

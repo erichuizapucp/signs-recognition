@@ -5,7 +5,7 @@ import boto3
 import csv
 
 from processor import Processor
-from common import io_utils
+from pre_processing.common import io_utils
 from collections import Counter
 
 

@@ -1,5 +1,5 @@
 import os
-from common.processor import Processor
+from pre_processing.common.processor import Processor
 
 
 class Downloader(Processor):

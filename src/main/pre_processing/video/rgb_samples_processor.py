@@ -3,9 +3,9 @@ import shutil
 import logging
 import csv
 
-from common.processor import Processor
+from pre_processing.common.processor import Processor
 from rgb_video_frames_handler import RGBVideoFramesHandler
-from common import io_utils
+from pre_processing.common import io_utils
 
 
 class RGBSamplesProcessor(Processor):

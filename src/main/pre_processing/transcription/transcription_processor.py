@@ -4,7 +4,7 @@ import datetime
 import time
 import io_utils
 
-from common.processor import Processor
+from pre_processing.common.processor import Processor
 
 
 class TranscriptionProcessor(Processor):
