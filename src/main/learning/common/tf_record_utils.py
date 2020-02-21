@@ -1,7 +1,7 @@
-import tensorflow as tf
 import os
+import tensorflow as tf
 
-from constants import *
+from learning.common import features
 
 
 def bytes_feature(value):
@@ -22,11 +22,11 @@ def serialize_sample(image_raw, label):
     image_shape = tf.image.decode_jpeg(image_raw).shape
 
     feature = {
-        HEIGHT_FEATURE_NAME: int64_feature(image_shape[0]),
-        WIDTH_FEATURE_NAME: int64_feature(image_shape[1]),
-        DEPTH_FEATURE_NAME: int64_feature(image_shape[2]),
-        IMAGE_RAW_FEATURE_NAME: bytes_feature(image_raw),
-        TARGET_FEATURE_NAME: int64_feature(label),
+        features.IMAGE_RAW: bytes_feature(image_raw),
+        features.HEIGHT: int64_feature(image_shape[0]),
+        features.WIDTH: int64_feature(image_shape[1]),
+        features.DEPTH: int64_feature(image_shape[2]),
+        features.LABEL: int64_feature(label),
     }
 
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -35,26 +35,26 @@ def serialize_sample(image_raw, label):
 
 def tf_serialize_sample(image_raw, label):
     tf_sample = tf.py_function(serialize_sample, (image_raw, label), tf.string)
-    return tf.reshape(tf_sample, ())
+    return tf.reshape(tf_sample, ())  # TFRecord requires scalar strings
 
 
 def parse_dict_sample(sample):
     feature_description = {
-        HEIGHT_FEATURE_NAME: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-        WIDTH_FEATURE_NAME: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-        DEPTH_FEATURE_NAME: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-        IMAGE_RAW_FEATURE_NAME: tf.io.FixedLenFeature([], tf.string, default_value=''),
-        TARGET_FEATURE_NAME: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+        features.HEIGHT: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.WIDTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.DEPTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.LABEL: tf.io.FixedLenFeature([], tf.int64, default_value=0),  # Label should be an integer
     }
 
     feature = tf.io.parse_single_example(sample, feature_description)
-    return feature[HEIGHT_FEATURE_NAME], feature[WIDTH_FEATURE_NAME], feature[DEPTH_FEATURE_NAME], \
-        feature[IMAGE_RAW_FEATURE_NAME], feature[TARGET_FEATURE_NAME]
+    return feature[features.IMAGE_RAW], feature[features.HEIGHT], feature[features.WIDTH], feature[features.DEPTH], \
+        feature[features.LABEL]
 
 
-def tf_parse_dict_sample(sample, is_encoded=False):
+def tf_parse_dict_sample(sample):
     parse_func = parse_dict_sample
-    return_type = (tf.int64, tf.int64) if is_encoded else (tf.string, tf.int64)
+    return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.int64)
     tf_height, tf_width, tf_depth, tf_image_raw, tf_label = tf.py_function(parse_func, [sample], return_type)
 
     return tf_height, tf_width, tf_depth, tf_image_raw, tf_label
