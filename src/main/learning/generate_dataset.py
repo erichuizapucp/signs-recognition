@@ -18,9 +18,8 @@ def get_cmd_args():
     parser.add_argument('-dp', '--dataset_path', help='Dataset path', required=True)
     parser.add_argument('-dt', '--dataset_type', help='Dataset type(opticalflow, rgb)', required=True)
     parser.add_argument('-od', '--output_dir_path', help='Output dir', required=True)
-    parser.add_argument('-of', '--output_filename', help='Output filename', required=True)
-    parser.add_argument('-sf', '--split_files', help='True if output should be split in multiple files', default=True)
-    parser.add_argument('-fs', '--output_max_size', help='Max size per file in MB', default=1)
+    parser.add_argument('-of', '--output_prefix', help='Output prefix', required=True)
+    parser.add_argument('-fs', '--output_max_size', help='Max size per file in MB', default=100)
     parser.add_argument('-bf', '--shuffle_buffer_size', help='Dataset shuffle buffer size',
                         default=DEFAULT_SHUFFLE_BUFFER_SIZE)
     parser.add_argument('-bs', '--batch_size', help='Batch size',
@@ -35,8 +34,7 @@ def main():
     dataset_path = args.dataset_path
     dataset_type = args.dataset_type
     output_dir_path = args.output_dir_path
-    output_filename = args.output_filename
-    split_files = args.split_files
+    output_prefix = args.output_prefix
     output_max_size = args.output_max_size
 
     shuffle_buffer_size = args.shuffle_buffer_size

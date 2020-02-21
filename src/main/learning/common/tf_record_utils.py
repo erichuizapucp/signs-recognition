@@ -30,7 +30,7 @@ def serialize_sample(image_raw, label):
     }
 
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-    return example_proto.SerializeToString()
+    return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
 
 def tf_serialize_sample(image_raw, label):
@@ -60,12 +60,18 @@ def tf_parse_dict_sample(sample):
     return tf_height, tf_width, tf_depth, tf_image_raw, tf_label
 
 
-def serialize_dataset(dataset: tf.data.Dataset, output_file_path):
+def serialize_dataset(dataset: tf.data.Dataset, output_prefix, max_size_per_file):
+    # serialize dataset to a .tfrecord file for further usage
+    serialized_dataset = dataset.map(lambda image_raw, label: tf_serialize_sample(image_raw, label))
+
+    file_index = 1
+    output_file_path = '{}_{}.tfrecord'.format(output_prefix, file_index)
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
 
-    # serialize dataset to a .tfrecord file for further usage
-    serialized_dataset = dataset.map(lambda image_raw, label: tf_serialize_sample(image_raw, label))
+    while not os.stat(output_file_path).st_size > max_size_per_file * 1048576:
+        pass
+
     writer = tf.io.TFRecordWriter.TFRecordWriter(output_file_path)
     writer.write(serialized_dataset)
 
