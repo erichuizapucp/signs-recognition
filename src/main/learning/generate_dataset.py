@@ -41,7 +41,7 @@ def main():
     batch_size = args.batch_size
 
     raw_dataset = get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size, batch_size)
-    tf_record_utils.serialize_dataset(raw_dataset, '')
+    tf_record_utils.serialize_dataset(raw_dataset, output_dir_path, output_prefix, output_max_size)
 
 
 def get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size, batch_size):
@@ -53,14 +53,13 @@ def get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size, batch_size)
 
 
 def get_opticalflow_sample(file_path):
-    with open(file_path, 'rb') as img_file:
-        img_raw = img_file.read()
+    img_raw = tf.io.read_file(file_path)
     label = tf.strings.split(file_path, os.path.sep)[-2]
     return img_raw, label
 
 
 def tf_get_opticalflow_sample(file_path):
-    return tf.py_function(get_opticalflow_sample, [file_path])
+    return tf.py_function(get_opticalflow_sample, [file_path], (tf.string, tf.string))
 
 
 if __name__ == '__main__':

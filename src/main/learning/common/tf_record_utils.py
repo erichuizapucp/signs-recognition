@@ -26,7 +26,7 @@ def serialize_sample(image_raw, label):
         features.HEIGHT: int64_feature(image_shape[0]),
         features.WIDTH: int64_feature(image_shape[1]),
         features.DEPTH: int64_feature(image_shape[2]),
-        features.LABEL: int64_feature(label),
+        features.LABEL: bytes_feature(label),
     }
 
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -44,7 +44,7 @@ def parse_dict_sample(sample):
         features.HEIGHT: tf.io.FixedLenFeature([], tf.int64, default_value=0),
         features.WIDTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
         features.DEPTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-        features.LABEL: tf.io.FixedLenFeature([], tf.int64, default_value=0),  # Label should be an integer
+        features.LABEL: tf.io.FixedLenFeature([], tf.string, default_value=''),
     }
 
     feature = tf.io.parse_single_example(sample, feature_description)
@@ -54,28 +54,40 @@ def parse_dict_sample(sample):
 
 def tf_parse_dict_sample(sample):
     parse_func = parse_dict_sample
-    return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.int64)
+    return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.string)
     tf_height, tf_width, tf_depth, tf_image_raw, tf_label = tf.py_function(parse_func, [sample], return_type)
 
     return tf_height, tf_width, tf_depth, tf_image_raw, tf_label
 
 
-def serialize_dataset(dataset: tf.data.Dataset, output_prefix, max_size_per_file):
-    # serialize dataset to a .tfrecord file for further usage
-    serialized_dataset = dataset.map(lambda image_raw, label: tf_serialize_sample(image_raw, label))
+def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file):
+    file_index = 0
+    output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
 
-    file_index = 1
-    output_file_path = '{}_{}.tfrecord'.format(output_prefix, file_index)
-    if os.path.exists(output_file_path):
-        os.remove(output_file_path)
+    writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
+    for image_raw, label in dataset:
+        example = tf_serialize_sample(image_raw, label)
+        writer.write(example)
 
-    while not os.stat(output_file_path).st_size > max_size_per_file * 1048576:
-        pass
+        if os.stat(output_file_path).st_size > max_size_per_file * 1048576:
+            writer.close()
 
-    writer = tf.io.TFRecordWriter.TFRecordWriter(output_file_path)
-    writer.write(serialized_dataset)
+            file_index = file_index + 1
+            output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
+            writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
+
+    writer.close()
 
 
 def deserialize_dataset(tf_record_file_path):
     dataset = tf.data.TFRecordDataset(tf_record_file_path).map(lambda sample: tf_parse_dict_sample(sample))
     return dataset
+
+
+def __handle_split_file_name(output_dir_path, output_prefix, file_index):
+    output_file_path = os.path.join(output_dir_path, '{}_{}.tfrecord'.format(output_prefix, file_index))
+    if os.path.exists(output_file_path):
+        os.remove(output_file_path)
+
+    os.makedirs(output_dir_path, exist_ok=True)
+    return output_file_path

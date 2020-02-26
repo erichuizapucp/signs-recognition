@@ -19,3 +19,4 @@ not-annotated-videos
 dataset
 logs/pre-processing
 saved-models
+serialized-dataset
