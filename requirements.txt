@@ -1,3 +1,4 @@
+IPython
 beautifulsoup4
 matplotlib
 absl-py==0.8.0

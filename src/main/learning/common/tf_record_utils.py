@@ -4,7 +4,7 @@ import tensorflow as tf
 from learning.common import features
 
 
-def bytes_feature(value):
+def bytes_feature(value, is_list=False):
     if isinstance(value, type(tf.constant(0))):
         value = value.numpy()
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -35,7 +35,7 @@ def serialize_sample(image_raw, label):
 
 def tf_serialize_sample(image_raw, label):
     tf_sample = tf.py_function(serialize_sample, (image_raw, label), tf.string)
-    return tf.reshape(tf_sample, ())  # TFRecord requires scalar strings
+    return tf_sample.numpy()  # tf.reshape(tf_sample, ())  # TFRecord requires scalar strings
 
 
 def parse_dict_sample(sample):
@@ -55,32 +55,36 @@ def parse_dict_sample(sample):
 def tf_parse_dict_sample(sample):
     parse_func = parse_dict_sample
     return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.string)
-    tf_height, tf_width, tf_depth, tf_image_raw, tf_label = tf.py_function(parse_func, [sample], return_type)
+    tf_image_raw, tf_height, tf_width, tf_depth, tf_label = tf.py_function(parse_func, [sample], return_type)
 
-    return tf_height, tf_width, tf_depth, tf_image_raw, tf_label
+    return tf_image_raw, tf_height, tf_width, tf_depth, tf_label
 
 
 def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file):
     file_index = 0
+    file_size = 0
     output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
 
     writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
     for image_raw, label in dataset:
-        example = tf_serialize_sample(image_raw, label)
+        example = serialize_sample(image_raw, label)
         writer.write(example)
 
-        if os.stat(output_file_path).st_size > max_size_per_file * 1048576:
+        file_size = file_size + (len(example) / 1048576)
+        if file_size > max_size_per_file:
             writer.close()
 
             file_index = file_index + 1
             output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
             writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
 
+            file_size = 0
+
     writer.close()
 
 
 def deserialize_dataset(tf_record_file_path):
-    dataset = tf.data.TFRecordDataset(tf_record_file_path).map(lambda sample: tf_parse_dict_sample(sample))
+    dataset = tf.data.TFRecordDataset(tf_record_file_path, compression_type='ZLIB').map(lambda sample: tf_parse_dict_sample(sample))
     return dataset
 
 
