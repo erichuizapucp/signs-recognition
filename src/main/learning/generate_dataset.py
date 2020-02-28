@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+import logging
 
 from argparse import ArgumentParser
 from logger_config import setup_logging
@@ -24,6 +25,12 @@ def get_cmd_args():
 
 
 def main():
+    working_folder = os.getenv('WORK_DIR', './')
+    setup_logging(working_folder, 'dataset-logging.yaml')
+    logger = logging.getLogger(__name__)
+
+    logger.info('Dataset generation process started')
+
     args = get_cmd_args()
 
     dataset_path = args.dataset_path
@@ -31,15 +38,19 @@ def main():
     output_dir_path = args.output_dir_path
     output_prefix = args.output_prefix
     output_max_size = args.output_max_size
-
     shuffle_buffer_size = args.shuffle_buffer_size
+
+    logger.debug('Source dataset path: %s', dataset_path)
+    logger.debug('Source dataset type: %s', dataset_type)
+    logger.debug('Output dir path: %s', output_dir_path)
+    logger.debug('Output prefix: %s', output_prefix)
+    logger.debug('Max size per output file: %s', output_max_size)
+    logger.debug('Shuffle buffer size: %s', shuffle_buffer_size)
 
     raw_dataset = get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size)
     tf_record_utils.serialize_dataset(raw_dataset, output_dir_path, output_prefix, output_max_size)
 
-    # dataset = tf_record_utils.deserialize_dataset('/Users/erichuiza/Documents/maestria/tesis/signs-recognition/serialized-dataset/opticalflow/opticalflow_0.tfrecord')
-    # for image_features in dataset:
-    #     image_raw = image_features[0].numpy()
+    logger.info('Dataset generation process completed')
 
 
 def get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size):
@@ -58,6 +69,15 @@ def get_opticalflow_sample(file_path):
 
 def tf_get_opticalflow_sample(file_path):
     return tf.py_function(get_opticalflow_sample, [file_path], (tf.string, tf.string))
+
+
+def get_rgb_sample(tf_sample_folder_path):
+    sample_folder_path = tf_sample_folder_path.numpy()
+    pass
+
+
+def tf_get_rgb_sample(sample_folder_path):
+    return tf.py_function(get_rgb_sample, [sample_folder_path], (tf.string, tf.string))
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@ import tensorflow as tf
 
 from learning.common import features
 
+COMPRESSION_TYPE = 'ZLIB'
+
 
 def bytes_feature(value, is_list=False):
     if isinstance(value, type(tf.constant(0))):
@@ -65,7 +67,7 @@ def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, 
     file_size = 0
     output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
 
-    writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
+    writer = tf.io.TFRecordWriter(output_file_path, options=COMPRESSION_TYPE)
     for image_raw, label in dataset:
         example = serialize_sample(image_raw, label)
         writer.write(example)
@@ -76,15 +78,19 @@ def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, 
 
             file_index = file_index + 1
             output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
-            writer = tf.io.TFRecordWriter(output_file_path, options='ZLIB')
+            writer = tf.io.TFRecordWriter(output_file_path, options=COMPRESSION_TYPE)
 
             file_size = 0
 
     writer.close()
 
 
-def deserialize_dataset(tf_record_file_path):
-    dataset = tf.data.TFRecordDataset(tf_record_file_path, compression_type='ZLIB').map(lambda sample: tf_parse_dict_sample(sample))
+def deserialize_dataset(tf_records_folder_path):
+    file_pattern = os.path.join(tf_records_folder_path, '*.tfrecord')
+    files_dataset = tf.data.Dataset.list_files(file_pattern)
+
+    dataset = tf.data.TFRecordDataset(files_dataset, compression_type=COMPRESSION_TYPE)
+    dataset = dataset.map(lambda sample: tf_parse_dict_sample(sample))
     return dataset
 
 
