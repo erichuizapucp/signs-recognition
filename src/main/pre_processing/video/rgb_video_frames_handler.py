@@ -25,7 +25,7 @@ class RGBVideoFramesHandler(Handler):
         frame_no = start_frame_no
         img_index = 1
         while frame_no <= end_frame_no:
-            frame_file_path = os.path.join(folder_path, "frame%d.jpg" % img_index)
+            frame_file_path = os.path.join(folder_path, str(img_index).zfill(4) + '_frame.jpg')
             success, frame = video_capture.read()
             if not success:  # eof
                 break

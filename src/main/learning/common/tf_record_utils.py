@@ -62,7 +62,7 @@ def tf_parse_dict_sample(sample):
     return tf_image_raw, tf_height, tf_width, tf_depth, tf_label
 
 
-def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file):
+def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float):
     file_index = 0
     file_size = 0
     output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import os
 import logging
+from pathlib import Path
 
 from argparse import ArgumentParser
 from logger_config import setup_logging
@@ -25,19 +26,13 @@ def get_cmd_args():
 
 
 def main():
-    working_folder = os.getenv('WORK_DIR', './')
-    setup_logging(working_folder, 'dataset-logging.yaml')
-    logger = logging.getLogger(__name__)
-
-    logger.info('Dataset generation process started')
-
     args = get_cmd_args()
 
     dataset_path = args.dataset_path
     dataset_type = args.dataset_type
     output_dir_path = args.output_dir_path
     output_prefix = args.output_prefix
-    output_max_size = args.output_max_size
+    output_max_size: float = float(args.output_max_size)
     shuffle_buffer_size = args.shuffle_buffer_size
 
     logger.debug('Source dataset path: %s', dataset_path)
@@ -47,38 +42,84 @@ def main():
     logger.debug('Max size per output file: %s', output_max_size)
     logger.debug('Shuffle buffer size: %s', shuffle_buffer_size)
 
+    # obtain dataset from image samples at the file system
     raw_dataset = get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size)
+
+    # serialize samples into the TFRecord format for better I/O
     tf_record_utils.serialize_dataset(raw_dataset, output_dir_path, output_prefix, output_max_size)
 
     logger.info('Dataset generation process completed')
 
 
 def get_raw_dataset(dataset_path, dataset_type, shuffle_buffer_size):
-    dataset: tf.data.Dataset = tf.data.Dataset.list_files(dataset_path + '/*/*')
-    dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
-    dataset = dataset.map(tf_get_opticalflow_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    build_dataset_operations = {
+        'opticalflow': lambda: build_dataset(dataset_path,
+                                             shuffle_buffer_size,
+                                             get_raw_opticalflow_list,
+                                             tf_get_opticalflow_sample),
+        'rgb': lambda: build_dataset(dataset_path,
+                                     shuffle_buffer_size,
+                                     get_raw_rgb_list,
+                                     tf_get_rgb_sample),
+    }
+
+    if dataset_type in build_dataset_operations:
+        logger.debug('An %s dataset generation was selected', dataset_type)
+        dataset = build_dataset_operations[dataset_type]()
+    else:
+        raise ValueError('Unrecognized operation "{}"'.format(dataset_type))
 
     return dataset
 
 
-def get_opticalflow_sample(file_path):
+def build_dataset(dataset_path, shuffle_buffer_size, raw_sample_list_func, map_func):
+    raw_samples_list = raw_sample_list_func(dataset_path)
+    dataset: tf.data.Dataset = tf.data.Dataset.from_tensor_slices(raw_samples_list)
+    dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
+    dataset = dataset.map(map_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    return dataset
+
+
+def get_raw_opticalflow_list(dataset_path):
+    return [str(file_path) for file_path in Path(dataset_path).rglob('*.jpg')]
+
+
+def get_raw_rgb_list(dataset_path):
+    return [str(dir_path) for dir_path in Path(dataset_path).rglob('*/*') if dir_path.is_dir()]
+
+
+def py_get_opticalflow_sample(file_path):
     img_raw = tf.io.read_file(file_path)
     label = tf.strings.split(file_path, os.path.sep)[-2]
     return img_raw, label
 
 
 def tf_get_opticalflow_sample(file_path):
-    return tf.py_function(get_opticalflow_sample, [file_path], (tf.string, tf.string))
+    return tf.py_function(py_get_opticalflow_sample, [file_path], (tf.string, tf.string))
 
 
-def get_rgb_sample(tf_sample_folder_path):
-    sample_folder_path = tf_sample_folder_path.numpy()
-    pass
+def py_get_rgb_sample(folder_path):
+    pattern = tf.strings.join([folder_path, tf.constant('*.jpg')], separator='/')
+    sample_files_paths = tf.io.matching_files(pattern)
+
+    images = []
+    for sample_file_path in sample_files_paths:
+        img_raw = tf.io.read_file(sample_file_path)
+        images.extend([img_raw.numpy()])
+
+    label = tf.strings.split(folder_path, os.path.sep)[-2]
+    return images, label
 
 
 def tf_get_rgb_sample(sample_folder_path):
-    return tf.py_function(get_rgb_sample, [sample_folder_path], (tf.string, tf.string))
+    return tf.py_function(py_get_rgb_sample, [sample_folder_path], (tf.string, tf.string))
 
 
 if __name__ == '__main__':
+    working_folder = os.getenv('WORK_DIR', './')
+    setup_logging(working_folder, 'dataset-logging.yaml')
+    logger = logging.getLogger(__name__)
+
+    logger.info('Dataset generation process started')
+
     main()
