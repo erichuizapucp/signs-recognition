@@ -6,10 +6,14 @@ from learning.common import features
 COMPRESSION_TYPE = 'ZLIB'
 
 
-def bytes_feature(value, is_list=False):
+def bytes_feature(value):
     if isinstance(value, type(tf.constant(0))):
         value = value.numpy()
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def array_bytes_feature(value):
+    tf.train.Feature(bytes_list=tf.train.BytesList(value=value.numpy().reshape(-1)))
 
 
 def float_feature(value):
@@ -20,7 +24,7 @@ def int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
-def serialize_sample(image_raw, label):
+def serialize_opticalflow_sample(image_raw, label):
     image_shape = tf.image.decode_jpeg(image_raw).shape
 
     feature = {
@@ -35,9 +39,13 @@ def serialize_sample(image_raw, label):
     return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
 
-def tf_serialize_sample(image_raw, label):
-    tf_sample = tf.py_function(serialize_sample, (image_raw, label), tf.string)
-    return tf_sample.numpy()  # tf.reshape(tf_sample, ())  # TFRecord requires scalar strings
+def serialize_rgb_sample(raw_rgb_sample, label):
+    pass
+
+
+# def tf_serialize_opticalflow_sample(image_raw, label):
+#     tf_sample = tf.py_function(serialize_opticalflow_sample, (image_raw, label), tf.string)
+#     return tf_sample.numpy()  # tf.reshape(tf_sample, ())  # TFRecord requires scalar strings
 
 
 def parse_dict_sample(sample):
@@ -62,14 +70,15 @@ def tf_parse_dict_sample(sample):
     return tf_image_raw, tf_height, tf_width, tf_depth, tf_label
 
 
-def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float):
+def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float,
+                      sample_serialization_func):
     file_index = 0
     file_size = 0
     output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
 
     writer = tf.io.TFRecordWriter(output_file_path, options=COMPRESSION_TYPE)
-    for image_raw, label in dataset:
-        example = serialize_sample(image_raw, label)
+    for raw_sample, label in dataset:
+        example = sample_serialization_func(raw_sample, label)
         writer.write(example)
 
         file_size = file_size + (len(example) / 1048576)
