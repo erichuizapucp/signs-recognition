@@ -87,18 +87,28 @@ def tf_parse_opticalflow_dict_sample(sample):
 def parse_rgb_dict_sample(sample):
     feature_description = {
         features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+        features.HEIGHT: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.WIDTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        features.DEPTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
         features.LABEL: tf.io.FixedLenFeature([], tf.string, default_value=''),
     }
 
     feature = tf.io.parse_single_example(sample, feature_description)
-    return feature[features.FRAMES_SEQ], feature[features.LABEL]
+
+    dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
+    height = feature[features.HEIGHT]
+    width = feature[features.WIDTH]
+    depth = feature[features.DEPTH]
+    label = feature[features.LABEL]
+
+    return dense_frames_seq, height, width, depth, label
 
 
 def tf_parse_rgb_dict_sample(sample):
     parse_func = parse_rgb_dict_sample
-    return_type = (tf.string, tf.string)
-    tf_rgb_features, tf_label = tf.py_function(parse_func, [sample], return_type)
-    return tf_rgb_features, tf_label
+    return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.string)
+    tf_frames_seq, tf_height, tf_width, tf_depth, tf_label = tf.py_function(parse_func, [sample], return_type)
+    return tf_frames_seq, tf_height, tf_width, tf_depth, tf_label
 
 
 def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float,
@@ -136,12 +146,12 @@ def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, 
     writer.close()
 
 
-def deserialize_dataset(tf_records_folder_path):
+def deserialize_dataset(tf_records_folder_path, parse_dict_sample_func):
     file_pattern = os.path.join(tf_records_folder_path, '*.tfrecord')
     files_dataset = tf.data.Dataset.list_files(file_pattern)
 
     dataset = tf.data.TFRecordDataset(files_dataset, compression_type=COMPRESSION_TYPE)
-    dataset = dataset.map(lambda sample: tf_parse_opticalflow_dict_sample(sample))
+    dataset = dataset.map(lambda sample: parse_dict_sample_func(sample))
     return dataset
 
 
