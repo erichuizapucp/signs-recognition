@@ -118,13 +118,13 @@ def py_get_rgb_sample(folder_path):
     pattern = tf.strings.join([folder_path, tf.constant('*.jpg')], separator='/')
     sample_files_paths = tf.io.matching_files(pattern)
 
-    images = []
+    rgb_frames = []
     for sample_file_path in sample_files_paths:
-        img_raw = tf.io.read_file(sample_file_path)
-        images.extend([img_raw.numpy()])
+        raw_frame = tf.io.read_file(sample_file_path)
+        rgb_frames.extend([raw_frame])
 
     label = tf.strings.split(folder_path, os.path.sep)[-2]
-    return images, label
+    return rgb_frames, label
 
 
 def tf_get_rgb_sample(sample_folder_path):

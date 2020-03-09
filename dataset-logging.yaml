@@ -28,7 +28,7 @@ root:
   handlers: [console]
 
 loggers:
-  datasets:
+  learning.common:
     level: DEBUG
     handlers: [console]
     propagate: no

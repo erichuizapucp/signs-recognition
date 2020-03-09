@@ -1,11 +1,13 @@
 import os
 import tensorflow as tf
-import numpy as np
+import logging
 
 from learning.common import features
 
 COMPRESSION_TYPE = 'ZLIB'
 MAX_FILE_LENGTH_SIZE = 1048576
+
+logger = logging.getLogger(__name__)
 
 
 def bytes_feature(value):
@@ -14,8 +16,12 @@ def bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
+def array_bytes_feature(value):
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=value.numpy()))
+
+
 def array_int64_feature(value):
-    tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value.numpy()))
 
 
 def float_feature(value):
@@ -41,33 +47,19 @@ def serialize_opticalflow_sample(image_raw, label):
     return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
 
-def serialize_rgb_sample(raw_rgb_sample, label):
-    rgb_sample_features = pack_rgb_sample_features(raw_rgb_sample)
+def serialize_rgb_sample(rgb_frames, label):
+    frames_shape = tf.image.decode_jpeg(rgb_frames[0]).shape
+
     feature = {
-        features.RGB_FEATURES: array_int64_feature(rgb_sample_features),
+        features.FRAMES_SEQ: array_bytes_feature(rgb_frames),
+        features.HEIGHT: int64_feature(frames_shape[0]),
+        features.WIDTH: int64_feature(frames_shape[1]),
+        features.DEPTH: int64_feature(frames_shape[2]),
         features.LABEL: bytes_feature(label),
     }
 
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()  # TFRecord requires scalar strings
-
-
-def pack_rgb_sample_features(tf_raw_rgb_sample):
-    raw_rgb_sample = tf_raw_rgb_sample.numpy()
-
-    all_frames_features = []
-    for raw_rgb_sample_frame in raw_rgb_sample:
-        decoded_image = tf.image.decode_jpeg(raw_rgb_sample_frame)
-        image_shape = decoded_image.shape
-
-        image_height = image_shape[0]
-        image_width = image_shape[1]
-        image_depth = image_shape[2]
-
-        frame_features = [decoded_image, image_height, image_width, image_depth]
-        all_frames_features.extend([frame_features])
-
-    return all_frames_features
 
 
 def parse_opticalflow_dict_sample(sample):
@@ -94,12 +86,12 @@ def tf_parse_opticalflow_dict_sample(sample):
 
 def parse_rgb_dict_sample(sample):
     feature_description = {
-        features.RGB_FEATURES: tf.io.VarLenFeature(tf.string),
+        features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
         features.LABEL: tf.io.FixedLenFeature([], tf.string, default_value=''),
     }
 
     feature = tf.io.parse_single_example(sample, feature_description)
-    return feature[features.RGB_FEATURES], feature[features.LABEL]
+    return feature[features.FRAMES_SEQ], feature[features.LABEL]
 
 
 def tf_parse_rgb_dict_sample(sample):
@@ -116,19 +108,30 @@ def serialize_dataset(dataset: tf.data.Dataset, output_dir_path, output_prefix, 
     output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
 
     writer = tf.io.TFRecordWriter(output_file_path, options=COMPRESSION_TYPE)
+    index = 1
     for raw_sample, label in dataset:
         example = sample_serialization_func(raw_sample, label)
         writer.write(example)
 
+        logger.debug('Sample %s serialization process completed.', str(index))
+
         file_size = file_size + (len(example) / MAX_FILE_LENGTH_SIZE)
         if file_size > max_size_per_file:
+            logger.debug('TFRecord file %s exceed maximum allowed file size %sMB, a new file will be created',
+                         output_file_path,
+                         str(max_size_per_file))
+
             writer.close()
 
             file_index = file_index + 1
             output_file_path = __handle_split_file_name(output_dir_path, output_prefix, file_index)
             writer = tf.io.TFRecordWriter(output_file_path, options=COMPRESSION_TYPE)
 
+            logger.debug('TFRecord file %s created.', output_file_path)
+
             file_size = 0
+
+        index = index + 1
 
     writer.close()
 
