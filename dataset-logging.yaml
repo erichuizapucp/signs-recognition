@@ -14,21 +14,21 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
-  core_file_handler:
-    class: logging.handlers.RotatingFileHandler
-    level: DEBUG
-    formatter: standard
-    filename: logs/dataset.log
-    maxBytes: 10485760 # 10MB
-    backupCount: 20
-    encoding: utf8
+#  core_file_handler:
+#    class: logging.handlers.RotatingFileHandler
+#    level: DEBUG
+#    formatter: standard
+#    filename: logs/dataset.log
+#    maxBytes: 10485760 # 10MB
+#    backupCount: 20
+#    encoding: utf8
 
 root:
   level: DEBUG
-  handlers: [console,core_file_handler]
+  handlers: [console]
 
 loggers:
   datasets:
     level: DEBUG
-    handlers: [console,core_file_handler]
+    handlers: [console]
     propagate: no

@@ -1,5 +1,6 @@
 import os
 import tensorflow as tf
+import numpy as np
 
 from learning.common import features
 
@@ -13,8 +14,8 @@ def bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def array_bytes_feature(value):
-    tf.train.Feature(bytes_list=tf.train.BytesList(value=value.numpy().reshape(-1)))
+def array_int64_feature(value):
+    tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
 def float_feature(value):
@@ -43,7 +44,7 @@ def serialize_opticalflow_sample(image_raw, label):
 def serialize_rgb_sample(raw_rgb_sample, label):
     rgb_sample_features = pack_rgb_sample_features(raw_rgb_sample)
     feature = {
-        features.RGB_FEATURES: bytes_feature(rgb_sample_features),
+        features.RGB_FEATURES: array_int64_feature(rgb_sample_features),
         features.LABEL: bytes_feature(label),
     }
 
@@ -56,11 +57,14 @@ def pack_rgb_sample_features(tf_raw_rgb_sample):
 
     all_frames_features = []
     for raw_rgb_sample_frame in raw_rgb_sample:
-        image_shape = tf.image.decode_jpeg(raw_rgb_sample_frame)
+        decoded_image = tf.image.decode_jpeg(raw_rgb_sample_frame)
+        image_shape = decoded_image.shape
+
         image_height = image_shape[0]
         image_width = image_shape[1]
         image_depth = image_shape[2]
-        frame_features = [raw_rgb_sample_frame, image_height, image_width, image_depth]
+
+        frame_features = [decoded_image, image_height, image_width, image_depth]
         all_frames_features.extend([frame_features])
 
     return all_frames_features
