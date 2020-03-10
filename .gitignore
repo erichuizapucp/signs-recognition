@@ -11,12 +11,11 @@
 binary
 __pycache__/
 incoming-queue
-logs
 venv
 transcriptions/
 detected-syntax
 not-annotated-videos
-dataset
-logs/pre-processing
 saved-models
 serialized-dataset
+/dataset/
+/logs/

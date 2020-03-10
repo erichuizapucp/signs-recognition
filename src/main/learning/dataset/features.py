@@ -1,0 +1,6 @@
+HEIGHT = 'height'
+WIDTH = 'width'
+DEPTH = 'depth'
+IMAGE_RAW = 'image_raw'
+LABEL = 'label'
+FRAMES_SEQ = 'frames_seq'
