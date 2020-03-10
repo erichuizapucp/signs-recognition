@@ -31,7 +31,7 @@ class TFRecordDatasetCreator:
 
         return dataset
 
-    def create_tfrecord_dataset(self, raw_dataset, dataset_type, output_dir_path, output_prefix, output_max_size):
+    def create_dataset(self, raw_dataset, dataset_type, output_dir_path, output_prefix, output_max_size):
         create_tfrecord_operations = {
             OPTICAL_FLOW:
                 lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
