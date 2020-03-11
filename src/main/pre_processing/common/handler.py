@@ -1,6 +1,7 @@
-class Handler:
-    def __init__(self):
-        print()
+import abc
 
+
+class Handler:
+    @abc.abstractmethod
     def handle(self, **kwargs):
-        print()
+        pass

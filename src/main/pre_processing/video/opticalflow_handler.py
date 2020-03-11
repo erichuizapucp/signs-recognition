@@ -27,7 +27,7 @@ class OpticalFlowHandler(Handler):
 
         frame_index = 1
         no_frames = len([name for name in os.listdir(rgb_sample_folder_path) if name != '.DS_Store'])
-        frame_file_name = os.path.join(rgb_sample_folder_path, 'frame' + str(frame_index) + '.jpg')
+        frame_file_name = os.path.join(rgb_sample_folder_path, str(frame_index).zfill(4) + '_frame.jpg')
 
         # Take first frame and find corners in it
         old_frame = cv.imread(frame_file_name)
@@ -37,7 +37,7 @@ class OpticalFlowHandler(Handler):
         mask = np.zeros_like(old_frame)
         while frame_index < no_frames:
             frame_index = frame_index + 1
-            frame_file_name = os.path.join(rgb_sample_folder_path, 'frame' + str(frame_index) + '.jpg')
+            frame_file_name = os.path.join(rgb_sample_folder_path, str(frame_index).zfill(4) + '_frame.jpg')
 
             frame = cv.imread(frame_file_name)
             frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)

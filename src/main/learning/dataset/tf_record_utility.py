@@ -19,7 +19,7 @@ class TFRecordUtility:
             features.HEIGHT: self.__int64_feature(image_shape[0]),
             features.WIDTH: self.__int64_feature(image_shape[1]),
             features.DEPTH: self.__int64_feature(image_shape[2]),
-            features.LABEL: self.__bytes_feature(label),
+            features.LABEL: self.__int64_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -33,7 +33,7 @@ class TFRecordUtility:
             features.HEIGHT: self.__int64_feature(frames_shape[0]),
             features.WIDTH: self.__int64_feature(frames_shape[1]),
             features.DEPTH: self.__int64_feature(frames_shape[2]),
-            features.LABEL: self.__bytes_feature(label),
+            features.LABEL: self.__int64_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -46,7 +46,7 @@ class TFRecordUtility:
             features.HEIGHT: tf.io.FixedLenFeature([], tf.int64, default_value=0),
             features.WIDTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
             features.DEPTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-            features.LABEL: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.LABEL: tf.io.FixedLenFeature([], tf.int64, default_value=0),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
@@ -61,7 +61,7 @@ class TFRecordUtility:
 
     def tf_parse_opticalflow_dict_sample(self, sample):
         parse_func = self.parse_opticalflow_dict_sample
-        return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.string)
+        return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.int64)
         tf_image_raw, tf_height, tf_width, tf_depth, tf_label = tf.py_function(parse_func, [sample], return_type)
 
         return tf_image_raw, tf_height, tf_width, tf_depth, tf_label
@@ -73,7 +73,7 @@ class TFRecordUtility:
             features.HEIGHT: tf.io.FixedLenFeature([], tf.int64, default_value=0),
             features.WIDTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
             features.DEPTH: tf.io.FixedLenFeature([], tf.int64, default_value=0),
-            features.LABEL: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.LABEL: tf.io.FixedLenFeature([], tf.int64, default_value=0),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
@@ -88,7 +88,7 @@ class TFRecordUtility:
 
     def tf_parse_rgb_dict_sample(self, sample):
         parse_func = self.parse_rgb_dict_sample
-        return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.string)
+        return_type = (tf.string, tf.int64, tf.int64, tf.int64, tf.int64)
         tf_frames_seq, tf_height, tf_width, tf_depth, tf_label = tf.py_function(parse_func, [sample], return_type)
         return tf_frames_seq, tf_height, tf_width, tf_depth, tf_label
 

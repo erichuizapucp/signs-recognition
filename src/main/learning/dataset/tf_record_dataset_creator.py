@@ -3,7 +3,8 @@ import os
 import logging
 
 from learning.dataset.tf_record_utility import TFRecordUtility
-from learning.dataset.dataset_type import OPTICAL_FLOW, RGB
+from learning.common.dataset_type import OPTICAL_FLOW, RGB
+from learning.common.labels import SIGN_CLASSES
 from pathlib import Path
 
 
@@ -49,6 +50,23 @@ class TFRecordDatasetCreator:
         else:
             raise ValueError('Unrecognized operation "{}"'.format(dataset_type))
 
+    def __py_get_opticalflow_sample(self, file_path):
+        img_raw = tf.io.read_file(file_path)
+        label = self.__get_label(file_path)
+        return img_raw, label
+
+    def __py_get_rgb_sample(self, folder_path):
+        pattern = tf.strings.join([folder_path, tf.constant('*.jpg')], separator='/')
+        sample_files_paths = tf.io.matching_files(pattern)
+
+        rgb_frames = []
+        for sample_file_path in sample_files_paths:
+            raw_frame = tf.io.read_file(sample_file_path)
+            rgb_frames.extend([raw_frame])
+
+        label = self.__get_label(folder_path)
+        return rgb_frames, label
+
     @staticmethod
     def __build_raw_dataset(dataset_path, shuffle_buffer_size, raw_sample_list_func, map_func):
         raw_samples_list = raw_sample_list_func(dataset_path)
@@ -66,26 +84,13 @@ class TFRecordDatasetCreator:
         return [str(dir_path) for dir_path in Path(dataset_path).rglob('*/*') if dir_path.is_dir()]
 
     @staticmethod
-    def __py_get_opticalflow_sample(file_path):
-        img_raw = tf.io.read_file(file_path)
-        label = tf.strings.split(file_path, os.path.sep)[-2]
-        return img_raw, label
-
-    @staticmethod
-    def __py_get_rgb_sample(folder_path):
-        pattern = tf.strings.join([folder_path, tf.constant('*.jpg')], separator='/')
-        sample_files_paths = tf.io.matching_files(pattern)
-
-        rgb_frames = []
-        for sample_file_path in sample_files_paths:
-            raw_frame = tf.io.read_file(sample_file_path)
-            rgb_frames.extend([raw_frame])
-
-        label = tf.strings.split(folder_path, os.path.sep)[-2]
-        return rgb_frames, label
+    def __get_label(file_path):
+        sign_name = tf.strings.split(file_path, os.path.sep)[-2]
+        decoded_sign_name = sign_name.numpy().decode('UTF-8')
+        return SIGN_CLASSES.index(decoded_sign_name)
 
     def __tf_get_opticalflow_sample(self, file_path):
-        return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.string))
+        return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.int64))
 
     def __tf_get_rgb_sample(self, sample_folder_path):
-        return tf.py_function(self.__py_get_rgb_sample, [sample_folder_path], (tf.string, tf.string))
+        return tf.py_function(self.__py_get_rgb_sample, [sample_folder_path], (tf.string, tf.int64))

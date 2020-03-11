@@ -1,7 +1,7 @@
 import logging
 import tensorflow as tf
 
-from models.base_model import BaseModel
+from model.base_model import BaseModel
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy

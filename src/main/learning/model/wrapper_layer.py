@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from tensorflow.keras.layers import Layer
-from models.opticalflow_model import OpticalFlowModel
-from models.rgb_recurrent_model import RGBRecurrentModel
+from model.opticalflow_model import OpticalFlowModel
+from model.rgb_recurrent_model import RGBRecurrentModel
 
 
 class WrapperLayer(Layer):

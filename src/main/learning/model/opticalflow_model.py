@@ -3,7 +3,7 @@ import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
 
-from models.base_model import BaseModel
+from model.base_model import BaseModel
 
 from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model

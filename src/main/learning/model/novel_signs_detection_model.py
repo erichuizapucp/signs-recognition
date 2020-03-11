@@ -58,7 +58,7 @@ class NovelSignsDetectionModel(BaseModel):
 
         no_classes = len(self.classes)
 
-        # inner models
+        # inner model
         # opticalflow_model = OpticalFlowModel(self.working_folder, self.dataset_root_path).get_model(**kwargs)
         # rgb_recurrent_model = RGBRecurrentModel(self.working_folder, self.dataset_root_path).get_model(**kwargs)
         # wrapper_layer = WrapperLayer(opticalflow_model, rgb_recurrent_model)

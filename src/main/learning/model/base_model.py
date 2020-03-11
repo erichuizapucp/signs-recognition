@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model
 
 
 class BaseModel:
-    SAVED_MODEL_FOLDER_NAME = 'saved-models'
+    SAVED_MODEL_FOLDER_NAME = 'saved-model'
     MODEL_NAME = 'base'
     TRAIN_DATASET_FOLDER_NAME = 'train'
     TEST_DATASET_FOLDER_NAME = 'test'

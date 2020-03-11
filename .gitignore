@@ -19,3 +19,4 @@ saved-models
 serialized-dataset
 /dataset/
 /logs/
+/pre-trained-models/
