@@ -4,16 +4,41 @@ import logging
 
 from learning.dataset.tf_record_utility import TFRecordUtility
 from learning.common.dataset_type import OPTICAL_FLOW, RGB
-from learning.common.labels import SIGN_CLASSES
+from learning.common.labels import SIGNS_CLASSES
 from pathlib import Path
 
 
 class TFRecordDatasetCreator:
-    def __init__(self):
+    def __init__(self, dataset_type, raw_files_path, shuffle_buffer_size):
         self.logger = logging.getLogger(__name__)
+
+        self.dataset_type = dataset_type
+        self.raw_files_path = raw_files_path
+        self.shuffle_buffer_size = shuffle_buffer_size
+
         self.tf_record_util = TFRecordUtility()
 
-    def get_raw_dataset(self, raw_dataset_path, dataset_type, shuffle_buffer_size):
+    def create(self, output_dir_path, output_prefix, output_max_size):
+        raw_dataset = self.__get_raw_dataset(self.raw_files_path, self.dataset_type, self.shuffle_buffer_size)
+
+        create_tfrecord_operations = {
+            OPTICAL_FLOW:
+                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
+                                                              output_max_size,
+                                                              self.tf_record_util.serialize_opticalflow_sample),
+            RGB:
+                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
+                                                              output_max_size,
+                                                              self.tf_record_util.serialize_rgb_sample),
+        }
+
+        if self.dataset_type in create_tfrecord_operations:
+            self.logger.debug('An %s TFRecord dataset generation started', self.dataset_type)
+            create_tfrecord_operations[self.dataset_type]()
+        else:
+            raise ValueError('Unrecognized operation "{}"'.format(self.dataset_type))
+
+    def __get_raw_dataset(self, raw_dataset_path, dataset_type, shuffle_buffer_size):
         build_dataset_operations = {
             OPTICAL_FLOW: lambda: self.__build_raw_dataset(raw_dataset_path, shuffle_buffer_size,
                                                            self.__get_raw_opticalflow_list,
@@ -31,24 +56,6 @@ class TFRecordDatasetCreator:
             raise ValueError('Unrecognized operation "{}"'.format(dataset_type))
 
         return dataset
-
-    def create_dataset(self, raw_dataset, dataset_type, output_dir_path, output_prefix, output_max_size):
-        create_tfrecord_operations = {
-            OPTICAL_FLOW:
-                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_opticalflow_sample),
-            RGB:
-                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_rgb_sample),
-        }
-
-        if dataset_type in create_tfrecord_operations:
-            self.logger.debug('An %s TFRecord dataset generation started', dataset_type)
-            create_tfrecord_operations[dataset_type]()
-        else:
-            raise ValueError('Unrecognized operation "{}"'.format(dataset_type))
 
     def __py_get_opticalflow_sample(self, file_path):
         img_raw = tf.io.read_file(file_path)
@@ -87,7 +94,7 @@ class TFRecordDatasetCreator:
     def __get_label(file_path):
         sign_name = tf.strings.split(file_path, os.path.sep)[-2]
         decoded_sign_name = sign_name.numpy().decode('UTF-8')
-        return SIGN_CLASSES.index(decoded_sign_name)
+        return SIGNS_CLASSES.index(decoded_sign_name)
 
     def __tf_get_opticalflow_sample(self, file_path):
         return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.int64))
