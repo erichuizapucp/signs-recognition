@@ -12,8 +12,8 @@ from learning.common.dataset_type import OPTICAL_FLOW
 
 
 class OpticalflowExecutor(ModelExecutor):
-    def __init__(self, model: Model):
-        super().__init__(model)
+    def __init__(self, model: Model, working_dir):
+        super().__init__(model, working_dir)
         self.logger = logging.getLogger(__name__)
 
         self.learning_rate = 0.001
@@ -25,7 +25,7 @@ class OpticalflowExecutor(ModelExecutor):
         dataset_reader = TFRecordDatasetReader(OPTICAL_FLOW, dataset_path)
         dataset = dataset_reader.read()
 
-        # map all dataset images transformations
+        # apply image transformation and data augmentation
         dataset = dataset.map(self._prepare_single_image)
         return dataset
 

@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Model
 from tensorflow import feature_column
 
-from base_model import BaseModel
-from opticalflow_model import OpticalFlowModel
-from rgb_recurrent_model import RGBRecurrentModel
+from base_model_builder import BaseModelBuilder
+from opticalflow_model_builder import OpticalFlowModelBuilder
+from rgb_recurrent_builder import RGBRecurrentModelBuilder
 from wrapper_layer import WrapperLayer
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Dense
@@ -19,11 +19,11 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Recall, AUC, Precision
 
 
-class NovelSignsDetectionModel(BaseModel):
+class NovelSignsDetectionModel(BaseModelBuilder):
     MODEL_NAME = 'nsdm'
 
-    def __init__(self, working_folder, dataset_root_path):
-        super(NovelSignsDetectionModel, self).__init__(working_folder, dataset_root_path)
+    def __init__(self):
+        super(NovelSignsDetectionModel, self).__init__()
         self.logger = logging.getLogger(__name__)
 
         # self.opticalflow_model_path = os.path.join(self.working_folder, OpticalFlowModel.SAVED_MODEL_FOLDER_NAME)
@@ -39,8 +39,8 @@ class NovelSignsDetectionModel(BaseModel):
         img_height = kwargs['ImageHeight']
         no_channels = kwargs['NoChannels']
 
-        opticalflow_dataset_path = os.path.join(dataset_path, OpticalFlowModel.MODEL_NAME)
-        rgb_dataset_path = os.path.join(dataset_path, RGBRecurrentModel.MODEL_NAME)
+        opticalflow_dataset_path = os.path.join(dataset_path, OpticalFlowModelBuilder.MODEL_NAME)
+        rgb_dataset_path = os.path.join(dataset_path, RGBRecurrentModelBuilder.MODEL_NAME)
 
         # First we will need only opticalflow samples file paths
         dataset = tf.data.Dataset.list_files(opticalflow_dataset_path + '/*/*'). \
@@ -53,7 +53,7 @@ class NovelSignsDetectionModel(BaseModel):
 
         return dataset
 
-    def get_model(self, **kwargs) -> Model:
+    def build(self, **kwargs) -> Model:
         learning_rate = kwargs['LearningRate']
 
         no_classes = len(self.classes)

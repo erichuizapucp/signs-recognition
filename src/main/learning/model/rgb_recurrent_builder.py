@@ -1,24 +1,24 @@
 import logging
 import tensorflow as tf
 
-from model.base_model import BaseModel
+from model.base_model_builder import BaseModelBuilder
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Recall, AUC, Precision
 
 
-class RGBRecurrentModel(BaseModel):
+class RGBRecurrentModelBuilder(BaseModelBuilder):
     MODEL_NAME = 'rgb'
 
-    def __init__(self, working_folder, dataset_root_path):
-        super(RGBRecurrentModel, self).__init__(working_folder, dataset_root_path)
+    def __init__(self):
+        super(RGBRecurrentModelBuilder, self).__init__()
         self.logger = logging.getLogger(__name__)
 
     def get_dataset(self, dataset_path, **kwargs) -> tf.data.Dataset:
         pass
 
-    def get_model(self, **kwargs) -> Model:
+    def build(self, **kwargs) -> Model:
         img_width = kwargs['ImageWidth']
         img_height = kwargs['ImageHeight']
         no_channels = kwargs['NoChannels']

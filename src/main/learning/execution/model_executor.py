@@ -4,23 +4,24 @@ import os
 import logging
 
 from tensorflow.keras.models import Model
+from learning.common.imagenet_config import IMAGENET_CONFIG
 
 
 class ModelExecutor:
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, working_dir):
         self.logger = logging.getLogger(__name__)
 
         self.model = model
 
-        self.working_dir = os.getenv('WORK_DIR', './')
+        self.working_dir = working_dir
         self.pre_trained_models_dir = 'pre-trained-models'
         self.dataset_dir = 'serialized-dataset'
 
-        self.imagenet_img_width = 224
-        self.imagenet_img_height = 224
-        self.rgb_no_channels = 3
+        self.imagenet_img_width = IMAGENET_CONFIG['imagenet_img_width']
+        self.imagenet_img_height = IMAGENET_CONFIG['imagenet_img_height']
+        self.rgb_no_channels = IMAGENET_CONFIG['rgb_no_channels']
 
-    def configure_model(self):
+    def configure(self):
         optimizer = self._get_optimizer()
         loss = self._get_loss()
         metrics = self._get_metrics()
