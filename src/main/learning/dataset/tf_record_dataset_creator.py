@@ -1,6 +1,7 @@
 import tensorflow as tf
 import os
 import logging
+import numpy as np
 
 from learning.dataset.tf_record_utility import TFRecordUtility
 from learning.common.dataset_type import OPTICAL_FLOW, RGB
@@ -94,7 +95,10 @@ class TFRecordDatasetCreator:
     def __get_label(file_path):
         sign_name = tf.strings.split(file_path, os.path.sep)[-2]
         decoded_sign_name = sign_name.numpy().decode('UTF-8')
-        return SIGNS_CLASSES.index(decoded_sign_name)
+        class_index = SIGNS_CLASSES.index(decoded_sign_name)
+        sparse_label = np.zeros(len(SIGNS_CLASSES))
+        sparse_label[class_index] = 1
+        return sparse_label
 
     def __tf_get_opticalflow_sample(self, file_path):
         return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.int64))

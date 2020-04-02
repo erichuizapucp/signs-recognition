@@ -11,7 +11,7 @@ from learning.execution.rgb_executor import RGBExecutor
 from learning.execution.nsdm_executor import NsdmExecutor
 
 DEFAULT_NO_EPOCHS = 5
-DEFAULT_NO_STEPS_EPOCHS = 4
+DEFAULT_NO_STEPS_EPOCHS = None
 
 
 def get_cmd_args():
@@ -34,13 +34,14 @@ def get_model(model_name):
     return model
 
 
-def get_executor(model_name, model, working_folder):
+def get_executor(executor_name, model, working_folder):
     executors = {
         'opticalflow': lambda: OpticalflowExecutor(model, working_folder),
         'rgb': lambda: RGBExecutor(model, working_folder),
         'nsdm': lambda: NsdmExecutor(model, working_folder)
     }
-    executor = executors[model_name]().configure()
+    executor = executors[executor_name]()
+    executor.configure()
     return executor
 
 
@@ -54,11 +55,13 @@ def main():
     args = get_cmd_args()
     no_epochs = args.no_epochs
     no_steps_per_epoch = args.no_steps
+    model_name = args.model
+    executor_name = model_name
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
-    model = get_model(args.model)
-    executor = get_executor(model, working_folder)
+    model = get_model(model_name)
+    executor = get_executor(executor_name, model, working_folder)
     executor.train_model(no_epochs, no_steps_per_epoch)
 
     logger.debug('learning operation is completed')

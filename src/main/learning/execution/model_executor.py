@@ -26,12 +26,11 @@ class ModelExecutor:
         loss = self._get_loss()
         metrics = self._get_metrics()
 
-        compiled_model = self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-        return compiled_model
+        self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, no_epochs, no_steps_per_epoch):
+    def train_model(self, no_epochs, no_steps_per_epoch=None):
         dataset = self._get_train_dataset()
-        history = self.model.fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch)
+        history = self.model.fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
 
         # save training history in fs for further review
         history_serialization_path = self._get_model_history_serialization_path()
@@ -75,6 +74,7 @@ class ModelExecutor:
 
     def _build_serialization_path(self, dir_name, file_name):
         dir_path = os.path.join(self.working_dir, dir_name)
+        os.makedirs(dir_path, exist_ok=True)
         file_index = len(os.listdir(dir_path))
         return os.path.join(self.working_dir, dir_name, '{}-{}'.format(file_index, file_name))
 
@@ -86,7 +86,6 @@ class ModelExecutor:
         # resize the image to the desired size.
         return tf.image.resize(img, [self.imagenet_img_width, self.imagenet_img_height])
 
-    def _prepare_single_image(self, sample):
-        transformed_img = self._transform_image(sample[0])
-        label = sample[4]
+    def _prepare_single_image(self, img, label):
+        transformed_img = self._transform_image(img)
         return transformed_img, label

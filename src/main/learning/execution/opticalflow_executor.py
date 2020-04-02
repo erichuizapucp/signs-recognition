@@ -1,8 +1,9 @@
 import os
 import logging
+import tensorflow as tf
 
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, AUC
 from tensorflow.keras.models import Model
 
@@ -17,6 +18,7 @@ class OpticalflowExecutor(ModelExecutor):
         self.logger = logging.getLogger(__name__)
 
         self.learning_rate = 0.001
+        self.dataset_batch_size = 1
         self.pre_trained_model_file = 'opticalflow.h5'
         self.training_history_file = 'opticalflow_history.npy'
 
@@ -26,7 +28,9 @@ class OpticalflowExecutor(ModelExecutor):
         dataset = dataset_reader.read()
 
         # apply image transformation and data augmentation
-        dataset = dataset.map(self._prepare_single_image)
+        dataset = dataset.map(lambda img, height, width, depth, label: self._prepare_single_image(img, label),
+                              num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        dataset = dataset.batch(self.dataset_batch_size)
         return dataset
 
     def _get_test_dataset(self):
@@ -39,7 +43,7 @@ class OpticalflowExecutor(ModelExecutor):
         return Adam(learning_rate=self.learning_rate)
 
     def _get_loss(self):
-        return SparseCategoricalCrossentropy()
+        return CategoricalCrossentropy()
 
     def _get_metrics(self):
         return [Recall(), AUC(curve='PR'), Precision()]
