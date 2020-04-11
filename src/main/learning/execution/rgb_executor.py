@@ -2,17 +2,15 @@ import tensorflow as tf
 import logging
 
 from tensorflow.keras.models import Model
-from learning.execution.model_executor import ModelExecutor
-from learning.common.dataset_type import RGB
+from learning.execution.base_model_executor import BaseModelExecutor
+from learning.common import dataset_type, model_type
 
 
-class RGBExecutor(ModelExecutor):
-    def __init__(self, model: Model, working_dir):
-        super().__init__(model, working_dir)
+class RGBExecutor(BaseModelExecutor):
+    def __init__(self, model: Model):
+        super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
-        self.pre_trained_model_file = 'rgb.h5'
-        self.training_history_file = 'rgb_history.npy'
         self.feature_dim = self.imagenet_img_width * self.imagenet_img_height * self.rgb_no_channels
 
     def _get_train_dataset(self):
@@ -38,10 +36,7 @@ class RGBExecutor(ModelExecutor):
         return tf.stack(transformed_images)
 
     def _get_dataset_type(self):
-        return RGB
+        return dataset_type.RGB
 
-    def _get_pre_trained_model_filename(self):
-        return 'rgb.h5'
-
-    def _get_training_history_filename(self):
-        return 'rgb_history.npy'
+    def _get_model_type(self):
+        return model_type.RGB

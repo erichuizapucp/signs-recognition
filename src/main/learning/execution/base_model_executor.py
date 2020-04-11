@@ -9,16 +9,17 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, AUC
 from learning.dataset.tf_record_dataset_reader import TFRecordDatasetReader
 from learning.common.imagenet_config import IMAGENET_CONFIG
+from learning.common.model_utility import ModelUtility
 
 
-class ModelExecutor:
-    def __init__(self, model: Model, working_dir):
+class BaseModelExecutor:
+    def __init__(self, model: Model):
         self.logger = logging.getLogger(__name__)
 
         self.model = model
 
-        self.working_dir = working_dir
-        self.pre_trained_models_dir = 'pre-trained-models'
+        self.working_dir = os.getenv('WORK_DIR', './')
+        # self.pre_trained_models_dir = 'pre-trained-models'
         self.dataset_dir = 'serialized-dataset'
 
         self.imagenet_img_width = IMAGENET_CONFIG['imagenet_img_width']
@@ -27,6 +28,8 @@ class ModelExecutor:
 
         self.learning_rate = 0.001
         self.dataset_batch_size = 64
+
+        self.model_utility = ModelUtility()
 
     def configure(self):
         optimizer = self._get_optimizer()
@@ -77,16 +80,10 @@ class ModelExecutor:
         return [Recall(), AUC(curve='PR'), Precision()]
 
     def _get_model_serialization_path(self):
-        return self._build_serialization_path(self.pre_trained_models_dir, self._get_pre_trained_model_filename())
+        return self.model_utility.get_model_serialization_path(self._get_model_type())
 
     def _get_model_history_serialization_path(self):
-        return self._build_serialization_path(self.pre_trained_models_dir, self._get_training_history_filename())
-
-    def _build_serialization_path(self, dir_name, file_name):
-        dir_path = os.path.join(self.working_dir, dir_name)
-        os.makedirs(dir_path, exist_ok=True)
-        file_index = len(os.listdir(dir_path))
-        return os.path.join(self.working_dir, dir_name, '{}-{}'.format(file_index, file_name))
+        return self.model_utility.get_model_history_serialization_path(self._get_model_type())
 
     def _transform_image(self, img):
         # convert to integers
@@ -102,8 +99,5 @@ class ModelExecutor:
     def _get_dataset_type(self):
         raise NotImplementedError('_get_dataset_type method not implemented.')
 
-    def _get_pre_trained_model_filename(self):
-        raise NotImplementedError('_get_pre_trained_model_filename method not implemented.')
-
-    def _get_training_history_filename(self):
-        raise NotImplementedError('_get_training_history_filename method not implemented.')
+    def _get_model_type(self):
+        raise NotImplementedError('_get_model_type method not implemented.')

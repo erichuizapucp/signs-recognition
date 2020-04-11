@@ -1,12 +1,12 @@
 import logging
 
 from tensorflow.keras.models import Model
-from learning.execution.model_executor import ModelExecutor
+from learning.execution.base_model_executor import BaseModelExecutor
 
 
-class NsdmExecutor(ModelExecutor):
-    def __init__(self, model: Model, working_dir):
-        super().__init__(model, working_dir)
+class NsdmExecutor(BaseModelExecutor):
+    def __init__(self, model: Model):
+        super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
     def _get_train_dataset(self):

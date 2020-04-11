@@ -3,7 +3,8 @@ import logging
 from model.base_model_builder import BaseModelBuilder
 from tensorflow.keras.models import Model
 from tensorflow.keras import Input
-from tensorflow.keras.layers import Masking, Bidirectional, Dense, LSTM, Flatten
+from tensorflow.keras.layers import Masking, Bidirectional, Dense, LSTM
+from learning.common.model_type import RGB
 
 
 class RGBRecurrentModelBuilder(BaseModelBuilder):
@@ -25,3 +26,9 @@ class RGBRecurrentModelBuilder(BaseModelBuilder):
         output = Dense(self.no_classes, activation='softmax', name='rgb_classifier')(x)
 
         return Model(inputs=inputs, outputs=output)
+
+    def load_saved_model(self) -> Model:
+        pass
+
+    def get_model_type(self):
+        return RGB

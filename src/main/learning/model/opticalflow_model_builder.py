@@ -5,6 +5,7 @@ from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras import Input
+from learning.common.model_utility import OPTICAL_FLOW
 
 
 class OpticalFlowModelBuilder(BaseModelBuilder):
@@ -32,3 +33,6 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
         model = Model(inputs=inputs, outputs=outputs, name='OpticalflowModel')
 
         return model
+
+    def get_model_type(self):
+        return OPTICAL_FLOW

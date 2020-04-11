@@ -8,7 +8,7 @@ import features
 class TFRecordUtility:
     def __init__(self):
         self.compression_type = 'ZLIB'
-        self.max_file_length_size = 1048576
+        self.max_file_length_size = 1048576  # 100MB
         self.logger = logging.getLogger(__name__)
 
     def serialize_opticalflow_sample(self, image_raw, label):

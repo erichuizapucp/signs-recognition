@@ -2,13 +2,13 @@ import logging
 import tensorflow as tf
 
 from tensorflow.keras.models import Model
-from learning.execution.model_executor import ModelExecutor
-from learning.common.dataset_type import OPTICAL_FLOW
+from learning.execution.base_model_executor import BaseModelExecutor
+from learning.common import dataset_type, model_type
 
 
-class OpticalflowExecutor(ModelExecutor):
-    def __init__(self, model: Model, working_dir):
-        super().__init__(model, working_dir)
+class OpticalflowExecutor(BaseModelExecutor):
+    def __init__(self, model: Model):
+        super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
     def _get_train_dataset(self):
@@ -25,10 +25,7 @@ class OpticalflowExecutor(ModelExecutor):
         return transformed_img, label
 
     def _get_dataset_type(self):
-        return OPTICAL_FLOW
+        return dataset_type.OPTICAL_FLOW
 
-    def _get_pre_trained_model_filename(self):
-        return 'opticalflow.h5'
-
-    def _get_training_history_filename(self):
-        return 'opticalflow_history.npy'
+    def _get_model_type(self):
+        return model_type.OPTICAL_FLOW
