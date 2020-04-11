@@ -10,6 +10,7 @@ class BaseModelBuilder:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.classes = SIGNS_CLASSES
+        self.no_classes = len(self.classes)
 
         self.imagenet_img_width = IMAGENET_CONFIG['imagenet_img_width']
         self.imagenet_img_height = IMAGENET_CONFIG['imagenet_img_height']

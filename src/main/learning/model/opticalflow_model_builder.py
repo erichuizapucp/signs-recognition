@@ -15,7 +15,6 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
     def build(self) -> Model:
         # input shape 224x224x3
         input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.rgb_no_channels)
-        no_classes = len(self.classes)
 
         # use a ResNet152 pre trained model as a base model, we are not including the top layer for maximizing the
         # learned features
@@ -27,7 +26,7 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
         inputs = Input(shape=input_shape, name='inputs')
         x = backbone_model(inputs)
         x = GlobalAveragePooling2D(name='OpticalflowGlobalAvgPooling')(x)
-        outputs = Dense(no_classes, activation='softmax', name='OpticalflowClassifier')(x)
+        outputs = Dense(self.no_classes, activation='softmax', name='OpticalflowClassifier')(x)
 
         # Opticalflow model assembling
         model = Model(inputs=inputs, outputs=outputs, name='OpticalflowModel')

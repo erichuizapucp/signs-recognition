@@ -1,14 +1,8 @@
-import os
 import logging
 import tensorflow as tf
 
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import Precision, Recall, AUC
 from tensorflow.keras.models import Model
-
 from learning.execution.model_executor import ModelExecutor
-from learning.dataset.tf_record_dataset_reader import TFRecordDatasetReader
 from learning.common.dataset_type import OPTICAL_FLOW
 
 
@@ -17,39 +11,24 @@ class OpticalflowExecutor(ModelExecutor):
         super().__init__(model, working_dir)
         self.logger = logging.getLogger(__name__)
 
-        self.learning_rate = 0.001
-        self.dataset_batch_size = 1
-        self.pre_trained_model_file = 'opticalflow.h5'
-        self.training_history_file = 'opticalflow_history.npy'
-
     def _get_train_dataset(self):
-        dataset_path = self._get_dataset_path()
-        dataset_reader = TFRecordDatasetReader(OPTICAL_FLOW, dataset_path)
-        dataset = dataset_reader.read()
+        dataset = super()._get_train_dataset()
 
         # apply image transformation and data augmentation
-        dataset = dataset.map(lambda img, height, width, depth, label: self._prepare_single_image(img, label),
+        dataset = dataset.map(lambda img, height, width, depth, label: self._prepare_sample(img, label),
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         dataset = dataset.batch(self.dataset_batch_size)
         return dataset
 
-    def _get_test_dataset(self):
-        return os.path.join(self.working_dir, self.dataset_dir, 'opticalflow')
+    def _prepare_sample(self, sample, label):
+        transformed_img = self._transform_image(sample)
+        return transformed_img, label
 
-    def _get_dataset_path(self):
-        return os.path.join(self.working_dir, self.dataset_dir, 'opticalflow')
+    def _get_dataset_type(self):
+        return OPTICAL_FLOW
 
-    def _get_optimizer(self):
-        return Adam(learning_rate=self.learning_rate)
+    def _get_pre_trained_model_filename(self):
+        return 'opticalflow.h5'
 
-    def _get_loss(self):
-        return CategoricalCrossentropy()
-
-    def _get_metrics(self):
-        return [Recall(), AUC(curve='PR'), Precision()]
-
-    def _get_model_serialization_path(self):
-        return self._build_serialization_path(self.pre_trained_models_dir, self.pre_trained_model_file)
-
-    def _get_model_history_serialization_path(self):
-        return self._build_serialization_path(self.pre_trained_models_dir, self.training_history_file)
+    def _get_training_history_filename(self):
+        return 'opticalflow_history.npy'

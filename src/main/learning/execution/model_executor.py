@@ -4,6 +4,10 @@ import os
 import logging
 
 from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.metrics import Precision, Recall, AUC
+from learning.dataset.tf_record_dataset_reader import TFRecordDatasetReader
 from learning.common.imagenet_config import IMAGENET_CONFIG
 
 
@@ -20,6 +24,9 @@ class ModelExecutor:
         self.imagenet_img_width = IMAGENET_CONFIG['imagenet_img_width']
         self.imagenet_img_height = IMAGENET_CONFIG['imagenet_img_height']
         self.rgb_no_channels = IMAGENET_CONFIG['rgb_no_channels']
+
+        self.learning_rate = 0.001
+        self.dataset_batch_size = 64
 
     def configure(self):
         optimizer = self._get_optimizer()
@@ -49,28 +56,31 @@ class ModelExecutor:
         return self.model.predict(dataset)
 
     def _get_train_dataset(self):
-        raise NotImplementedError('_get_train_dataset method not implemented')
+        dataset_path = self._get_dataset_path()
+        dataset_reader = TFRecordDatasetReader(self._get_dataset_type(), dataset_path)
+        dataset = dataset_reader.read()
+        return dataset
 
     def _get_test_dataset(self):
-        raise NotImplementedError('_get_test_dataset method not implemented')
-
-    def _get_optimizer(self):
-        raise NotImplementedError('_get_optimizer method not implemented.')
-
-    def _get_loss(self):
-        raise NotImplementedError('_get_loss method not implemented.')
-
-    def _get_metrics(self):
-        raise NotImplementedError('_get_metrics method not implemented.')
-
-    def _get_model_serialization_path(self):
-        raise NotImplementedError('_get_saved_model_path method not implemented.')
-
-    def _get_model_history_serialization_path(self):
-        raise NotImplementedError('_get_model_history_serialization_path method not implemented.')
+        return os.path.join(self.working_dir, self.dataset_dir, self._get_dataset_type())
 
     def _get_dataset_path(self):
-        raise NotImplementedError('_get_dataset_path method not implemented.')
+        return os.path.join(self.working_dir, self.dataset_dir, self._get_dataset_type())
+
+    def _get_optimizer(self):
+        return Adam(learning_rate=self.learning_rate)
+
+    def _get_loss(self):
+        return CategoricalCrossentropy()
+
+    def _get_metrics(self):
+        return [Recall(), AUC(curve='PR'), Precision()]
+
+    def _get_model_serialization_path(self):
+        return self._build_serialization_path(self.pre_trained_models_dir, self._get_pre_trained_model_filename())
+
+    def _get_model_history_serialization_path(self):
+        return self._build_serialization_path(self.pre_trained_models_dir, self._get_training_history_filename())
 
     def _build_serialization_path(self, dir_name, file_name):
         dir_path = os.path.join(self.working_dir, dir_name)
@@ -86,6 +96,14 @@ class ModelExecutor:
         # resize the image to the desired size.
         return tf.image.resize(img, [self.imagenet_img_width, self.imagenet_img_height])
 
-    def _prepare_single_image(self, img, label):
-        transformed_img = self._transform_image(img)
-        return transformed_img, label
+    def _prepare_sample(self, sample, label):
+        raise NotImplementedError('_prepare_sample method not implemented.')
+
+    def _get_dataset_type(self):
+        raise NotImplementedError('_get_dataset_type method not implemented.')
+
+    def _get_pre_trained_model_filename(self):
+        raise NotImplementedError('_get_pre_trained_model_filename method not implemented.')
+
+    def _get_training_history_filename(self):
+        raise NotImplementedError('_get_training_history_filename method not implemented.')

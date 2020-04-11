@@ -9,7 +9,7 @@ from tensorflow import feature_column
 
 from base_model_builder import BaseModelBuilder
 from opticalflow_model_builder import OpticalFlowModelBuilder
-from rgb_recurrent_builder import RGBRecurrentModelBuilder
+from rgb_recurrent_model_builder import RGBRecurrentModelBuilder
 from wrapper_layer import WrapperLayer
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Dense

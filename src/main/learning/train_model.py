@@ -2,7 +2,7 @@ import logging
 import os
 
 from learning.model.opticalflow_model_builder import OpticalFlowModelBuilder
-from learning.model.rgb_recurrent_builder import RGBRecurrentModelBuilder
+from learning.model.rgb_recurrent_model_builder import RGBRecurrentModelBuilder
 from learning.model.novel_signs_detection_builder import NovelSignsDetectionModel
 from argparse import ArgumentParser
 from logger_config import setup_logging

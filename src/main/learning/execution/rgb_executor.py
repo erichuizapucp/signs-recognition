@@ -2,10 +2,8 @@ import tensorflow as tf
 import logging
 
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import Recall, AUC, Precision
 from learning.execution.model_executor import ModelExecutor
+from learning.common.dataset_type import RGB
 
 
 class RGBExecutor(ModelExecutor):
@@ -13,30 +11,37 @@ class RGBExecutor(ModelExecutor):
         super().__init__(model, working_dir)
         self.logger = logging.getLogger(__name__)
 
-        self.learning_rate = 0.001
         self.pre_trained_model_file = 'rgb.h5'
         self.training_history_file = 'rgb_history.npy'
+        self.feature_dim = self.imagenet_img_width * self.imagenet_img_height * self.rgb_no_channels
 
     def _get_train_dataset(self):
-        pass
+        dataset = super()._get_train_dataset()
+        # apply image transformation and data augmentation
+        dataset = dataset.map(
+            lambda frames_seq, height, width, depth, label: self._prepare_sample(frames_seq, label),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        dataset = dataset.padded_batch(self.dataset_batch_size, padded_shapes=([None, None], [None]))
+        return dataset
 
-    def _get_test_dataset(self):
-        pass
+    def _prepare_sample(self, sample, label):
+        # RNN feature
+        transformed_frames_seq = tf.py_function(self.py_transform_frame_seq, [sample], tf.float32)
+        # RNN cells require a 3D input (batch, steps, feature)
+        return transformed_frames_seq, label
 
-    def _get_optimizer(self):
-        return Adam(learning_rate=self.learning_rate)
+    def py_transform_frame_seq(self, sample):
+        transformed_images = []
+        for image in sample:
+            transformed_img = tf.reshape(self._transform_image(image), [self.feature_dim])
+            transformed_images.extend([transformed_img])
+        return tf.stack(transformed_images)
 
-    def _get_loss(self):
-        return SparseCategoricalCrossentropy()
+    def _get_dataset_type(self):
+        return RGB
 
-    def _get_metrics(self):
-        return [Recall(), AUC(curve='PR'), Precision()]
+    def _get_pre_trained_model_filename(self):
+        return 'rgb.h5'
 
-    def _get_model_serialization_path(self):
-        pass
-
-    def _get_model_history_serialization_path(self):
-        pass
-
-    def _get_dataset_path(self):
-        pass
+    def _get_training_history_filename(self):
+        return 'rgb_history.npy'

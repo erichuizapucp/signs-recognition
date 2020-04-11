@@ -101,7 +101,7 @@ class TFRecordDatasetCreator:
         return sparse_label
 
     def __tf_get_opticalflow_sample(self, file_path):
-        return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.int64))
+        return tf.py_function(self.__py_get_opticalflow_sample, [file_path], (tf.string, tf.float32))
 
     def __tf_get_rgb_sample(self, sample_folder_path):
-        return tf.py_function(self.__py_get_rgb_sample, [sample_folder_path], (tf.string, tf.int64))
+        return tf.py_function(self.__py_get_rgb_sample, [sample_folder_path], (tf.string, tf.float32))

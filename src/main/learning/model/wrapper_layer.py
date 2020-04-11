@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from tensorflow.keras.layers import Layer
 from model.opticalflow_model_builder import OpticalFlowModelBuilder
-from model.rgb_recurrent_builder import RGBRecurrentModelBuilder
+from model.rgb_recurrent_model_builder import RGBRecurrentModelBuilder
 
 
 class WrapperLayer(Layer):
