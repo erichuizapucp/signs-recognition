@@ -1,6 +1,6 @@
 import logging
 
-from model.base_model_builder import BaseModelBuilder
+from learning.model.base_model_builder import BaseModelBuilder
 from tensorflow.keras.models import Model
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Masking, Bidirectional, Dense, LSTM
@@ -19,16 +19,13 @@ class RGBRecurrentModelBuilder(BaseModelBuilder):
 
     def build(self) -> Model:
         input_shape = (None, self.feature_dim)
-        inputs = Input(shape=input_shape, name='inputs')
+        inputs = Input(shape=input_shape, name='rgb_inputs')
         x = Masking(name='masking')(inputs)
-        x = Bidirectional(LSTM(self.no_lstm_units))(x)
+        x = Bidirectional(LSTM(self.no_lstm_units), name='rgb_bidirectional')(x)
         x = Dense(self.no_dense_neurons_1, activation='relu', name='rgb_dense_layer1')(x)
         output = Dense(self.no_classes, activation='softmax', name='rgb_classifier')(x)
 
-        return Model(inputs=inputs, outputs=output)
-
-    def load_saved_model(self) -> Model:
-        pass
+        return Model(inputs=inputs, outputs=output, name='rgb_model')
 
     def get_model_type(self):
         return RGB

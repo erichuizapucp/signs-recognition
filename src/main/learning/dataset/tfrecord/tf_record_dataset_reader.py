@@ -1,6 +1,6 @@
 import logging
 
-from learning.dataset.tf_record_utility import TFRecordUtility
+from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
 from learning.common.dataset_type import OPTICAL_FLOW, RGB
 
 

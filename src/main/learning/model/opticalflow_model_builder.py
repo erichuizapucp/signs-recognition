@@ -1,6 +1,6 @@
 import logging
 
-from model.base_model_builder import BaseModelBuilder
+from learning.model.base_model_builder import BaseModelBuilder
 from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
@@ -24,13 +24,13 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
         backbone_model.trainable = False
 
         # Opticalflow model definition
-        inputs = Input(shape=input_shape, name='inputs')
+        inputs = Input(shape=input_shape, name='opticalflow_inputs')
         x = backbone_model(inputs)
-        x = GlobalAveragePooling2D(name='OpticalflowGlobalAvgPooling')(x)
-        outputs = Dense(self.no_classes, activation='softmax', name='OpticalflowClassifier')(x)
+        x = GlobalAveragePooling2D(name='opticalflow_global_avg_pooling')(x)
+        outputs = Dense(self.no_classes, activation='softmax', name='opticalflow_classifier')(x)
 
         # Opticalflow model assembling
-        model = Model(inputs=inputs, outputs=outputs, name='OpticalflowModel')
+        model = Model(inputs=inputs, outputs=outputs, name='opticalflow_model')
 
         return model
 

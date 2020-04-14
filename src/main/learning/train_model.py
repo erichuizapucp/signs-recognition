@@ -3,12 +3,12 @@ import os
 
 from learning.model.opticalflow_model_builder import OpticalFlowModelBuilder
 from learning.model.rgb_recurrent_model_builder import RGBRecurrentModelBuilder
-from learning.model.novel_signs_detection_builder import NovelSignsDetectionModelBuilder
+from learning.model.nsdm_builder import NSDMModelBuilder
 from argparse import ArgumentParser
 from logger_config import setup_logging
 from learning.execution.opticalflow_executor import OpticalflowExecutor
 from learning.execution.rgb_executor import RGBExecutor
-from learning.execution.nsdm_executor import NsdmExecutor
+from learning.execution.nsdm_executor import NSDMExecutor
 from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM
 
 DEFAULT_NO_EPOCHS = 5
@@ -38,7 +38,7 @@ def get_model(model_name):
     models = {
         OPTICAL_FLOW: lambda: OpticalFlowModelBuilder(),
         RGB: lambda: RGBRecurrentModelBuilder(),
-        NSDM: lambda: NovelSignsDetectionModelBuilder(get_saved_model(OPTICAL_FLOW), get_saved_model(RGB)),
+        NSDM: lambda: NSDMModelBuilder(get_saved_model(OPTICAL_FLOW), get_saved_model(RGB)),
     }
     model = models[model_name]().build()
     return model
@@ -48,7 +48,7 @@ def get_executor(executor_name, model):
     executors = {
         OPTICAL_FLOW: lambda: OpticalflowExecutor(model),
         RGB: lambda: RGBExecutor(model),
-        NSDM: lambda: NsdmExecutor(model)
+        NSDM: lambda: NSDMExecutor(model)
     }
     executor = executors[executor_name]()
     executor.configure()
