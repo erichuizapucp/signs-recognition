@@ -4,7 +4,7 @@ import logging
 import csv
 
 from pre_processing.common.processor import Processor
-from rgb_video_frames_handler import RGBVideoFramesHandler
+from pre_processing.video.rgb_samples_handler import RGBSamplesHandler
 from pre_processing.common import io_utils
 
 
@@ -31,9 +31,11 @@ class RGBSamplesProcessor(Processor):
 
         with open(metadata_file_path) as metadata_file:
             reader = csv.DictReader(metadata_file, fieldnames=metadata_fields)
-            next(reader, None)
+            next(reader, None)  # skip the csv header row
             for metadata in reader:
                 self.__handle_sample_metadata(metadata, delay_factor)
+
+        logging.debug('process is completed')
 
     def __handle_sample_metadata(self, metadata, delay_factor: float):
         token = metadata['token']
@@ -56,9 +58,9 @@ class RGBSamplesProcessor(Processor):
         sample_folder_path = self.__get_sample_folder_path(token)
         io_utils.check_path_dir(sample_folder_path)
 
-        handler = RGBVideoFramesHandler()
-        handler.handle(VideoPath=video_local_path, StartTime=start_time, EndTime=end_time,
-                       FolderPath=sample_folder_path)
+        handler = RGBSamplesHandler()
+        handler.handle_sample(VideoPath=video_local_path, StartTime=start_time, EndTime=end_time,
+                              FolderPath=sample_folder_path)
 
     def __get_sample_folder_path(self, token):
         token_folder_path = os.path.join(self._work_dir, self.__videos_dataset_rgb_path, token)

@@ -28,19 +28,7 @@ root:
   handlers: [console]
 
 loggers:
-  common:
-    level: DEBUG
-    handlers: [console]
-    propagate: no
-  dataset:
-    level: DEBUG
-    handlers: [console]
-    propagate: no
-  model:
-    level: DEBUG
-    handlers: [console]
-    propagate: no
-  execution:
+  video:
     level: DEBUG
     handlers: [console]
     propagate: no

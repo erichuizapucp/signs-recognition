@@ -4,12 +4,13 @@ import logging
 import glob
 
 from pre_processing.common.processor import Processor
-from opticalflow_handler import OpticalFlowHandler
+from pre_processing.video.opticalflow_samples_handler import OpticalflowSamplesHandler
 from pre_processing.common import io_utils
 
 
-class OpticalFLowSamplesProcessor(Processor):
+class OpticalflowSamplesProcessor(Processor):
     __opticalflow_dataset_relative_path = 'dataset/opticalflow'
+    # we need the rgb relative path because opticalflow samples are calculated from rgb samples
     __rgb_dataset_relative_path = 'dataset/rgb'
 
     def __init__(self):
@@ -29,13 +30,13 @@ class OpticalFLowSamplesProcessor(Processor):
             shutil.rmtree(opticalflow_dataset_path)
             self.logger.debug('optical flow dataset at %s was reset', opticalflow_dataset_path)
 
-        handler = OpticalFlowHandler()
+        handler = OpticalflowSamplesHandler()
         for rgb_token_folder_path in sorted(glob.glob(rgb_dataset_path + '/*/')):
             for rgb_sample_folder_path in sorted(glob.glob(rgb_token_folder_path + '/*/')):
                 opticalflow_sample_path = self.__get_opticalflow_sample_path(rgb_sample_folder_path)
                 io_utils.check_path_file(opticalflow_sample_path)
 
-                handler.handle(RGBSampleFolderPath=rgb_sample_folder_path, OFSamplePath=opticalflow_sample_path)
+                handler.handle_sample(RGBSampleFolderPath=rgb_sample_folder_path, OFSamplePath=opticalflow_sample_path)
 
         self.logger.debug('The optical flow samples generation is completed.')
 

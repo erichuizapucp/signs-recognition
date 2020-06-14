@@ -31,7 +31,9 @@ class NSDMExecutor(BaseModelExecutor):
         opticalflow_ds_prep = OpticalflowDatasetPreparer()
         rgb_ds_prep = RGBDatasetPreparer()
 
+        # opticalflow dataset (including data transformations)
         opticalflow_ds = opticalflow_ds_prep.prepare_train_dataset()
+        # rgb dataset (including data transformations)
         rgb_ds = rgb_ds_prep.prepare_train_dataset()
 
         no_calls = tf.data.experimental.AUTOTUNE
