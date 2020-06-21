@@ -18,6 +18,7 @@ class RGBRecurrentModelBuilder(BaseModelBuilder):
         self.no_dense_neurons_1 = 64
 
     def build(self) -> Model:
+        # (no_steps, 224x224x3), no_steps is None because it will be determined at runtime by Keras
         input_shape = (None, self.feature_dim)
         inputs = Input(shape=input_shape, name='rgb_inputs')
         x = Masking(name='masking')(inputs)

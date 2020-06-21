@@ -19,6 +19,8 @@ class BaseDatasetPreparer:
 
         self.dataset_batch_size = 64
 
+        self.rgb_feature_dim = self.imagenet_img_width * self.imagenet_img_height * self.rgb_no_channels
+
     def prepare_train_dataset(self):
         return self._prepare(self._get_train_dataset_path)
 
@@ -46,7 +48,17 @@ class BaseDatasetPreparer:
         # resize the image to the desired size.
         return tf.image.resize(img, [self.imagenet_img_width, self.imagenet_img_height])
 
-    def _prepare_sample(self, sample, label):
+    def py_transform_frame_seq(self, sample):
+        transformed_images = []
+        for image in sample:  # iterate over each frame in the sample
+            transformed_img = tf.reshape(self._transform_image(image), [self.rgb_feature_dim])
+            transformed_images.extend([transformed_img])
+        return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
+
+    def _prepare_sample(self, feature, label):
+        raise NotImplementedError('_prepare_sample method not implemented.')
+
+    def _prepare_sample2(self, feature1, feature2, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
     def _get_dataset_type(self):
