@@ -1,7 +1,7 @@
 import logging
 
 from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
-from learning.common.dataset_type import OPTICAL_FLOW, RGB
+from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB
 
 
 class TFRecordDatasetReader:
@@ -15,6 +15,9 @@ class TFRecordDatasetReader:
 
     def read(self):
         read_tfrecord_operations = {
+            COMBINED:
+                lambda: self.tf_record_util.deserialize_dataset(self.dataset_path,
+                                                                self.tf_record_util.parse_combined_dict_sample),
             OPTICAL_FLOW:
                 lambda: self.tf_record_util.deserialize_dataset(self.dataset_path,
                                                                 self.tf_record_util.parse_opticalflow_dict_sample),
