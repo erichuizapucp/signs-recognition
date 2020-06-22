@@ -13,7 +13,7 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
         super().__init__()
         self.logger = logging.getLogger(__name__)
 
-    def build(self) -> Model:
+    def build(self, **kwargs) -> Model:
         # input shape 224x224x3
         input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.rgb_no_channels)
 

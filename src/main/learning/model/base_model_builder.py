@@ -20,7 +20,7 @@ class BaseModelBuilder:
         self.model_utility = ModelUtility()
 
     @abstractmethod
-    def build(self) -> Model:
+    def build(self, **kwargs) -> Model:
         raise NotImplementedError('build method not implemented.')
 
     def get_model_type(self):

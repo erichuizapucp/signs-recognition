@@ -8,13 +8,14 @@ from learning.common.model_type import NSDM
 
 
 class NSDMModelBuilder(BaseModelBuilder):
-    def __init__(self, opticalflow_model: Model, rgb_model: Model):
+    def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.opticalflow_model = opticalflow_model
-        self.rgb_model = rgb_model
 
-    def build(self) -> Model:
+    def build(self, **kwargs) -> Model:
+        opticalflow_model = kwargs['OpticalflowModel']
+        rgb_model = kwargs['RGBModel']
+
         # input shape 224x224x3
         opticalflow_input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.rgb_no_channels)
         # feature dim calculated from 224 * 224 * 3
@@ -23,8 +24,8 @@ class NSDMModelBuilder(BaseModelBuilder):
         opticalflow_input = Input(shape=opticalflow_input_shape, name='opticalflow_inputs')
         rgb_input = Input(shape=rgb_input_shape, name='rgb_inputs')
 
-        opticalflow_target = self.opticalflow_model(opticalflow_input)
-        rgb_target = self.rgb_model(rgb_input)
+        opticalflow_target = opticalflow_model(opticalflow_input)
+        rgb_target = rgb_model(rgb_input)
 
         # average opticalflow and rgb models outputs
         outputs = Average(name='nsdm_output')([opticalflow_target, rgb_target])

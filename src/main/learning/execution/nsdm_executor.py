@@ -1,5 +1,4 @@
 import logging
-import numpy as np
 import tensorflow as tf
 
 from tensorflow.keras.models import Model
@@ -15,12 +14,6 @@ class NSDMExecutor(BaseModelExecutor):
 
         self.dataset_preparer = CombinedDatasetPreparer()
 
-    @staticmethod
-    def __map_combined_sample(opticalflow_feature, rgb_feature, label):
-        # opticalflow and rgb features should be sent in a tuple so that Keras can send them to the opticalflow and rgb
-        # models respectively.
-        return (opticalflow_feature, rgb_feature), label
-
     def _get_train_dataset(self):
         dataset = self.dataset_preparer.prepare_train_dataset()
         dataset = dataset.map(self.__map_combined_sample,
@@ -34,3 +27,9 @@ class NSDMExecutor(BaseModelExecutor):
 
     def _get_model_type(self):
         return model_type.NSDM
+
+    @staticmethod
+    def __map_combined_sample(opticalflow_feature, rgb_feature, label):
+        # opticalflow and rgb features should be sent in a tuple so that Keras can send them to the opticalflow and rgb
+        # models respectively.
+        return (opticalflow_feature, rgb_feature), label

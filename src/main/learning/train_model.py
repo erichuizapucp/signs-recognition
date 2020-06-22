@@ -34,13 +34,34 @@ def get_saved_model(model_name):
     return model
 
 
+def get_opticalflow_model():
+    model_builder = OpticalFlowModelBuilder()
+    opticalflow_model = model_builder.build()
+    return opticalflow_model
+
+
+def get_rgb_model():
+    model_builder = RGBRecurrentModelBuilder()
+    rgb_model = model_builder.build()
+    return rgb_model
+
+
+def get_nsdm_model():
+    opticalflow_model = get_saved_model(OPTICAL_FLOW)
+    rgb_model = get_saved_model(RGB)
+
+    model_builder = NSDMModelBuilder()
+    nsdm_model = model_builder.build(OpticalflowModel=opticalflow_model, RGBModel=rgb_model)
+    return nsdm_model
+
+
 def get_model(model_name):
     models = {
-        OPTICAL_FLOW: lambda: OpticalFlowModelBuilder(),
-        RGB: lambda: RGBRecurrentModelBuilder(),
-        NSDM: lambda: NSDMModelBuilder(get_saved_model(OPTICAL_FLOW), get_saved_model(RGB)),
+        OPTICAL_FLOW: lambda: get_opticalflow_model(),
+        RGB: lambda: get_rgb_model(),
+        NSDM: lambda: get_nsdm_model(),
     }
-    model = models[model_name]().build()
+    model = models[model_name]()
     return model
 
 

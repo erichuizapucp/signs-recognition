@@ -48,10 +48,23 @@ class BaseDatasetPreparer:
         # resize the image to the desired size.
         return tf.image.resize(img, [self.imagenet_img_width, self.imagenet_img_height])
 
-    def py_transform_frame_seq(self, sample):
+    def _transform_decoded_image(self, img):
+        # convert to floats in the [0,1] range.
+        img = tf.image.convert_image_dtype(img, tf.float32)
+        # resize the image to the desired size.
+        return tf.image.resize(img, [self.imagenet_img_width, self.imagenet_img_height])
+
+    def _py_transform_frame_seq(self, sample):
         transformed_images = []
         for image in sample:  # iterate over each frame in the sample
             transformed_img = tf.reshape(self._transform_image(image), [self.rgb_feature_dim])
+            transformed_images.extend([transformed_img])
+        return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
+
+    def _py_transform_decoded_frame_seq(self, sample):
+        transformed_images = []
+        for image in sample:  # iterate over each frame in the sample
+            transformed_img = tf.reshape(self._transform_decoded_image(image), [self.rgb_feature_dim])
             transformed_images.extend([transformed_img])
         return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
 
@@ -63,3 +76,6 @@ class BaseDatasetPreparer:
 
     def _get_dataset_type(self):
         raise NotImplementedError('_get_dataset_type method not implemented.')
+
+    def transform_feature_for_predict(self):
+        raise NotImplementedError('transform_feature_for_prediction method not implemented.')

@@ -21,14 +21,17 @@ class RGBDatasetPreparer(BaseDatasetPreparer):
     def prepare_test_dataset(self):
         return self.prepare_train_dataset()
 
-    def _prepare_sample(self, feature, label):
+    def transform_feature_for_predict(self, **kwargs):
+        raise NotImplementedError('This method is not supported for the RGB dataset')
+
+    def _prepare_sample(self, opticalflow_feature, label):
         # RNN feature
-        transformed_frames_seq = tf.py_function(self.py_transform_frame_seq, [feature], tf.float32)
+        transformed_frames_seq = tf.py_function(self._py_transform_frame_seq, [opticalflow_feature], tf.float32)
         # RNN cells require a 3D input (batch, steps, feature)
         return transformed_frames_seq, label
 
-    def _prepare_sample2(self, feature1, feature2, label):
-        raise NotImplementedError('This method is not supported for the RGB dataset')
-
     def _get_dataset_type(self):
         return RGB
+
+    def _prepare_sample2(self, feature1, feature2, label):
+        raise NotImplementedError('This method is not supported for the RGB dataset')
