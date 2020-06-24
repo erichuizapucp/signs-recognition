@@ -4,7 +4,7 @@ import logging
 from argparse import ArgumentParser
 from logger_config import setup_logging
 from learning.common.dataset_type import COMBINED
-from tf_record_dataset_creator import TFRecordDatasetCreator
+from learning.dataset.tfrecord.tf_record_dataset_creator import TFRecordDatasetCreator
 
 DEFAULT_SHUFFLE_BUFFER_SIZE = 50000
 DEFAULT_RGB_TF_RECORD_PREFIX = 'rgb'
