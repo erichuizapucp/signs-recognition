@@ -37,9 +37,6 @@ class NSDMV2ModelBuilder(BaseModelBuilder):
         dense_output = Dense(64, activation='relu', name='dense_layer1')(concate)
         outputs = Dense(self.no_classes, activation='softmax', name='nsdm_output')(dense_output)
 
-        # average opticalflow and rgb models outputs
-        # outputs = Average(name='nsdm_output')([opticalflow_target, rgb_target])
-
         # ensemble model
         nsdm_model = Model(inputs=[opticalflow_input, rgb_input], outputs=outputs, name='nsdm_model')
 
