@@ -3,7 +3,7 @@ import logging
 from abc import abstractmethod
 from tensorflow.keras.models import Model, load_model
 from learning.common.labels import SIGNS_CLASSES
-from learning.common.imagenet_config import IMAGENET_CONFIG
+from learning.common.common_config import IMAGENET_CONFIG, FRAMES_SEQ_CONFIG
 from learning.common.model_utility import ModelUtility
 
 
@@ -13,9 +13,13 @@ class BaseModelBuilder:
         self.classes = SIGNS_CLASSES
         self.no_classes = len(self.classes)
 
-        self.imagenet_img_width = IMAGENET_CONFIG['imagenet_img_width']
-        self.imagenet_img_height = IMAGENET_CONFIG['imagenet_img_height']
-        self.rgb_no_channels = IMAGENET_CONFIG['rgb_no_channels']
+        self.imagenet_img_width = IMAGENET_CONFIG['img_width']
+        self.imagenet_img_height = IMAGENET_CONFIG['img_height']
+        self.imagenet_rgb_no_channels = IMAGENET_CONFIG['rgb_no_channels']
+
+        self.frames_seq_img_width = FRAMES_SEQ_CONFIG['img_width']
+        self.frames_seq_img_height = FRAMES_SEQ_CONFIG['img_height']
+        self.frames_seq_no_channels = FRAMES_SEQ_CONFIG['rgb_no_channels']
 
         self.model_utility = ModelUtility()
 
