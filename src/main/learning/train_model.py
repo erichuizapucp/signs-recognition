@@ -10,6 +10,7 @@ from logger_config import setup_logging
 from learning.execution.opticalflow_executor import OpticalflowExecutor
 from learning.execution.rgb_executor import RGBExecutor
 from learning.execution.nsdm_executor import NSDMExecutor
+from learning.execution.nsdm_v2_executor import NSDMExecutorV2
 from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2
 
 DEFAULT_NO_EPOCHS = 5
@@ -81,7 +82,7 @@ def get_executor(executor_name, model):
         OPTICAL_FLOW: lambda: OpticalflowExecutor(model),
         RGB: lambda: RGBExecutor(model),
         NSDM: lambda: NSDMExecutor(model),
-        NSDMV2: lambda: NSDMExecutor(model),
+        NSDMV2: lambda: NSDMExecutorV2(model),
     }
     executor = executors[executor_name]()
     executor.configure()
