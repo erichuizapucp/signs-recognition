@@ -20,7 +20,7 @@ class RGBRecurrentModelBuilder(BaseModelBuilder):
     def build(self, **kwargs) -> Model:
         # (no_steps, 224x224x3), no_steps is None because it will be determined at runtime by Keras
         input_shape = (None, self.feature_dim)
-        inputs = Input(batch_input_shape=(None, self.feature_dim, 1), name='rgb_inputs')
+        inputs = Input(batch_input_shape=(None, None, self.feature_dim), name='rgb_inputs')
         x = Masking(name='masking')(inputs)
         x = Bidirectional(LSTM(self.no_lstm_units), name='rgb_bidirectional')(x)
         x = Dense(self.no_dense_neurons_1, activation='relu', name='rgb_dense_layer1')(x)
