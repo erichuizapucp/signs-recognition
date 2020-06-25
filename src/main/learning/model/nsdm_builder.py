@@ -17,9 +17,9 @@ class NSDMModelBuilder(BaseModelBuilder):
         rgb_model = kwargs['RGBModel']
 
         # input shape 224x224x3
-        opticalflow_input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.rgb_no_channels)
+        opticalflow_input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.imagenet_rgb_no_channels)
         # feature dim calculated from 224 * 224 * 3
-        rgb_input_shape = (None, self.imagenet_img_width * self.imagenet_img_height * self.rgb_no_channels)
+        rgb_input_shape = (None, self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels)
 
         opticalflow_input = Input(shape=opticalflow_input_shape, name='opticalflow_inputs')
         rgb_input = Input(shape=rgb_input_shape, name='rgb_inputs')

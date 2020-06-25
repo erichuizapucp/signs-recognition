@@ -15,7 +15,7 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
 
     def build(self, **kwargs) -> Model:
         # input shape 224x224x3
-        input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.rgb_no_channels)
+        input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.imagenet_rgb_no_channels)
 
         # use a ResNet152 pre trained model as a base model, we are not including the top layer for maximizing the
         # learned features
