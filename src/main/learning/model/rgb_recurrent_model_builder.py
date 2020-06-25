@@ -14,7 +14,7 @@ class RGBRecurrentModelBuilder(BaseModelBuilder):
 
         # feature dim calculated from 224x224x3
         self.feature_dim = self.imagenet_img_width * self.imagenet_img_height * self.rgb_no_channels
-        self.no_lstm_units = 128
+        self.no_lstm_units = 32
         self.no_dense_neurons_1 = 64
 
     def build(self, **kwargs) -> Model:
