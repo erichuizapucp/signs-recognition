@@ -11,12 +11,14 @@ class ModelUtility:
             OPTICAL_FLOW: 'opticalflow.h5',
             RGB: 'rgb.h5',
             NSDM: 'nsdm.h5',
+            NSDMV2: 'nsdmv2.h5',
         }
 
         self.model_history_file_name = {
             OPTICAL_FLOW: 'opticalflow_history.npy',
             RGB: 'rgb_history.npy',
             NSDM: 'nsdm.npy',
+            NSDMV2: 'nsdmv2.h5',
         }
 
     def get_model_serialization_path(self, model_type):
