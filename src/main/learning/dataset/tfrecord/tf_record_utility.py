@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 import logging
 
-import features
+from learning.common.features import IMAGE_RAW, FRAMES_SEQ, LABEL
 
 
 class TFRecordUtility:
@@ -13,8 +13,8 @@ class TFRecordUtility:
 
     def serialize_opticalflow_sample(self, image_raw, label):
         feature = {
-            features.IMAGE_RAW: self.__bytes_feature(image_raw),
-            features.LABEL: self.__array_float_feature(label),
+            IMAGE_RAW: self.__bytes_feature(image_raw),
+            LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -22,8 +22,8 @@ class TFRecordUtility:
 
     def serialize_rgb_sample(self, rgb_frames, label):
         feature = {
-            features.FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            features.LABEL: self.__array_float_feature(label),
+            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
+            LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -31,9 +31,9 @@ class TFRecordUtility:
 
     def serialize_combined_sample(self, image_raw, rgb_frames, label):
         feature = {
-            features.IMAGE_RAW: self.__bytes_feature(image_raw),
-            features.FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            features.LABEL: self.__array_float_feature(label),
+            IMAGE_RAW: self.__bytes_feature(image_raw),
+            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
+            LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -42,42 +42,42 @@ class TFRecordUtility:
     @staticmethod
     def parse_opticalflow_dict_sample(sample):
         feature_description = {
-            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            features.LABEL: tf.io.VarLenFeature(tf.float32),
+            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            LABEL: tf.io.VarLenFeature(tf.float32),
         }
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[features.IMAGE_RAW]
-        label = tf.sparse.to_dense(feature[features.LABEL])
+        image_raw = feature[IMAGE_RAW]
+        label = tf.sparse.to_dense(feature[LABEL])
 
         return image_raw, label
 
     @staticmethod
     def parse_rgb_dict_sample(sample):
         feature_description = {
-            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            features.LABEL: tf.io.VarLenFeature(tf.float32),
+            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+            LABEL: tf.io.VarLenFeature(tf.float32),
         }
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[features.LABEL])
+        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
+        label = tf.sparse.to_dense(feature[LABEL])
 
         return dense_frames_seq, label
 
     @staticmethod
     def parse_combined_dict_sample(sample):
         feature_description = {
-            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            features.LABEL: tf.io.VarLenFeature(tf.float32),
+            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+            LABEL: tf.io.VarLenFeature(tf.float32),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[features.IMAGE_RAW]
-        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[features.LABEL])
+        image_raw = feature[IMAGE_RAW]
+        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
+        label = tf.sparse.to_dense(feature[LABEL])
 
         return image_raw, dense_frames_seq, label
 
