@@ -90,11 +90,15 @@ Feature trajectory detection are much improved using statistical methods like \t
 \subsection{Video Annotation}\label{videoannot}
 The PSL dataset is non-annotated because there is not a direct relation between the instant when a sign is emitted and when its translation to Spanish is delivered. We propose a semi-automatic video annotation pipeline described in Figure \ref{fig:video-annotation-pipeline} for cleaning, pre-processing and analyzing PSL videos in order to produce an labeled PSL dataset that can be used for training nSDm using supervised learning. The pipeline is described in detail in sections  \ref{manual-video-cleanup}, \ref{video-pre-processing}, \ref{audio-transcription-analysis} and \ref{samples-generation}
 
-\begin{figure}[hbt!]
+We used the PSL dataset to train and test a set of neural networks described in detail in sections \ref{opticalflowmodel}, \ref{rgbrecurrentmodel} and \ref{nsdm}
+
+Implementation details can be found at https://github.com/erichuizapucp/signs-recognition
+
+\begin{figure*}[hbt!]
 \includegraphics[width=\linewidth]{images/video-annotation-pipeline.png}
 \caption{Video annotation process}
 \label{fig:video-annotation-pipeline}
-\end{figure}
+\end{figure*}
 
 \subsubsection{Manual Automatic Video Clean Up}\label{manual-video-cleanup}
 The PSL recordings described on \ref{datasetdesc} contain a considerable amount of noise introduced during recording sessions. It makes difficult to easily find video intervals that clearly show a relation between signs emitted by the informant and the translation delivered by the translator. Noise factors are the following:
@@ -103,7 +107,7 @@ The PSL recordings described on \ref{datasetdesc} contain a considerable amount 
 	\item Conversations between participants that are not relevant to emitted sings.
 	\item High frequency of large silent periods.
 \end{itemize}
-A manual video cleanup process is required to find noise free video intervals. This process requires watching all the videos available at the PSL corpus for manually annotating the instant when an informant started emitting sings along with the instant when the translator delivered a translation, Table \ref{table:noise-free-video-segments} shows a manual annotation example.
+A manual video cleanup process is required to find noise free video intervals. This process requires watching all videos available at the PSL corpus for manually annotate the instant when an informant started emitting sings along with the instant when the translator delivered a translation, Table \ref{table:noise-free-video-segments} shows a manual annotation example.
 
 The recordings show the informant in two alignments (centered and left), the manual video clean up process also stores the informant alignment, table \ref{table:informant-alignment} shows the two available alignments, we use the alignment annotation later in the process during the video frames extraction to create the labeled PSL dataset.
 
@@ -220,70 +224,73 @@ An \textbf{Optical Flow Samples generation processor} uses video frames and the 
 \label{tab:token-video-mapping}
 \end{table}
 
-\subsection{Novel Signs Detection Model (nSDm)}\label{nsdm}
-We propose a novel model for signs detection that combine two neural networks architectures, a CNN and a RNN with the objective to learn visual features like edges, corners and ridges (CNN) and at the same time patterns learned from a time based series of inputs (RNN). CNN network receives optical flow inputs and the RNN branch receives RGB frames extracted from the labeled PSL dataset described in \ref{videoannot}.
-
-For this work we selected the Tensorflow/Keras functional API for its ability to define combined models along with a versatile data extraction and transformation layer. More details and usage are provided in sections \ref{nsdm-architecture} and \ref{new-videos-testing}
-
-Implementation details can be found at https://github.com/erichuizapucp/signs-recognition
-\subsubsection{Architecture}\label{nsdm-architecture}
-A series of models stacked in a composed architecture focused on learning visual and time series features using two network architecture flavors enforced with a flexible data input pipeline for data feeding as shown in Figure \ref{fig:ndsm-architecture}, transformation and normalization. 
-
-The \textbf{Input pipeline} accesses the labeled PSL samples and applies transformations preparing the data for upper layers, transformations were applied to both optical flow and RGB frames, PSL samples were resized to be compliant with ImageNet pre-trained models using a 224 by 224 shape and three channels for color images, data augmentation transformation were not applied due to the nature of the experiment where samples were captured using similar light conditions and camera orientations, PSL samples were transformed to tensors and normalized to floats in the [0, 1] interval, finally the transformed and normalized versions of optical flow and RGB samples were tight together in a tensor structure along with the label for usage at upper layers.
-\begin{table}[!htb]
-\captionsetup{size=footnotesize}
-\begin{tabular}{ p{16em} c}
-\toprule
-\multicolumn{1}{c}{\textbf{Hyper parameter}} & 
-	\multicolumn{1}{c}{\textbf{Value}}\\
-\midrule
-\textbf{Learning Rate}&	0.001\\
-\textbf{No Epochs}&	5\\
-\textbf{No Steps per Epoch}&	5\\
-\textbf{Batch Size}&	10\\
-\textbf{Shuffle Buffer Size}&	50\\
-\bottomrule
-\end{tabular}
-\caption{nSDm training hyper parameters} \label{tab:nSDm-hyperparams}
-\end{table}
-
-The \textbf{Wrapper Layer} wraps a CNN network designed for learning visual features from optical flow and a RNN network designed for learning features from series of video frames, the layer receives data from the input pipeline then splits it into optical flow and RGB samples and passes them to the CNN and RNN networks respectively. The logits produced are then concatenated and passed to the dense layer.
-
-The dense layer uses a softmax activation function to convert logits into probabilities used for a correct sign classification. Hyper parameters used during the training process are listed on Table \ref{tab:nSDm-hyperparams}
-
-\begin{figure}[hbt!]
-\includegraphics[width=\linewidth]{images/nsdm-model-architecture.png}
-\caption{nSDm model architecture}
-\label{fig:ndsm-architecture}
-\end{figure}
-
-The \textbf{Opticalflow model} described in Figure \ref{fig:opticalflow-architecture} receives decoded opticalflow samples, it uses a Resnet152 backbone pre-trained with ImageNet, we used a fine tuning transfer learning approach, the backbone produces a 7x7x2048 output that then is passed to a Global Average Pooling layer for obtaining a flattened output of 1x1x2048 which is then passed to a dense layer for logits computation.
-
-\begin{figure}[hbt!]
+\subsection{Opticalflow Model}\label{opticalflowmodel}
+The model uses a 2D CNN architecture to learn features from Opticalflow samples calculated from RGB frames using the Lucas Kanade method for features tracking. Opticalflow samples hold features tracked from an entire frames set sequentially that way all the features found across frame sets are condensed in a single image.
+\subsubsection{Model Architecture}\label{opticalflowmodel-architecture}
+The Opticalflow model architecture described in Figure \ref{fig:opticalflow-architecture} uses a Resnet152 backbone pre-trained with ImageNet. We used a fine tuning transfer learning approach, the backbone produces a 7x7x2048 output that then is passed to a Global Average Pooling layer for obtaining a flattened output of 1x1x2048 which is then passed to a dense layer for logits computation and finally to a softmax activation function for classes probability computation.
+\begin{figure*}[hbt!]
 \includegraphics[width=\linewidth]{images/opticalflow-model-architecture.png}
 \caption{Opticalflow model architecture}
 \label{fig:opticalflow-architecture}
-\end{figure}
+\end{figure*}
 
-The \textbf{Recurrent RGB model} described in Figure \ref{fig:rgb-architecture} receives a sequence of decoded video frames, it uses a \textit{many-to-one} architecture with LSTM cells that hold state of 2048 units length, the output produced by the recurrent layers is then passed to a dense layer for logits computation.
 
-\begin{figure}[hbt!]
-\includegraphics[width=\linewidth]{images/recurrent-rgb-model-architecture.png}
+\subsection{RGB Recurrent Model}\label{rgbrecurrentmodel}
+The model uses a RNN architecture to learn features in a sequential way from RGB frames set generated by the video annotation pipeline see Figure \ref{fig:video-annotation-pipeline}. RGB frame sets hold a sequence of images representing a PSL element. We selected a RNN architecture based on Natural Language Processing text based techniques that already shown good results.
+\subsubsection{Model Architecture}\label{rgbrecurrentmodel-architecture}
+The RGB recurrent model architecture described in Figure \ref{fig:rgb-architecture} receives a sequence of decoded video frames bidirectionally where each frame set represents a PSL sample, frames were resized to 128x128 for GPU memory optimization during training decreasing considerably the number of training parameters. Frame set samples length varies on each sample requiring a layer to mask entries ensuring same length samples.  We decided on using a bidirectional approach because we found benefits on learning features from left to right and right to left in the same way as text based NLP. It uses a \textit{many-to-one} architecture with LSTM cells that hold state of 64 units length, the output produced by the recurrent layers is then passed to a dense layer for logits computation and subsequent softmax activation function for classes probability computation.
+
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[scale=0.8]{images/recurrent-rgb-model-architecture.png}
 \caption{Recurrent RGB model architecture}
 \label{fig:rgb-architecture}
-\end{figure}
+\end{figure*}
 
-Logits produced by the opticalflow and recurrent RGB models are concatenated and then passed to a dense layer with a softmax activation function producing PSL signs detection probabilities.
+\subsection{Novel Signs Detection Model (nSDm)}\label{nsdm}
+We propose a novel model for signs detection that assemble the two neural networks architectures described in sections \ref{opticalflowmodel-architecture} and \ref{rgbrecurrentmodel-architecture} with the objective to learn visual features like edges, corners and ridges (CNN) and at the same time patterns learned from a time based series of inputs (RNN) to boost the performance on detecting PSL elements. CNN network receives optical flow inputs and the RNN branch receives RGB frames extracted from the labeled PSL dataset described in \ref{videoannot}.
+
+We designed two neural network architectures for nSDm, both architectures use pre trained Opticalflow and RGB models as base models and applies different model assemble techniques on top of them. This architectures are described in detail in sections \ref{nsdmv1-architecture} and \ref{nsdmv2-architecture}.
+
+For this work we selected the Tensorflow/Keras functional API for its ability to define combined models along with a versatile data extraction and transformation layer.
+
+\subsubsection{nSDmV1 Model Architecture}\label{nsdmv1-architecture}
+Pre-trained Opticalflow and RGB recurrent models are assembled using transfer learning with all layers freeze along with a flexible data input pipeline for data feeding, transformation and normalization.
+
+The \textbf{Input pipeline} accesses the labeled PSL samples and applies transformations preparing the data for upper layers, transformations were applied for both Opticalflow and RGB frames, PSL Opticalflow samples were resized to be compliant with ImageNet pre-trained models using a 224 by 224 shape and three channels for color images in the other hand PSL RGB samples were resized to a 128x128 shape for GPU memory optimization, data augmentation transformations were not applied due to the nature of the experiment where samples were captured using similar light conditions and camera orientations, PSL samples were transformed to tensors and normalized to floats in the [0, 1] interval, finally the transformed and normalized versions of optical flow and RGB samples were tight together in a tuple of tensors along with the label for usage at upper layers. nSDmV1 architecture is described in Figure \ref{fig:ndsm-v1-architecture}.
+
+We applied transfer learning from Opticalflow and RGB recurrent models where all their layers were frozen that way we save a considerable amount of computation resources, finally Opticalflow and RGB recurrent models outputs are averaged producing the nSDMV1 classifier output.
+
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[scale=1.0]{images/nsdm-model-architecture.png}
+\caption{nSDmV1 model architecture}
+\label{fig:ndsm-v1-architecture}
+\end{figure*}
+
+\subsubsection{nSDm V2 Model Architecture}\label{nsdmv2-architecture}
+
+nSDmV2 architecture inherits many elements from nSDmV1 including the Data input pipeline, data transformation, normalization and Opticalflow and RGB recurrent base models. We removed the last dense layers (classifiers) from both base models with the objective to add a single classifier in an outer layer. We concatenated the outputs and finally added a Dense layer with a softmax activation function to convert logits into probabilities used for a correct sign classification. nSDmV2 architecture is described in Figure \ref{fig:ndsm-v2-architecture}.
+
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[scale=1.0]{images/nsdm-model-architecture-v2.png}
+\caption{nSDmV2 model architecture}
+\label{fig:ndsm-v2-architecture}
+\end{figure*}
 
 \subsection{Sign detection testing}\label{new-videos-testing}
-We selected videos for consultant 24 which will be described in \ref{datasetdesc} for testing nSDm (the model was not trained with consultant 24 videos), we proceed to extract RGB frames for video fragments of five seconds length moving ahead one second on each loop until the end of the video that way we can reduce the number of signs cut or incomplete between video fragments. Optical flow and RGB frames generators feed nSDm for detecting signs \ref{nsdm} present in the video fragment.
+We selected videos in \ref{datasetdesc} that were not used for training nSDm models for testing nSDm models (models were not trained with the 24 consultant videos). We proceed the input video to extract RGB frames for video fragments of 0.5 seconds length moving ahead 0.1 seconds on each loop until the end of the video that way we can reduce the number of cut or incomplete signs between video fragments. Optical flow and RGB frames extractors feed nSDmV2 to detect signs \ref{nsdm} present in the video fragment.
 
-A software component called Video Updater uses video metadata produced by the RGB Frames Generator like start and end time in seconds and detected signs for annotating the video adding a mask that highlights detected signs. We used OpenCV for incorporating masks to test videos, Figure \ref{fig:video-testing-architecture} shows the signs detection testing architecture.
-\begin{figure}[hbt!]
-\includegraphics[width=\linewidth]{images/new-video-test-architecture.png}
+We selected nSDmV2 for signs detection on new videos because we obtained better results with nSDmV2 than with nSDmV1. Experimentation results are described on \ref{experimentation}
+
+A software component called Video Annotator uses video metadata produced by the RGB Frames Extractor including start and end time in seconds along with detected signs. Video annotation entries are added to an annotations document which can be used for further video processing like adding a mask that highlights detected signs using a graphics library like OpenCV for incorporating masks to test videos, Figure \ref{fig:video-testing-architecture} shows the signs detection testing architecture.
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[scale=1.0]{images/new-video-test-architecture.png}
 \caption{Signs detection testing process architecture}
 \label{fig:video-testing-architecture}
-\end{figure}
+\end{figure*}
 
 \section{Experimentation}\label{experimentation}
 \subsection{Dataset Description \cite{lsp_dataset}}\label{datasetdesc}
@@ -349,7 +356,41 @@ L1:cine
 \end{figure}
 
 \subsection{Sign detection results}
-We trained nSDm with the train PSL dataset and validated it with the validation PSL dataset, we trained the model  for five epochs using five and ten percent of the dataset obtaining the results in Tables \ref{tab:signs-detection-results-5-percent} and \ref{tab:signs-detection-results-10-percent}
+We trained models described on sections \ref{opticalflowmodel}, \ref{rgbrecurrentmodel} and \ref{nsdm} with the train PSL dataset and validated it with the validation PSL dataset, models were trained during ten epochs using five and ten percent of the dataset obtaining the results in Tables \ref{tab:signs-detection-results-5-percent} and \ref{tab:signs-detection-results-10-percent}.
+
+We used the same hyper parameters while training all models. These are listed on Table \ref{tab:training-hyperparams}
+
+\begin{table}[!htb]
+\captionsetup{size=footnotesize}
+\begin{tabular}{ p{16em} c}
+\toprule
+\multicolumn{1}{c}{\textbf{Hyper parameter}} & 
+	\multicolumn{1}{c}{\textbf{Value}}\\
+\midrule
+\textbf{Learning Rate}&	0.001\\
+\textbf{No Epochs}&	10\\
+\textbf{Batch Size}&	64\\
+\textbf{Shuffle Buffer Size}&	5000\\
+\bottomrule
+\end{tabular}
+\caption{training hyper parameters} \label{tab:training-hyperparams}
+\end{table}
+
+We used the same loss function and optimizer for all models. These are listed on Table \ref{tab:training-loss-optimizer}
+
+\begin{table}[!htb]
+\captionsetup{size=footnotesize}
+\begin{tabular}{ p{10em} c}
+\toprule
+\multicolumn{1}{c}{\textbf{Name}} & 
+	\multicolumn{1}{c}{\textbf{Value}}\\
+\midrule
+\textbf{Loss Function}&	Categorical Cross Entropy\\
+\textbf{Optimizer}&	Adam\\
+\bottomrule
+\end{tabular}
+\caption{Loss and optimization functions} \label{tab:training-loss-optimizer}
+\end{table}
 
 Train results shows a trend indicating that the more PSL samples we use the nSDm performance improves highlighting the need for processing additional videos at the PSL corpus.
 % Sign detection results 5% of the dataset

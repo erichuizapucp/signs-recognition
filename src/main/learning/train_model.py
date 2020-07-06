@@ -97,7 +97,7 @@ def main():
     logger = logging.getLogger(__name__)
 
     args = get_cmd_args()
-    no_epochs = args.no_epochs
+    no_epochs = int(args.no_epochs)
     no_steps_per_epoch = args.no_steps
     model_name = args.model
     executor_name = model_name
