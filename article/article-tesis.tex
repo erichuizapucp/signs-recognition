@@ -356,13 +356,13 @@ L1:cine
 \end{figure}
 
 \subsection{Sign detection results}
-We trained models described on sections \ref{opticalflowmodel}, \ref{rgbrecurrentmodel} and \ref{nsdm} with the train PSL dataset and validated it with the validation PSL dataset, models were trained during ten epochs using five and ten percent of the dataset obtaining the results in Tables \ref{tab:signs-detection-results-5-percent} and \ref{tab:signs-detection-results-10-percent}.
+We trained models described on sections \ref{opticalflowmodel}, \ref{rgbrecurrentmodel} and \ref{nsdm} with the 5\% of the PSL dataset and validated it with the 5\% of the validation PSL dataset, models were trained during ten epochs obtaining the results in Tables \ref{tab:opticalflow-detection-results-5-percent}, \ref{tab:rgb-detection-results-5-percent}, \ref{tab:nSDmV1-detection-results-5-percent} and \ref{tab:nSDmV2-detection-results-5-percent}.
 
 We used the same hyper parameters while training all models. These are listed on Table \ref{tab:training-hyperparams}
 
 \begin{table}[!htb]
 \captionsetup{size=footnotesize}
-\begin{tabular}{ p{16em} c}
+\begin{tabular}{ p{17em} c}
 \toprule
 \multicolumn{1}{c}{\textbf{Hyper parameter}} & 
 	\multicolumn{1}{c}{\textbf{Value}}\\
@@ -380,7 +380,7 @@ We used the same loss function and optimizer for all models. These are listed on
 
 \begin{table}[!htb]
 \captionsetup{size=footnotesize}
-\begin{tabular}{ p{10em} c}
+\begin{tabular}{ p{9em} c}
 \toprule
 \multicolumn{1}{c}{\textbf{Name}} & 
 	\multicolumn{1}{c}{\textbf{Value}}\\
@@ -392,48 +392,127 @@ We used the same loss function and optimizer for all models. These are listed on
 \caption{Loss and optimization functions} \label{tab:training-loss-optimizer}
 \end{table}
 
-Train results shows a trend indicating that the more PSL samples we use the nSDm performance improves highlighting the need for processing additional videos at the PSL corpus.
-% Sign detection results 5% of the dataset
-\begin{table}[!htb]
+% Opticalflow results 5% of the dataset
+\begin{table*}[!htb]
 \captionsetup{font=footnotesize}
 \centering
-\begin{tabular}{ p{16em} c }
+\begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
 \toprule
-\multicolumn{1}{c}{\textbf{Epoch}} & 
-	\multicolumn{1}{c}{\textbf{AUC}}\\
+\multicolumn{5}{c}{\textbf{Opticalflow Model Training Results with the 5\% of the dataset}} \\
+\hline
+\hline
+\textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\
+\hline
 \midrule
-\textbf{Epoch 1}&	0.0708\\
-\textbf{Epoch 2}&	0.0539\\
-\textbf{Epoch 3}&	0.0558\\
-\textbf{Epoch 4}&	0.1175\\
-\textbf{Epoch 5}&	0.0368\\
+Epoch 1&	3.2775&	0.0000e+00&	0.0000e+00&	0.0900\\
+Epoch 2&	2.5090&	0.0000e+00&	0.0000e+00&	0.1327\\
+Epoch 3&	2.0908&	1.0000&	0.0455&	0.2616\\
+Epoch 4&	1.8167&	1.0000&	0.0455&	0.4361\\
+Epoch 5&	1.5668&	1.0000&	0.1364&	0.5651\\
+Epoch 6&	1.3303&	1.0000&	0.1364&	0.7557\\
+Epoch 7&	1.1146&	1.0000&	0.3182&	0.8657\\
+Epoch 8&	0.9199&	1.0000&	0.4545&	0.9205\\
+Epoch 9&	0.7464&	1.0000&	0.6364&	0.9657\\
+Epoch 10&	0.5981&	1.0000&	0.6818&	0.9877\\
 \bottomrule
 \end{tabular}
-\caption{Shows results of training nSDm with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{AUC} area under the precision-recall curve (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall.}
-\label{tab:signs-detection-results-5-percent}
-\end{table}
+\caption{Shows results of training the Opticalflow model with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
+\label{tab:opticalflow-detection-results-5-percent}
+\end{table*}
 
-% Sign detection results 10% of the dataset
-\begin{table}[!htb]
+% RGB Recurrent model results 5% of the dataset
+\begin{table*}[!htb]
 \captionsetup{font=footnotesize}
 \centering
-\begin{tabular}{ p{16em} c }
+\begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
 \toprule
-\multicolumn{1}{c}{\textbf{Epoch}} & 
-	\multicolumn{1}{c}{\textbf{AUC}}\\
+\multicolumn{5}{c}{\textbf{RGB Recurrent Model Training Results with the 5\% of the dataset}} \\
+\hline
+\hline
+\textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\
+\hline
 \midrule
-\textbf{Epoch 1}&	0.3686\\
-\textbf{Epoch 2}&	0.5994\\
-\textbf{Epoch 3}&	0.1412\\
-\textbf{Epoch 4}&	0.1703\\
-\textbf{Epoch 5}&	0.1680\\
+Epoch 1&	2.7568&	0.0000e+00&	0.0000e+00&	0.0911\\
+Epoch 2&	2.6647&	0.0000e+00&	0.0000e+00&	0.1008\\
+Epoch 3&	2.6455&	0.0000e+00&	0.0000e+00&	0.1017\\
+Epoch 4&	2.6296&	0.0000e+00&	0.0000e+00&	0.1193\\
+Epoch 5&	2.6121&	0.0000e+00&	0.0000e+00&	0.1222\\
+Epoch 6&	2.6032&	0.0000e+00&	0.0000e+00&	0.1222\\
+Epoch 7&	2.5943&	0.0000e+00&	0.0000e+00&	0.1229\\
+Epoch 8&	2.5875&	0.0000e+00&	0.0000e+00&	0.1229\\
+Epoch 9&	2.5825&	0.0000e+00&	0.0000e+00&	0.1229\\
+Epoch 10&	2.5790&	0.0000e+00&	0.0000e+00&	0.1229\\
 \bottomrule
 \end{tabular}
-\caption{Shows results of training nSDm with the 10\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{AUC} area under the precision-recall curve (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall.}
-\label{tab:signs-detection-results-10-percent}
-\end{table}
+\caption{Shows results of training the RGB Recurrent model with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
+\label{tab:rgb-detection-results-5-percent}
+\end{table*}
 
-Results of infer PSL samples are presented on Figure \ref{fig:rgb-pareja-sample} we observed the noun \textit{Pareja} being correctly classified, in the other hand we observe that silent periods are being incorrectly classified as shown on Figure \ref{fig:rgb-pareja-wrong-sample}, adding one additional class for \textit{silent} could improve our classifier allowing it to infer when a consultant is to performing any action.
+% nSDmV1 model results 5% of the dataset
+\begin{table*}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
+\toprule
+\multicolumn{5}{c}{\textbf{nSDmV1 Training Results with the 5\% of the dataset}} \\
+\hline
+\hline
+\textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\
+\hline
+\midrule
+Epoch 1&	1.0210&	1.0000&	0.0455&	0.9929\\
+Epoch 2&	0.9115&	1.0000&	0.0455&	1.0000\\
+Epoch 3&	0.8364&	1.0000&	0.0909&	1.0000\\
+Epoch 4&	0.7748&	1.0000&	0.2273&	1.0000\\
+Epoch 5&	0.7277&	1.0000&	0.2727&	1.0000\\
+Epoch 6&	0.6929&	1.0000&	0.4545&	1.0000\\
+Epoch 7&	0.6673&	1.0000&	0.5000&	1.0000\\
+Epoch 8&	0.6479&	1.0000&	0.6364&	1.0000\\
+Epoch 9&	0.6327&	1.0000&	0.6364&	1.0000\\
+Epoch 10&	0.6207&	1.0000&	0.7273&	1.0000\\
+\bottomrule
+\end{tabular}
+\caption{Shows results of training nSDmV1 with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
+\label{tab:nSDmV1-detection-results-5-percent}
+\end{table*}
+
+% nSDmV2 model results 5% of the dataset
+\begin{table*}[!htb]
+\captionsetup{font=footnotesize}
+\centering
+\begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
+\toprule
+\multicolumn{5}{c}{\textbf{nSDmV2 Training Results with the 5\% of the dataset}} \\
+\hline
+\hline
+\textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\
+\hline
+\midrule
+Epoch 1&	2.9711&	1.0000&	0.0000e+00&	0.2959\\
+Epoch 2&	2.2159&	1.0000&	0.0455&	0.6564\\
+Epoch 3&	1.7181&	1.0000&	0.0909&	0.8154\\
+Epoch 4&	1.3140&	1.0000&	0.1818&	0.9340\\
+Epoch 5&	0.9585&	1.0000&	0.3636&	0.9691\\
+Epoch 6&	0.6747&	1.0000&	0.5909&	1.0000\\
+Epoch 7&	0.4739&	1.0000&	0.8636&	1.0000\\
+Epoch 8&	0.3261&	1.0000&	0.8636&	1.0000\\
+Epoch 9&	0.2263&	1.0000&	0.9545&	1.0000\\
+Epoch 10&	0.1651&	1.0000&	1.0000&	1.0000\\
+\bottomrule
+\end{tabular}
+\caption{Shows results of training nSDmV2 with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
+\label{tab:nSDmV2-detection-results-5-percent}
+\end{table*}
+
+Even though models were trained with a small number of samples and are subject to over fitting, train results show patterns that indicates that performance will increase as we add more samples where metrics will become stronger as we add more samples to the input data pipeline, we are planning on processing more PSL samples as well as including PSL samples from external sources as described on section \ref{discussion-future-work}.
+
+Train results shows the RGB recurrent model having the lowest performance with a loss equals to 2.5790 and a AUC equals to 0.1229 and Precision and Recall equals to 0.0000 which indicates recurrent models are not learning enough features. In the other hand the Opticalflow model performs better with a loss equals to 0.5981 a AUC equals to 0.9877 a Precision equals to 1.000 and a Recall equals to 0.6818 which indicates features available in Lucas Kanade Opticalflow representations are learned more effectively with a 2D CNN architecture. 2D CNN architectures show better performance than RNN architectures for detecting PSL elements.
+
+Assembled models (nSDmV1 and nSDmV2) show the highest performance where nSDmV1 reports a loss equals to 0.627 a AUC equals to 1.0000 a Precision equals to 1.0000 and a Recall equals to 0.7273 and where nSDmV2 reports a loss equals to 0.1651 a Precision equals to 1.0000 and Recall equals to 1.000 and a AUC equals to 1.0000.
+
+The results indicate assembled models perform better than individual models justifying the effort to design models that combine 2D CNN and RNN architectures. nSDmV1 combines the two individual models with a simple outputs average showing showing a better recall than the Opticalflow and RGB recurrent models. nSDmV2 shows the highest performance presumably related to the classifiers removal action applied to Opticalflow and RGB models and the subsequent concatenation which is then sent to a new classifier layer (dense layer with softmax activation) as described in section \ref{nsdmv2-architecture}.
+
+\textbf{PSL samples inference results} are presented on Figure \ref{fig:rgb-pareja-sample} we observed the noun \textit{Pareja} being correctly classified, in the other hand we observe that silent periods are being incorrectly classified as shown on Figure \ref{fig:rgb-pareja-wrong-sample}, adding one additional class for \textit{silent} could improve our classifier allowing it to infer when a consultant is performing any action.
 
 \begin{figure}[hbt!]
 \includegraphics[width=\linewidth]{images/pareja-rgb-frames.png}
