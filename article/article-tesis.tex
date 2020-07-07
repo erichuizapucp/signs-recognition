@@ -38,7 +38,7 @@
 \maketitle
     
 \begin{abstract}
-People with deafness or hearing disabilities who aim to use computer based systems rely on state-of-art video classification and human action recognition techniques that combine traditional movement pattern recognition and deep learning techniques. In this work we present a pipeline for semi-automatic video annotation applied to a non-annotated \textit{Peruvian Signs Language} (PSL) corpus along with a novel method for a progressive detection of PSL elements (nSDm). We produced a set of video annotations indicating signs appearances for a small set of nouns and numbers along with a \textit{labeled PSL dataset} (PSL dataset). A composite model obtained from the combination of a 2D CNN trained with movement patterns extracted from the PSL dataset using Lucas Kanade optical flow, and a RNN with LSTM cells trained with raw rgb frames extracted from the PSL dataset achieved 0.5994 AUC for the Precision-Recall curve on signs classification tasks, reporting state-of-art results over the PSL dataset. \\
+People with deafness or hearing disabilities who aim to use computer based systems rely on state-of-art video classification and human action recognition techniques that combine traditional movement pattern recognition and deep learning techniques. In this work we present a pipeline for semi-automatic video annotation applied to a non-annotated \textit{Peruvian Signs Language} (PSL) corpus along with a novel method for a progressive detection of PSL elements (nSDm). We produced a set of video annotations indicating signs appearances for a small set of nouns and numbers along with a \textit{labeled PSL dataset} (PSL dataset). A model obtained after ensemble a 2D CNN trained with movement patterns extracted from the PSL dataset using Lucas Kanade Opticalflow, and a RNN with LSTM cells trained with raw RGB frames extracted from the PSL dataset reporting state-of-art results over the PSL dataset on signs classification tasks in terms of AUC, Precision and Recall. \\
 \keywords{Video Classification, Human Actions Detection, Peruvian Signs Language, Optical Flow, 2D CNN, LSTM.}
 \end{abstract}
 
@@ -229,7 +229,7 @@ The model uses a 2D CNN architecture to learn features from Opticalflow samples 
 \subsubsection{Model Architecture}\label{opticalflowmodel-architecture}
 The Opticalflow model architecture described in Figure \ref{fig:opticalflow-architecture} uses a Resnet152 backbone pre-trained with ImageNet. We used a fine tuning transfer learning approach, the backbone produces a 7x7x2048 output that then is passed to a Global Average Pooling layer for obtaining a flattened output of 1x1x2048 which is then passed to a dense layer for logits computation and finally to a softmax activation function for classes probability computation.
 \begin{figure*}[hbt!]
-\includegraphics[width=\linewidth]{images/opticalflow-model-architecture.png}
+\includegraphics[scale=0.8]{images/opticalflow-model-architecture.png}
 \caption{Opticalflow model architecture}
 \label{fig:opticalflow-architecture}
 \end{figure*}
@@ -248,14 +248,14 @@ The RGB recurrent model architecture described in Figure \ref{fig:rgb-architectu
 \end{figure*}
 
 \subsection{Novel Signs Detection Model (nSDm)}\label{nsdm}
-We propose a novel model for signs detection that assemble the two neural networks architectures described in sections \ref{opticalflowmodel-architecture} and \ref{rgbrecurrentmodel-architecture} with the objective to learn visual features like edges, corners and ridges (CNN) and at the same time patterns learned from a time based series of inputs (RNN) to boost the performance on detecting PSL elements. CNN network receives optical flow inputs and the RNN branch receives RGB frames extracted from the labeled PSL dataset described in \ref{videoannot}.
+We propose a novel model for signs detection that ensemble the two neural networks architectures described in sections \ref{opticalflowmodel-architecture} and \ref{rgbrecurrentmodel-architecture} with the objective to learn visual features like edges, corners and ridges (CNN) and at the same time patterns learned from a time based series of inputs (RNN) to boost the performance on detecting PSL elements. CNN network receives optical flow inputs and the RNN branch receives RGB frames extracted from the labeled PSL dataset described in \ref{videoannot}.
 
-We designed two neural network architectures for nSDm, both architectures use pre trained Opticalflow and RGB models as base models and applies different model assemble techniques on top of them. This architectures are described in detail in sections \ref{nsdmv1-architecture} and \ref{nsdmv2-architecture}.
+We designed two neural network architectures for nSDm, both architectures use pre trained Opticalflow and RGB models as base models and applies different model ensemble techniques on top of them. This architectures are described in detail in sections \ref{nsdmv1-architecture} and \ref{nsdmv2-architecture}.
 
 For this work we selected the Tensorflow/Keras functional API for its ability to define combined models along with a versatile data extraction and transformation layer.
 
 \subsubsection{nSDmV1 Model Architecture}\label{nsdmv1-architecture}
-Pre-trained Opticalflow and RGB recurrent models are assembled using transfer learning with all layers freeze along with a flexible data input pipeline for data feeding, transformation and normalization.
+Pre-trained Opticalflow and RGB recurrent models are ensemble using transfer learning with all layers freeze along with a flexible data input pipeline for data feeding, transformation and normalization.
 
 The \textbf{Input pipeline} accesses the labeled PSL samples and applies transformations preparing the data for upper layers, transformations were applied for both Opticalflow and RGB frames, PSL Opticalflow samples were resized to be compliant with ImageNet pre-trained models using a 224 by 224 shape and three channels for color images in the other hand PSL RGB samples were resized to a 128x128 shape for GPU memory optimization, data augmentation transformations were not applied due to the nature of the experiment where samples were captured using similar light conditions and camera orientations, PSL samples were transformed to tensors and normalized to floats in the [0, 1] interval, finally the transformed and normalized versions of optical flow and RGB samples were tight together in a tuple of tensors along with the label for usage at upper layers. nSDmV1 architecture is described in Figure \ref{fig:ndsm-v1-architecture}.
 
@@ -280,9 +280,9 @@ nSDmV2 architecture inherits many elements from nSDmV1 including the Data input 
 \end{figure*}
 
 \subsection{Sign detection testing}\label{new-videos-testing}
-We selected videos in \ref{datasetdesc} that were not used for training nSDm models for testing nSDm models (models were not trained with the 24 consultant videos). We proceed the input video to extract RGB frames for video fragments of 0.5 seconds length moving ahead 0.1 seconds on each loop until the end of the video that way we can reduce the number of cut or incomplete signs between video fragments. Optical flow and RGB frames extractors feed nSDmV2 to detect signs \ref{nsdm} present in the video fragment.
+We selected videos in section \ref{datasetdesc} that were not used for training nSDm models for testing nSDm models (models were not trained with the 24 consultant videos). We proceed the input video to extract RGB frames for video fragments of 0.5 seconds length moving ahead 0.1 seconds on each loop until the end of the video that way we can reduce the number of cut or incomplete signs between video fragments. Optical flow and RGB frames extractors feed nSDmV2 to detect signs \ref{nsdm} present in the video fragment.
 
-We selected nSDmV2 for signs detection on new videos because we obtained better results with nSDmV2 than with nSDmV1. Experimentation results are described on \ref{experimentation}
+We selected nSDmV2 for signs detection on new videos because we obtained better results with nSDmV2 than with nSDmV1. Experimentation results are described on section \ref{experimentation}
 
 A software component called Video Annotator uses video metadata produced by the RGB Frames Extractor including start and end time in seconds along with detected signs. Video annotation entries are added to an annotations document which can be used for further video processing like adding a mask that highlights detected signs using a graphics library like OpenCV for incorporating masks to test videos, Figure \ref{fig:video-testing-architecture} shows the signs detection testing architecture.
 \begin{figure*}[hbt!]
@@ -350,7 +350,8 @@ L1:cine
 	L2:oflow-cine-02.jpg
 \end{lstlisting}\label{list:opticalflow-samples-folders}
 \begin{figure}[hbt!]
-\includegraphics[width=\linewidth]{images/dos-opticalflow.jpg}
+\centering
+\includegraphics[scale=0.3]{images/dos-opticalflow.jpg}
 \caption{PSL number "Two" OpticalFlow representation}
 \label{fig:opticalflow-two}
 \end{figure}
@@ -393,7 +394,7 @@ We used the same loss function and optimizer for all models. These are listed on
 \end{table}
 
 % Opticalflow results 5% of the dataset
-\begin{table*}[!htb]
+\begin{table*}
 \captionsetup{font=footnotesize}
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
@@ -421,7 +422,7 @@ Epoch 10&	0.5981&	1.0000&	0.6818&	0.9877\\
 \end{table*}
 
 % RGB Recurrent model results 5% of the dataset
-\begin{table*}[!htb]
+\begin{table*}
 \captionsetup{font=footnotesize}
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
@@ -449,7 +450,7 @@ Epoch 10&	2.5790&	0.0000e+00&	0.0000e+00&	0.1229\\
 \end{table*}
 
 % nSDmV1 model results 5% of the dataset
-\begin{table*}[!htb]
+\begin{table*}
 \captionsetup{font=footnotesize}
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
@@ -477,11 +478,11 @@ Epoch 10&	0.6207&	1.0000&	0.7273&	1.0000\\
 \end{table*}
 
 % nSDmV2 model results 5% of the dataset
-\begin{table*}[!htb]
+\begin{table*}
 \captionsetup{font=footnotesize}
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
-\toprule
+\toprule 
 \multicolumn{5}{c}{\textbf{nSDmV2 Training Results with the 5\% of the dataset}} \\
 \hline
 \hline
@@ -508,11 +509,11 @@ Even though models were trained with a small number of samples and are subject t
 
 Train results shows the RGB recurrent model having the lowest performance with a loss equals to 2.5790 and a AUC equals to 0.1229 and Precision and Recall equals to 0.0000 which indicates recurrent models are not learning enough features. In the other hand the Opticalflow model performs better with a loss equals to 0.5981 a AUC equals to 0.9877 a Precision equals to 1.000 and a Recall equals to 0.6818 which indicates features available in Lucas Kanade Opticalflow representations are learned more effectively with a 2D CNN architecture. 2D CNN architectures show better performance than RNN architectures for detecting PSL elements.
 
-Assembled models (nSDmV1 and nSDmV2) show the highest performance where nSDmV1 reports a loss equals to 0.627 a AUC equals to 1.0000 a Precision equals to 1.0000 and a Recall equals to 0.7273 and where nSDmV2 reports a loss equals to 0.1651 a Precision equals to 1.0000 and Recall equals to 1.000 and a AUC equals to 1.0000.
+Ensemble models (nSDmV1 and nSDmV2) show the highest performance where nSDmV1 reports a loss equals to 0.627 a AUC equals to 1.0000 a Precision equals to 1.0000 and a Recall equals to 0.7273 and where nSDmV2 reports a loss equals to 0.1651 a Precision equals to 1.0000 and Recall equals to 1.000 and a AUC equals to 1.0000.
 
-The results indicate assembled models perform better than individual models justifying the effort to design models that combine 2D CNN and RNN architectures. nSDmV1 combines the two individual models with a simple outputs average showing showing a better recall than the Opticalflow and RGB recurrent models. nSDmV2 shows the highest performance presumably related to the classifiers removal action applied to Opticalflow and RGB models and the subsequent concatenation which is then sent to a new classifier layer (dense layer with softmax activation) as described in section \ref{nsdmv2-architecture}.
+The results indicate ensemble models perform better than individual models justifying the effort to design models that combine 2D CNN and RNN architectures. nSDmV1 combines the two individual models with a simple outputs average showing showing a better recall than the Opticalflow and RGB recurrent models. nSDmV2 shows the highest performance presumably related to the classifiers removal action applied to Opticalflow and RGB models and the subsequent concatenation which is then sent to a new classifier layer (dense layer with softmax activation) as described in section \ref{nsdmv2-architecture}.
 
-\textbf{PSL samples inference results} are presented on Figure \ref{fig:rgb-pareja-sample} we observed the noun \textit{Pareja} being correctly classified, in the other hand we observe that silent periods are being incorrectly classified as shown on Figure \ref{fig:rgb-pareja-wrong-sample}, adding one additional class for \textit{silent} could improve our classifier allowing it to infer when a consultant is performing any action.
+The nSDmV2 model was used for inference using the proposed Signs detection testing architecture described in Figure \ref{fig:video-testing-architecture} due to the performance presented. We successfully inferred samples as shown in  Figure \ref{fig:rgb-pareja-sample} where the sign for the noun "Pareja" was detected. In the other hand we observe that silent periods are being incorrectly classified as shown on Figure \ref{fig:rgb-pareja-wrong-sample}, adding one additional class for \textit{silent} could improve our classifier allowing it to infer when a consultant is performing any action.
 
 \begin{figure}[hbt!]
 \includegraphics[width=\linewidth]{images/pareja-rgb-frames.png}
@@ -527,33 +528,25 @@ The results indicate assembled models perform better than individual models just
 \end{figure}
 
 \section{Discussion and Future Work}\label{discussion-future-work}
-\begin{enumerate}[•]
-\item The ability to detect all participants in recording sessions individually is mandatory for a successful video annotation pipelines based on video transcriptions as the one we presented at \ref{videoannot}. Future work about annotating videos based on patterns recognized in video content itself using non supervised learning approaches may improve the generated dataset driving to better results.
-\item Existing video annotation pipelines require large amounts of manual annotation work, generally for cleaning and validation tasks. Even though several steps within the overall annotation process can be fully automated human intervention for ensuring the quality of the generated dataset. Future work that use Reinforcement Learning for training an agent trained to clean and validate non-annotated videos before and after they are passed through the annotation pipeline may minimize or remove the need of human intervention during video annotation tasks. 
-\item Not all the corporal movements executed by a PSL consultant are valid PSL signs or elements. Not handling these exceptions correctly could affect greatly the nSDm performance. Future work that add support for an additional class called \textit{invalid} and labeling invalid signs or corporal movements could help nSDm to learn invalid PSL actions and obtain better results.
-\item Optical flow represents movement patterns between video frames allowing models to learn these given movement patterns. However, Optical flow could consider camera unintentional movements and camera focus switches incorrectly as valid movement patterns between frames. Future work that adds Motion Boundary Histogram (MBH) \cite{wang2013dense} support to the optical flow gradient could add robustness to the ability to detect camera movements driving to a better optical flow samples generation.
-\item nSDm internal models (CNN and RNN models) as described on \ref{nsdm-architecture} can be trained independently using different hyper parameters, optimizers and loss functions. Pre-trained models will boost the nSDm training process enabling future works to use PSL to train nSDm using more epochs, data and being more flexible on using single models (CNN or RNN) or combining them as in nSDm. 
-\item Improving they way people with deafness or hearing disabilities interact with computers requires delivering an output after PSL signs are detected. Future work that use Auto Encoder or Adversarial Generative Networks can be used to generate output in the form of signs that are recognizable completing the cycle of a bidirectional communication.
-\item Training nSDm with more PSL samples greatly improves its performance. Future work on annotating more videos including PSL content will increase nSDm performance.
 
-\end{enumerate}
+We processed the five percent of the PSL dataset with the proposed video annotation pipeline producing PSL samples for nouns and numbers using the Lucas Kanade Opticalflow representation and sequential RGB frames respectively. We trained four models described on sections \ref{opticalflowmodel}, \ref{rgbrecurrentmodel} and \ref{nsdm} obtaining results presented on section \ref{experimentation}. Results shown over fitting due to number of samples used to train the models. As a continuation of this work we will continue processing the rest of the PSL dataset and train models to improve their robustness. 
+
+A successful supervised learning task requires a labeled dataset where samples are carefully produced and annotated. The video annotation pipeline described on section \ref{videoannot} requires a significant amount of human intervention to find video segments where signs are followed by a translation delivered after a delay factor that varies between translations. In this work we have estimated a delay factor of 3 seconds to ensure extracted frames contain the target sign but a the same time it introduces additional frames requiring human intervention to remove frames that are not relevant to the target sign. Applying self supervised learning techniques to avoid or minimize the need for human intervention while labeling the PSL dataset and other external PSL datasets available like the "Aprendo en Casa" dataset (Gisella Bejarano et al.) is the natural next step for this work where pre-trained nSDm models enriched with an auto-encoder architecture can be used to remove the need to human intervention on the proposed video annotation pipeline. 
+
+State of art on pose estimation and body expressions detection are based on key points, joints and heat maps regression. The method described in this work is a supervised learning task for signs classification, converting a classification problem into a regression one seems to be a good option that could be beneficial. Movement across frames is captured with Opticalflow showing the body parts a PSL consultant moved to emit a sign. We are looking for a method for calculating key points and joint coordinates from Opticalflow samples, caluculated key points and joint coordinates which are inputs for a 2D CNN (dowsampling) and 2D Transposed CNN (upsampling) for heat maps regression that will finally be used to detect PSL elements.
 
 \section{Conclusion}\label{conclusion}
-\begin{enumerate}[•]
-\item Video annotation pipelines based on video transcriptions require recognizing all video participants for a correct video annotation.
-\item The \textit{Delay Factor} introduced noise to the generated labeled PSL dataset. Post annotation human intervention is needed to reduce the delay factor effect.
-\item Annotating more PSL videos and training nSDm with these new generated samples increases the model performance.
-\item Optical flow successfully represents PSL consultant corporal movements over time.
-\item Transfering weights learned a ResNet152 model trained with ImageNet influence positively Optical flow patterns learning.
-\item Using optical flow for movement pattern representation allow capturing all actions and movements executed by a PSL consultant.
-\item RGB video frames extracted from video fragments allow networks to learn sequences of movement over time.
-\item Using LSTM cells allow successfully usage of larger PSL sequences (a larger number of frames) due to its better handling of the vanishing gradients.
-\item Combining a CNN and a RNN in a composite model improves signs detection performance, while CNNs learns visual features in optical flow samples RNNs learns sequences of actions, networks outputs can be pondered for training a better classifier.
-\item The area under the precision-recall curve allow measuring how well is nSDm detecting because it summarizes the trade-off between the true positive signs rate and the predicted signs.
-\end{enumerate}
+Human intervention was required for cleaning and pre-processing input videos before they can passed to the proposed video annotation pipeline. It positively affected produced samples quality because video segments containing noise and non relevant frames can be easily removed in advance. A \textit{Delay Factor} between signs emitting and signs translation introduces noise because it varies on each produced sample requiring additional human intervention to post-process produced samples to remove non relevant frames. 
+
+Lucas Kanade Opticalflow feature tracking method successfully represented movement that occurred during signs emitting, it is important to note that when a sign is emitted many body parts are moved including arms, hands, head, neck and eyes, Opticalflow is capable to capture movement patterns for the entire body configuring an excellent tool for visual features representation in PSL elements. It is a very CPU inexpensive algorithm that can be applied as a data augmentation/transformation in data input pipelines for both training and test allowing to expand its utilization to a wide range of datasets.
+
+Opticalflow model shown better performance than the RGB recurrent model in terms of AUC, Precision and Recall, the Opticalflow model uses a pre-trained RestNet152 base model with transfer learning (freezing) indicating that using a pre-trained base model positively affect the model performance. RGB recurrent model performance is subject to improve as we train with more PSL samples. 
+
+Ensemble models shown better performance than Opticalflow and RGB recurrent models where nSDmV2 shown the highest performance. The nSDmV2 novel architecture where pre-trained base models were popped and then concatenated allowing adding additional layers for learning features after based model were concatenated and subsequent classifier. 
+
+The area under the precision-recall curve allow measuring how well is nSDm detecting because it summarizes the trade-off between the true positive signs rate and the predicted signs.
 
 \bibliographystyle{ieeetr}
 \bibliography{References}
-
 
 \end{document}
