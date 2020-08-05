@@ -1,13 +1,12 @@
 import logging
 import os
 import cv2 as cv
-import numpy as np
 import tensorflow as tf
 
 from pre_processing.video.opticalflow_samples_extractor import OpticalflowSamplesExtractor
 from pre_processing.video.rgb_samples_extractor import RGBSamplesExtractor
 
-from learning.model.nsdm_builder import NSDMModelBuilder
+from learning.model.nsdm_v2_builder import NSDMV2ModelBuilder
 from learning.dataset.prepare.combined_dataset_preparer import CombinedDatasetPreparer
 
 from learning.common.labels import SIGNS_CLASSES
@@ -26,7 +25,7 @@ class VideoEvaluator:
         self.data_preparer = CombinedDatasetPreparer()
 
     def evaluate(self, video_path):
-        model_builder = NSDMModelBuilder()
+        model_builder = NSDMV2ModelBuilder()
         model = model_builder.load_saved_model()
 
         video_duration = self.__get_video_duration(video_path)
