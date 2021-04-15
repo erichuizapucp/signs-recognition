@@ -1,6 +1,6 @@
 import logging
 
-from learning.model.base_model_builder import BaseModelBuilder
+from legacy.base_model_builder import BaseModelBuilder
 from tensorflow.keras.models import Model
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Masking, Bidirectional, Dense, LSTM

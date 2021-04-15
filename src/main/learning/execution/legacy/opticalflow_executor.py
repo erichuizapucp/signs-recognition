@@ -1,18 +1,17 @@
-import tensorflow as tf
 import logging
 
 from tensorflow.keras.models import Model
-from learning.execution.base_model_executor import BaseModelExecutor
+from base_model_executor import BaseModelExecutor
 from learning.common import model_type
-from learning.dataset.prepare.rgb_dataset_preparer import RGBDatasetPreparer
+from learning.dataset.prepare.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
 
 
-class RGBExecutor(BaseModelExecutor):
+class OpticalflowExecutor(BaseModelExecutor):
     def __init__(self, model: Model):
         super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
-        self.dataset_preparer = RGBDatasetPreparer()
+        self.dataset_preparer = OpticalflowDatasetPreparer()
 
     def _get_train_dataset(self):
         dataset = self.dataset_preparer.prepare_train_dataset()
@@ -23,4 +22,4 @@ class RGBExecutor(BaseModelExecutor):
         return self._get_train_dataset()
 
     def _get_model_type(self):
-        return model_type.RGB
+        return model_type.OPTICAL_FLOW

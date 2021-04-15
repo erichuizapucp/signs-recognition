@@ -1,6 +1,6 @@
 import logging
 
-from learning.model.base_model_builder import BaseModelBuilder
+from legacy.base_model_builder import BaseModelBuilder
 from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D

@@ -1,7 +1,7 @@
 import logging
 
 from tensorflow.keras.models import Model, Sequential
-from learning.model.nsdm_builder import NSDMModelBuilder
+from legacy.nsdm_builder import NSDMModelBuilder
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Dense, Concatenate
 from learning.common.model_type import NSDMV2

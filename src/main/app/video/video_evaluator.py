@@ -6,7 +6,7 @@ import tensorflow as tf
 from pre_processing.video.opticalflow_samples_extractor import OpticalflowSamplesExtractor
 from pre_processing.video.rgb_samples_extractor import RGBSamplesExtractor
 
-from learning.model.nsdm_v2_builder import NSDMV2ModelBuilder
+from legacy.nsdm_v2_builder import NSDMV2ModelBuilder
 from learning.dataset.prepare.combined_dataset_preparer import CombinedDatasetPreparer
 
 from learning.common.labels import SIGNS_CLASSES

@@ -1,7 +1,7 @@
 import logging
 
 from tensorflow.keras.models import Model
-from learning.execution.nsdm_executor import NSDMExecutor
+from legacy.nsdm_executor import NSDMExecutor
 from learning.common import model_type
 
 

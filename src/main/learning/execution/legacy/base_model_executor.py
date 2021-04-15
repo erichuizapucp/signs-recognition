@@ -14,7 +14,7 @@ class BaseModelExecutor:
         self.logger = logging.getLogger(__name__)
 
         self.model = model
-        self.working_dir = os.getenv('WORK_DIR', './')
+        self.working_dir = os.getenv('WORK_DIR', '../../../../')
 
         self.learning_rate = 0.001
 

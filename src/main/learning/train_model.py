@@ -1,16 +1,16 @@
 import logging
 import os
 
-from learning.model.opticalflow_model_builder import OpticalFlowModelBuilder
-from learning.model.rgb_recurrent_model_builder import RGBRecurrentModelBuilder
-from learning.model.nsdm_builder import NSDMModelBuilder
-from learning.model.nsdm_v2_builder import NSDMV2ModelBuilder
+from legacy.opticalflow_model_builder import OpticalFlowModelBuilder
+from legacy.rgb_recurrent_model_builder import RGBRecurrentModelBuilder
+from legacy.nsdm_builder import NSDMModelBuilder
+from legacy.nsdm_v2_builder import NSDMV2ModelBuilder
 from argparse import ArgumentParser
 from logger_config import setup_logging
-from learning.execution.opticalflow_executor import OpticalflowExecutor
-from learning.execution.rgb_executor import RGBExecutor
-from learning.execution.nsdm_executor import NSDMExecutor
-from learning.execution.nsdm_v2_executor import NSDMExecutorV2
+from legacy.opticalflow_executor import OpticalflowExecutor
+from legacy.rgb_executor import RGBExecutor
+from legacy.nsdm_executor import NSDMExecutor
+from legacy.nsdm_v2_executor import NSDMExecutorV2
 from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2
 
 DEFAULT_NO_EPOCHS = 5
