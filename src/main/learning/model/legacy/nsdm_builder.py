@@ -1,7 +1,7 @@
 import logging
 
 from tensorflow.keras.models import Model
-from legacy.base_model_builder import BaseModelBuilder
+from learning.model.legacy.base_model_builder import BaseModelBuilder
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Average
 from learning.common.model_type import NSDM
