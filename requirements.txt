@@ -41,7 +41,7 @@ tensorflow-estimator==2.1.0
 termcolor==1.1.0
 tf-estimator-nightly==2.0.0.dev2019100101
 tqdm==4.36.1
-urllib3==1.25.6
+urllib3==1.25.8
 watchdog==0.9.0
 Werkzeug==0.16.0
 wrapt==1.11.2
