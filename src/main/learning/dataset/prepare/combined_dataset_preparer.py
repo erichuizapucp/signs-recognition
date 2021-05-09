@@ -34,9 +34,9 @@ class CombinedDatasetPreparer(BaseDatasetPreparer):
 
         return transformed_img, transformed_frames_seq
 
-    def _prepare_sample2(self, opticalflow_feature, rgb_feature, label):
-        transformed_img = self._transform_image(opticalflow_feature)
-        transformed_frames_seq = tf.py_function(self._py_transform_frame_seq, [rgb_feature], tf.float32)
+    def _prepare_sample2(self, opticalflow_sample, rgb_sample, label):
+        transformed_img = self._transform_image(opticalflow_sample)
+        transformed_frames_seq = tf.py_function(self._py_transform_frame_seq, [rgb_sample], tf.float32)
 
         return transformed_img, transformed_frames_seq, label
 

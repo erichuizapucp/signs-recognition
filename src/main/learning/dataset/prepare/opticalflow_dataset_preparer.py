@@ -25,8 +25,8 @@ class OpticalflowDatasetPreparer(BaseDatasetPreparer):
     def transform_feature_for_predict(self, **kwargs):
         raise NotImplementedError('This method is not supported for the Opticalflow dataset')
 
-    def _prepare_sample(self, feature, label):
-        transformed_img = self._transform_image(feature)
+    def _prepare_sample(self, opticalflow_sample, label):
+        transformed_img = self._transform_image(opticalflow_sample)
         return transformed_img, label
 
     def _get_dataset_type(self):
