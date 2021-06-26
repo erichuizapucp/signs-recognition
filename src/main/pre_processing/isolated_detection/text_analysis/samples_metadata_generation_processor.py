@@ -26,13 +26,13 @@ class SamplesMetadataGenerationProcessor(Processor):
         self.__syntax_local_folder_path = data['syntax']['localFolderPath']
         self.__syntax_s3_folder_path = data['syntax']['s3Path']
 
-        self.__transcription_local_folder_path = data['transcription']['localFolderPath']
-        self.__transcription_s3_folder_path = data['transcription']['s3Path']
+        self.__transcription_local_folder_path = data['video_transcription']['localFolderPath']
+        self.__transcription_s3_folder_path = data['video_transcription']['s3Path']
 
         if self.__override_local_files:
             # download syntax detection files (e.g. nouns and numbers)
             self.s3_batch_download_files(self.__syntax_s3_folder_path, allowed_extensions=['.csv'])
-            # download transcription files
+            # download video_transcription files
             self.s3_batch_download_files(self.__transcription_s3_folder_path, allowed_extensions=['.json'])
 
         # load syntax tokens (nouns and numbers) in a list
@@ -43,7 +43,7 @@ class SamplesMetadataGenerationProcessor(Processor):
         metadata_file_path = self.__create_metadata_file(metadata_file_columns)
         self.logger.debug('Samples Metadata File created at: %s', metadata_file_path)
 
-        # find syntax occurrence within transcription files
+        # find syntax occurrence within video_transcription files
         transcription_paths = io_utils.get_files_in_folder(self._work_dir,
                                                            self.__transcription_local_folder_path, "*.json")
         for transcription_file_path in transcription_paths:

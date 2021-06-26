@@ -4,8 +4,8 @@ import logging
 import glob
 
 from pre_processing.common.processor import Processor
-from pre_processing.video.opticalflow_samples_handler import OpticalflowSamplesHandler
 from pre_processing.common import io_utils
+from opticalflow_samples_handler import OpticalflowSamplesHandler
 
 
 class OpticalflowSamplesProcessor(Processor):

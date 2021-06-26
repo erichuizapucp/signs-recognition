@@ -3,7 +3,7 @@ import logging
 from tensorflow.keras.models import Model
 from base_model_executor import BaseModelExecutor
 from learning.common import model_type
-from learning.dataset.prepare.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
+from legacy.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
 
 
 class OpticalflowExecutor(BaseModelExecutor):

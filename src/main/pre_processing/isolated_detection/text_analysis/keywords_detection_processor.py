@@ -4,7 +4,7 @@ import time
 import os
 
 from datetime import datetime
-from processor import Processor
+from pre_processing.common.processor import Processor
 
 
 class KeywordsDetectionProcessor(Processor):

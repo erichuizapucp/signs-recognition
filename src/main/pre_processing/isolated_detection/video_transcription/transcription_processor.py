@@ -23,15 +23,16 @@ class TranscriptionProcessor(Processor):
         super().process(data)
 
         prefix = io_utils.get_video_chunk_base_key(self._video_key)
-        self.logger.debug('using %s for video chunks prefix', prefix)
+        self.logger.debug('using %s for samples_generation chunks prefix', prefix)
 
         video_chunks = self._s3.list_objects_v2(Bucket=self._bucketName, Prefix=prefix)
         if not (video_chunks and 'Contents' in video_chunks):
-            raise RuntimeError('There are not video chunks available for processing at the following location: {}'
+            raise RuntimeError('There are not samples_generation chunks available for processing at the following '
+                               'location: {} '
                                .format(prefix))
 
-        self.logger.debug('%d video chunks were found', len(video_chunks['Contents']))
-        self.logger.debug('This operation will process %d transcription job', max_no_jobs)
+        self.logger.debug('%d samples_generation chunks were found', len(video_chunks['Contents']))
+        self.logger.debug('This operation will process %d video_transcription job', max_no_jobs)
 
         for index, video_chunk in enumerate(video_chunks['Contents']):
             try:
@@ -40,7 +41,8 @@ class TranscriptionProcessor(Processor):
                 video_key = video_chunk['Key']
                 transcription_destination_key = self.__get_transcription_destination_key(video_key)
                 if self.s3_exist_object(transcription_destination_key):
-                    self.logger.debug('The video %s has been already transcribed, this transcription will be skipped',
+                    self.logger.debug('The samples_generation %s has been already transcribed, '
+                                      'this video_transcription will be skipped',
                                       video_key)
                     continue
 
@@ -56,7 +58,7 @@ class TranscriptionProcessor(Processor):
                 self.s3_delete_object(transcription_source_key)
                 self._transcribe.delete_transcription_job(TranscriptionJobName=job_name)
 
-                self.logger.debug('Audio transcription for %s is available at %s', job_name, transcription_source_key)
+                self.logger.debug('Audio video_transcription for %s is available at %s', job_name, transcription_source_key)
             except Exception as e:
                 self.logger.error(e)
 
@@ -76,7 +78,7 @@ class TranscriptionProcessor(Processor):
             }
         )
 
-        self.logger.debug('A new audio transcription job was started: \tJob Name: %s \tMedia Format: %s \tMedia '
+        self.logger.debug('A new audio video_transcription job was started: \tJob Name: %s \tMedia Format: %s \tMedia '
                           'File Url: %s', job_name, media_format, media_url)
         return response
 
@@ -85,12 +87,12 @@ class TranscriptionProcessor(Processor):
             resp = self._transcribe.get_transcription_job(TranscriptionJobName=job_name)
             status = resp['TranscriptionJob']['TranscriptionJobStatus']
             if status in ['COMPLETED', 'FAILED']:
-                self.logger.debug('The transcription job %s has completed with status of: %s', job_name, status)
+                self.logger.debug('The video_transcription job %s has completed with status of: %s', job_name, status)
                 if status == 'FAILED':
                     failed_reason = resp['TranscriptionJob']['TranscriptionJob']
                     raise RuntimeError(failed_reason)
                 break
-            self.logger.debug('The transcription job %s is not completed yet', job_name)
+            self.logger.debug('The video_transcription job %s is not completed yet', job_name)
             time.sleep(5)
 
         return resp['TranscriptionJob']['Transcript']['TranscriptFileUri']

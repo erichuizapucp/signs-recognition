@@ -3,7 +3,7 @@ import logging
 from tensorflow.keras.models import Model
 from base_model_executor import BaseModelExecutor
 from learning.common import model_type
-from learning.dataset.prepare.rgb_dataset_preparer import RGBDatasetPreparer
+from legacy.rgb_dataset_preparer import RGBDatasetPreparer
 
 
 class RGBExecutor(BaseModelExecutor):

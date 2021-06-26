@@ -1,13 +1,14 @@
 import logging
 
-from audio.audio_processor import AudioProcessor
-from text_analysis.keywords_detection_processor import KeywordsDetectionProcessor
-from text_analysis.transcription_syntax_detection_processor import TranscriptionSyntaxDetectionProcessor
-from transcription.transcription_processor import TranscriptionProcessor
-from video.video_splitting_processor import VideoSplittingProcessor
-from text_analysis.samples_metadata_generation_processor import SamplesMetadataGenerationProcessor
-from video.rgb_samples_processor import RGBSamplesProcessor
-from video.opticalflow_samples_processor import OpticalflowSamplesProcessor
+from common.enums import PreProcessingOperation as PreProcOp
+from isolated_detection.text_analysis.keywords_detection_processor import KeywordsDetectionProcessor
+from isolated_detection.text_analysis.transcription_syntax_detection_processor \
+    import TranscriptionSyntaxDetectionProcessor
+from isolated_detection.video_transcription.transcription_processor import TranscriptionProcessor
+from isolated_detection.samples_generation.video_splitting_processor import VideoSplittingProcessor
+from isolated_detection.text_analysis.samples_metadata_generation_processor import SamplesMetadataGenerationProcessor
+from isolated_detection.samples_generation.rgb_samples_processor import RGBSamplesProcessor
+from isolated_detection.samples_generation.opticalflow_samples_processor import OpticalflowSamplesProcessor
 
 
 class FileProcessingHandler:
@@ -18,14 +19,13 @@ class FileProcessingHandler:
         operation = data['operation']
 
         operations = {
-            'extract-audio': lambda x: AudioProcessor().process(x),
-            'video-split': lambda x: VideoSplittingProcessor().process(x),
-            'transcribe-audio': lambda x: TranscriptionProcessor().process(x),
-            'transcription-syntax-detection': lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
-            'keywords-detection': lambda x: KeywordsDetectionProcessor().process(x),
-            'samples-metadata-generation': lambda x: SamplesMetadataGenerationProcessor().process(x),
-            'rgb-samples-generation': lambda x: RGBSamplesProcessor().process(x),
-            'opticalflow-samples-generation': lambda x: OpticalflowSamplesProcessor().process(x)
+            PreProcOp.SAMPLES_GENERATION_SPLIT: lambda x: VideoSplittingProcessor().process(x),
+            PreProcOp.AUDIO_TRANSCRIPTION: lambda x: TranscriptionProcessor().process(x),
+            PreProcOp.TRANSCRIPTION_SYNTAX_DETECTION: lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
+            PreProcOp.TRANSCRIPTION_KEYWORDS_DETECTION: lambda x: KeywordsDetectionProcessor().process(x),
+            PreProcOp.ISOLATED_SAMPLES_METADATA_GENERATION: lambda x: SamplesMetadataGenerationProcessor().process(x),
+            PreProcOp.ISOLATED_RGB_SAMPLES_GENERATION: lambda x: RGBSamplesProcessor().process(x),
+            PreProcOp.ISOLATED_OPTICALFLOW_SAMPLES_GENERATION: lambda x: OpticalflowSamplesProcessor().process(x)
         }
 
         if operation in operations:

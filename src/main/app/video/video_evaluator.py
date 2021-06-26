@@ -3,11 +3,11 @@ import os
 import cv2 as cv
 import tensorflow as tf
 
-from pre_processing.video.opticalflow_samples_extractor import OpticalflowSamplesExtractor
-from pre_processing.video.rgb_samples_extractor import RGBSamplesExtractor
+from opticalflow_samples_extractor import OpticalflowSamplesExtractor
+from rgb_samples_extractor import RGBSamplesExtractor
 
 from learning.model.legacy.nsdm_v2_builder import NSDMV2ModelBuilder
-from learning.dataset.prepare.combined_dataset_preparer import CombinedDatasetPreparer
+from legacy.combined_dataset_preparer import CombinedDatasetPreparer
 
 from learning.common.labels import SIGNS_CLASSES
 
@@ -35,7 +35,7 @@ class VideoEvaluator:
 
         start_time = self.start_time
         end_time = start_time + self.extract_length
-        # extract samples for 1 second video and move 0.5 seconds through the end of the video.
+        # extract samples for 1 second samples_generation and move 0.5 seconds through the end of the samples_generation.
         while end_time < video_duration:
             rgb_sample = rgb_samples_extractor.extract_sample(VideoPath=video_path, StartTime=start_time,
                                                               EndTime=end_time)

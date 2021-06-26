@@ -4,7 +4,7 @@ import os
 import boto3
 import csv
 
-from processor import Processor
+from pre_processing.common.processor import Processor
 from pre_processing.common import io_utils
 from collections import Counter
 
@@ -34,7 +34,7 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
             if not transcription_key.endswith('.json'):
                 continue
 
-            self.logger.debug('Extracting audio transcription from: %s', transcription_key)
+            self.logger.debug('Extracting audio video_transcription from: %s', transcription_key)
 
             file_obj = self._s3.get_object(Bucket=self._bucketName, Key=transcription_key)
             file_content = file_obj['Body'].read().decode('utf-8')
@@ -66,10 +66,10 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
         s3_key = os.path.join(s3_path, syntax_file_name)
 
         if self.s3_exist_object(s3_key):
-            self.logger.debug('audio transcription transcription-syntax-detection already available in s3 at: %s',
+            self.logger.debug('audio video_transcription video_transcription-syntax-detection already available in s3 at: %s',
                               s3_key)
             self.s3_delete_object(s3_key)
-            self.logger.debug('audio transcription %s deleted', s3_key)
+            self.logger.debug('audio video_transcription %s deleted', s3_key)
 
         if os.path.exists(local_file_path):
             self.logger.debug('local file %s exist', local_file_path)
@@ -113,8 +113,8 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
             for detected_token in detected_tokens:
                 wr.writerow({'token': detected_token[0], 'count': detected_token[1]})
 
-        self.logger.debug('audio transcription syntax is available locally at: %s',
+        self.logger.debug('audio video_transcription syntax is available locally at: %s',
                           local_file_path)
 
         self.upload_file(local_file_path, s3_key)
-        self.logger.debug('audio transcription syntax uploaded to: %s', s3_key)
+        self.logger.debug('audio video_transcription syntax uploaded to: %s', s3_key)

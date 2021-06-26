@@ -4,8 +4,8 @@ import logging
 import csv
 
 from pre_processing.common.processor import Processor
-from pre_processing.video.rgb_samples_handler import RGBSamplesHandler
 from pre_processing.common import io_utils
+from rgb_samples_handler import RGBSamplesHandler
 
 
 class RGBSamplesProcessor(Processor):

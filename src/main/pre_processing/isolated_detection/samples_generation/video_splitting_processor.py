@@ -7,7 +7,7 @@ import io_utils
 from subprocess import check_call
 from datetime import datetime
 
-from downloader import Downloader
+from pre_processing.common.downloader import Downloader
 
 
 class VideoSplittingProcessor(Downloader):
@@ -31,7 +31,7 @@ class VideoSplittingProcessor(Downloader):
                 self.logger.error(e)
 
         exec_end = time.time()
-        self.logger.debug('Video splitting completed processing %s video chunks in %s seconds',
+        self.logger.debug('Video splitting completed processing %s samples_generation chunks in %s seconds',
                           len(seqs), round(exec_end - exec_start, 2))
 
     def __split_video(self, start, end, idx):

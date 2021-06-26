@@ -1,6 +1,6 @@
 import logging
 
-from learning.model.legacy.base_model_builder import BaseModelBuilder
+from learning.model.legacy.signs_detection_base_model import SignsDetectionBaseModelBuilder
 from tensorflow.keras.applications.resnet_v2 import ResNet152V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
@@ -8,7 +8,7 @@ from tensorflow.keras import Input
 from learning.common.model_utility import OPTICAL_FLOW
 
 
-class OpticalFlowModelBuilder(BaseModelBuilder):
+class OpticalFlowModelBuilder(SignsDetectionBaseModelBuilder):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -36,3 +36,9 @@ class OpticalFlowModelBuilder(BaseModelBuilder):
 
     def get_model_type(self):
         return OPTICAL_FLOW
+
+    def build2(self, **kwargs) -> Model:
+        raise NotImplementedError('build2 method not implemented.')
+
+    def build3(self, **kwargs) -> Model:
+        raise NotImplementedError('build3 method not implemented.')

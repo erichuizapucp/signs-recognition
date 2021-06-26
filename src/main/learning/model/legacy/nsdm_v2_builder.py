@@ -39,3 +39,9 @@ class NSDMV2ModelBuilder(NSDMModelBuilder):
 
     def get_model_type(self):
         return NSDMV2
+
+    def build2(self, **kwargs) -> Model:
+        raise NotImplementedError('build2 method not implemented.')
+
+    def build3(self, **kwargs) -> Model:
+        raise NotImplementedError('build3 method not implemented.')

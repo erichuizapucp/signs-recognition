@@ -2,7 +2,7 @@ import cv2
 import os
 
 from pre_processing.common.samples_handler import SamplesHandler
-from pre_processing.video.rgb_samples_extractor import RGBSamplesExtractor
+from rgb_samples_extractor import RGBSamplesExtractor
 
 
 class RGBSamplesHandler(SamplesHandler):

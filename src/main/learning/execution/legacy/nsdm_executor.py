@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from base_model_executor import BaseModelExecutor
 from learning.common import model_type
-from learning.dataset.prepare.combined_dataset_preparer import CombinedDatasetPreparer
+from legacy.combined_dataset_preparer import CombinedDatasetPreparer
 
 
 class NSDMExecutor(BaseModelExecutor):

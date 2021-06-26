@@ -3,7 +3,7 @@ import os
 import logging
 
 from pre_processing.common.samples_handler import SamplesHandler
-from pre_processing.video.opticalflow_samples_extractor import OpticalflowSamplesExtractor
+from opticalflow_samples_extractor import OpticalflowSamplesExtractor
 
 
 class OpticalflowSamplesHandler(SamplesHandler):

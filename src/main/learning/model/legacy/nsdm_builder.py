@@ -1,20 +1,21 @@
 import logging
 
 from tensorflow.keras.models import Model
-from learning.model.legacy.base_model_builder import BaseModelBuilder
+from learning.model.legacy.signs_detection_base_model import SignsDetectionBaseModelBuilder
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Average
 from learning.common.model_type import NSDM
 
 
-class NSDMModelBuilder(BaseModelBuilder):
+class NSDMModelBuilder(SignsDetectionBaseModelBuilder):
     def __init__(self):
         super().__init__()
 
         # input shape 224x224x3
         self.opticalflow_input_shape = (self.imagenet_img_width, self.imagenet_img_height, self.imagenet_rgb_no_channels)
         # feature dim calculated from 224 * 224 * 3
-        self.rgb_input_shape = (None, self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels)
+        self.rgb_input_shape = (None,
+                                self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels)
 
         self.logger = logging.getLogger(__name__)
 
@@ -37,3 +38,9 @@ class NSDMModelBuilder(BaseModelBuilder):
 
     def get_model_type(self):
         return NSDM
+
+    def build2(self, **kwargs) -> Model:
+        raise NotImplementedError('build2 method not implemented.')
+
+    def build3(self, **kwargs) -> Model:
+        raise NotImplementedError('build3 method not implemented.')
