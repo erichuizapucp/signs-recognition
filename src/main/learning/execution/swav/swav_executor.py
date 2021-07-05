@@ -10,7 +10,11 @@ from learning.common.model_utility import SWAV
 
 
 class SwAVExecutor(BaseModelExecutor):
-    def __init__(self, feature_detection_model: Model, projection_model: Model, train_dataset_path, test_dataset_path):
+    def __init__(self, feature_detection_model: Model,
+                 projection_model: Model,
+                 train_dataset_path=None,
+                 test_dataset_path=None):
+
         super().__init__(feature_detection_model, projection_model)
 
         self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path)
@@ -125,3 +129,6 @@ class SwAVExecutor(BaseModelExecutor):
 
     def __get_prototype_projection_model(self):
         return self.model2
+
+    def configure(self):
+        print('SwAV models do not require configuration.')

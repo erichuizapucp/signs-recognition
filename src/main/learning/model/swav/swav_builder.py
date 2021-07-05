@@ -48,8 +48,8 @@ class SwAVModelBuilder(BaseModelBuilder):
 
         return model
 
-    def build3(self, **kwargs) -> Model:
-        pass
-
     def get_model_type(self):
         return SWAV
+
+    def build3(self, **kwargs) -> Model:
+        raise NotImplementedError('build3 method not implemented.')

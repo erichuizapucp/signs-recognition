@@ -7,6 +7,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, AUC
 from learning.common.model_utility import ModelUtility
+from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 
 
 class BaseModelExecutor:
@@ -22,7 +23,7 @@ class BaseModelExecutor:
         self.learning_rate = 0.001
 
         self.model_utility = ModelUtility()
-        self.dataset_preparer = None
+        self.dataset_preparer: BaseDatasetPreparer = ...
 
     def configure(self):
         optimizer = self._get_optimizer()

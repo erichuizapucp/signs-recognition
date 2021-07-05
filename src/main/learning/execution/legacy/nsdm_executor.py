@@ -8,7 +8,7 @@ from learning.dataset.prepare.legacy.combined_dataset_preparer import CombinedDa
 
 
 class NSDMExecutor(BaseModelExecutor):
-    def __init__(self, model: Model, train_dataset_path, test_dataset_path):
+    def __init__(self, model: Model, train_dataset_path=None, test_dataset_path=None):
         super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
