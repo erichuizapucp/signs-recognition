@@ -1,12 +1,12 @@
 import cv2
 import tensorflow as tf
 
-from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
+from learning.dataset.prepare.raw_dataset_preparer import RawDatasetPreparer
 from pre_processing.isolated_detection.samples_generation.rgb_samples_extractor import RGBSamplesExtractor
 from learning.dataset.prepare.swav.multi_crop import MultiCropTransformer
 
 
-class SwAVDatasetPreparer(BaseDatasetPreparer):
+class SwAVDatasetPreparer(RawDatasetPreparer):
     def __init__(self, train_dataset_path, test_dataset_path):
         super().__init__(train_dataset_path, test_dataset_path)
 
@@ -34,7 +34,7 @@ class SwAVDatasetPreparer(BaseDatasetPreparer):
                 end_time = self.__get_next_end_time(start_time=end_time)
                 start_time += end_time
 
-                yield fragment_frames
+                yield fragment_frames, tf.int32
 
     @staticmethod
     def __get_next_end_time(start_time):
@@ -67,6 +67,9 @@ class SwAVDatasetPreparer(BaseDatasetPreparer):
         video_capture.release()
 
         return duration
+
+    def _get_raw_file_types(self):
+        return ['*.mp4', '*.avi']
 
     def _prepare_sample(self, feature, label):
         raise NotImplementedError('This method is not supported for SwAVDatasetPreparer.')

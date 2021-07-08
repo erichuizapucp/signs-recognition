@@ -23,7 +23,7 @@ class SwAVModelBuilder(BaseModelBuilder):
         backbone_model: Model = ResNet50(include_top=False, weights=None, input_shape=(None, None, 3))
         backbone_model.trainable = True
 
-        inputs = Input(input_shape=input_shape)
+        inputs = Input(shape=input_shape)
         x = backbone_model(inputs, training=True)
         x = GlobalAveragePooling2D()(x)
 
@@ -34,7 +34,7 @@ class SwAVModelBuilder(BaseModelBuilder):
     def build2(self, **kwargs) -> Model:
         input_shape = (2048,)
 
-        inputs = Input(input_shape=input_shape)
+        inputs = Input(shape=input_shape)
         projection_1 = Dense(self.no_projection_1_neurons)(inputs)
         projection_1 = BatchNormalization()(projection_1)
         projection_1 = Activation('relu')(projection_1)
