@@ -10,8 +10,7 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
     def _prepare(self, dataset_path):
         raw_file_list = self._get_raw_file_list(dataset_path)
-        # RGB frames (list) reason why we use a RaggedTensorSpec instead of TensorSpec
-        gen_out_signature = tf.RaggedTensorSpec(shape=(None, None, None), dtype=tf.int32)
+        gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
         dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self._data_generator,
                                                                   args=[raw_file_list],
                                                                   output_signature=gen_out_signature)

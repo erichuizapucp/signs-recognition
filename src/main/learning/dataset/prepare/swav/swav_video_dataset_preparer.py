@@ -1,3 +1,5 @@
+import random
+
 import cv2
 import tensorflow as tf
 
@@ -24,21 +26,26 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         extractor = RGBSamplesExtractor()
 
         for video_path in list_video_path:
-            duration = self.__get_video_duration(video_path)
+            str_video_path = tf.compat.as_str_any(video_path)
+
+            duration = self.__get_video_duration(str_video_path)
             start_time = 0.0
             end_time = self.__get_next_end_time(start_time=start_time)
 
             while end_time < duration:
-                fragment_frames = extractor.extract_sample(VideoPath=video_path, StartTime=start_time, EndTime=end_time)
+                fragment_frames = extractor.extract_sample(VideoPath=str_video_path, StartTime=start_time, EndTime=end_time)
 
-                end_time = self.__get_next_end_time(start_time=end_time)
-                start_time += end_time
+                # print('%d fragments extracted from %s to %s' % (len(fragment_frames), str(start_time), str(end_time)))
 
-                yield fragment_frames, tf.int32
+                start_time = end_time
+                end_time = self.__get_next_end_time(start_time=start_time)
+
+                yield fragment_frames
 
     @staticmethod
     def __get_next_end_time(start_time):
-        fragment_duration = tf.random.uniform(shape=[], minval=0.3, maxval=0.5, dtype=tf.dtypes.float32)
+        fragment_duration = random.uniform(0.3, 0.5)
+        # tf.random.uniform(shape=[], minval=0.3, maxval=0.5, dtype=tf.dtypes.float32)
         end_time = start_time + fragment_duration
         return end_time
 
@@ -51,6 +58,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         crops = tuple()
         for idx, num_crop in enumerate(self.num_crops):
             for _ in range(num_crop):
+                # multi_crop_params = [video_fragment, self.min_scale[idx], self.max_scale[idx], self.crop_sizes[idx]]
                 transformed_video_fragment = self.multi_crop.tie_together(video_fragment,
                                                                           self.min_scale[idx],
                                                                           self.max_scale[idx],
