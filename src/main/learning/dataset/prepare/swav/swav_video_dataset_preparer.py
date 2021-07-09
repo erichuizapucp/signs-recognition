@@ -19,8 +19,8 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
 
         self.multi_crop = MultiCropTransformer()
 
-    def _prepare(self, get_dataset_path_func):
-        return super()._prepare(get_dataset_path_func)
+    def _prepare(self, dataset_path):
+        return super()._prepare(dataset_path)
 
     def _data_generator(self, list_video_path):
         extractor = RGBSamplesExtractor()
@@ -33,9 +33,9 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
             end_time = self.__get_next_end_time(start_time=start_time)
 
             while end_time < duration:
-                fragment_frames = extractor.extract_sample(VideoPath=str_video_path, StartTime=start_time, EndTime=end_time)
-
-                # print('%d fragments extracted from %s to %s' % (len(fragment_frames), str(start_time), str(end_time)))
+                fragment_frames = extractor.extract_sample(VideoPath=str_video_path,
+                                                           StartTime=start_time,
+                                                           EndTime=end_time)
 
                 start_time = end_time
                 end_time = self.__get_next_end_time(start_time=start_time)
