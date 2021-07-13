@@ -2,41 +2,42 @@ import tensorflow as tf
 
 
 class MultiCropTransformer:
+    @tf.function
     def tie_together(self, video_fragment, min_scale, max_scale, crop_size):
-        video_fragment = self.decode(video_fragment)
+        if video_fragment.dtype == tf.string:
+            video_fragment = self.decode(video_fragment)
+
         video_fragment = self.scale(video_fragment)
 
         # Random resized crops
         video_fragment = self.random_resize_crop(video_fragment, min_scale, max_scale, crop_size)
 
         # Color distortions & Gaussian blur
-        video_fragment = self.custom_augment(video_fragment)
+        # video_fragment = self.custom_augment(video_fragment)
 
         return video_fragment
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def random_resize_crop(video_fragment, min_scale, max_scale, crop_size):
-        crop_resized_images = []
+        crop_resized_images = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
         for image in video_fragment:
+            tf.print(image)
             # Conditional resizing
-            if crop_size == 224:
-                image_shape = 260
-                image = tf.image.resize(image, (image_shape, image_shape))
-            else:
-                image_shape = 160
-                image = tf.image.resize(image, (image_shape, image_shape))
+            image_shape = 260 if crop_size == 224 else 160
+            resized_image = tf.image.resize(image, (image_shape, image_shape))
 
             # Get the crop size for given min and max scale
             size = tf.random.uniform(shape=(1,), minval=min_scale * image_shape, maxval=max_scale * image_shape,
                                      dtype=tf.float32)
             size = tf.cast(size, tf.int32)[0]
             # Get the crop from the image
-            crop = tf.image.random_crop(image, (size, size, 3))
+            crop = tf.image.random_crop(resized_image, (size, size, 3))
             crop_resize = tf.image.resize(crop, (crop_size, crop_size))
             crop_resized_images.append(crop_resize)
 
-        return crop_resized_images
+        return crop_resized_images.stack()
 
     def custom_augment(self, video_fragment):
         video_fragment = self.random_apply(tf.image.flip_left_right, video_fragment, p=0.5)
@@ -120,24 +121,27 @@ class MultiCropTransformer:
         return transformed_video_fragment
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def decode(video_fragment):
-        transformed_video_fragment = []
+        decoded_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
         for image in video_fragment:
             # convert to integers
             decoded_image = tf.image.decode_jpeg(image, channels=3)
-            transformed_video_fragment.append(decoded_image)
+            decoded_video_fragment.append(decoded_image)
 
-        return transformed_video_fragment
+        return decoded_video_fragment.stack()
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def scale(video_fragment):
-        transformed_video_fragment = []
+        scaled_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+
         for image in video_fragment:
             # convert to floats in the [0,1] range.
             image = tf.image.convert_image_dtype(image, tf.float32)
-            transformed_video_fragment.append(image)
+            scaled_video_fragment.append(image)
 
-        return transformed_video_fragment
+        return scaled_video_fragment.stack()
 
     @staticmethod
     def random_apply(transformation_func, video_fragment, p):

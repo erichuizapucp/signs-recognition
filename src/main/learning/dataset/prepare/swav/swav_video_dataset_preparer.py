@@ -45,7 +45,6 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
     @staticmethod
     def __get_next_end_time(start_time):
         fragment_duration = random.uniform(0.3, 0.5)
-        # tf.random.uniform(shape=[], minval=0.3, maxval=0.5, dtype=tf.dtypes.float32)
         end_time = start_time + fragment_duration
         return end_time
 
@@ -58,7 +57,6 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         crops = tuple()
         for idx, num_crop in enumerate(self.num_crops):
             for _ in range(num_crop):
-                # multi_crop_params = [video_fragment, self.min_scale[idx], self.max_scale[idx], self.crop_sizes[idx]]
                 transformed_video_fragment = self.multi_crop.tie_together(video_fragment,
                                                                           self.min_scale[idx],
                                                                           self.max_scale[idx],
