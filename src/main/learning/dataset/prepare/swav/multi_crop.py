@@ -23,7 +23,6 @@ class MultiCropTransformer:
         crop_resized_images = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
         for image in video_fragment:
-            tf.print(image)
             # Conditional resizing
             image_shape = 260 if crop_size == 224 else 160
             resized_image = tf.image.resize(image, (image_shape, image_shape))
