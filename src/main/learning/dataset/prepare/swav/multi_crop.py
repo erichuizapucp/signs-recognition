@@ -38,8 +38,9 @@ class MultiCropTransformer:
 
         return crop_resized_images.stack()
 
+    @tf.function
     def custom_augment(self, video_fragment):
-        video_fragment = self.random_apply(tf.image.flip_left_right, video_fragment, p=0.5)
+        video_fragment = self.random_apply(self.flip_left_right, video_fragment, p=0.5)
 
         # Randomly apply Gaussian blur
         video_fragment = self.random_apply(self.gaussian_blur, video_fragment, p=0.5)
@@ -53,8 +54,9 @@ class MultiCropTransformer:
         return video_fragment
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def gaussian_blur(video_fragment, kernel_size=23, padding='SAME'):
-        transformed_video_fragment = []
+        transformed_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
         for image in video_fragment:
             sigma = tf.random.uniform((1,)) * 1.9 + 0.1
@@ -83,11 +85,12 @@ class MultiCropTransformer:
 
             transformed_video_fragment.append(blurred)
 
-        return transformed_video_fragment
+        return transformed_video_fragment.stack()
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def color_jitter(video_fragment, s=0.5):
-        transformed_video_fragment = []
+        transformed_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
         for image in video_fragment:
             transformed_image = tf.image.random_brightness(image, max_delta=0.8 * s)
             transformed_image = tf.image.random_contrast(transformed_image, lower=1-0.8 * s, upper=1 + 0.8 * s)
@@ -97,27 +100,29 @@ class MultiCropTransformer:
 
             transformed_video_fragment.append(transformed_image)
 
-        return transformed_video_fragment
+        return transformed_video_fragment.stack()
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def color_drop(video_fragment):
-        transformed_video_fragment = []
+        transformed_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
         for image in video_fragment:
             transformed_image = tf.image.rgb_to_grayscale(image)
             transformed_image = tf.tile(transformed_image, [1, 1, 3])
 
             transformed_video_fragment.append(transformed_image)
 
-        return transformed_video_fragment
+        return transformed_video_fragment.stack()
 
     @staticmethod
+    @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def flip_left_right(video_fragment):
-        transformed_video_fragment = []
+        transformed_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
         for image in video_fragment:
             transformed_image = tf.image.flip_left_right(image)
             transformed_video_fragment.append(transformed_image)
 
-        return transformed_video_fragment
+        return transformed_video_fragment.stack()
 
     @staticmethod
     @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
