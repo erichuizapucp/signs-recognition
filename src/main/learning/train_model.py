@@ -1,5 +1,6 @@
-import logging
 import os
+import logging
+import tensorflow as tf
 
 from argparse import ArgumentParser
 from logger_config import setup_logging
@@ -18,6 +19,8 @@ from learning.execution.swav.swav_executor import SwAVExecutor
 
 from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV
 
+from learning.common.model_utility import ModelUtility
+
 DEFAULT_NO_EPOCHS = 5
 DEFAULT_NO_STEPS_EPOCHS = None
 
@@ -29,6 +32,9 @@ def get_cmd_args():
     parser.add_argument('-tr', '--train_dataset_path', help='Train Dataset Path', required=True)
     parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
     parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
+    parser.add_argument('-odm', '--object_detection_model_name', help='Object Detection Model Name', required=False)
+    parser.add_argument('-odcp', '--object_detection_checkout_prefix', help='Object Detection Checkout Prefix',
+                        required=False)
 
     return parser.parse_args()
 
@@ -93,7 +99,7 @@ def get_model(model_name):
     return model
 
 
-def get_executor(executor_name, model, train_dataset_path):
+def get_executor(executor_name, model, train_dataset_path, **kwargs):
     executors = {
         OPTICAL_FLOW: lambda: OpticalflowExecutor(model=model, train_dataset_path=train_dataset_path),
         RGB: lambda: RGBExecutor(model=model, train_dataset_path=train_dataset_path),
@@ -101,7 +107,8 @@ def get_executor(executor_name, model, train_dataset_path):
         NSDMV2: lambda: NSDMExecutorV2(model=model, train_dataset_path=train_dataset_path),
         SWAV: lambda: SwAVExecutor(feature_detection_model=model[0],
                                    projection_model=model[1],
-                                   train_dataset_path=train_dataset_path)
+                                   train_dataset_path=train_dataset_path,
+                                   object_detection_model=kwargs['ObjectDetectionModel'])
     }
     executor = executors[executor_name]()
     executor.configure()
@@ -121,10 +128,16 @@ def main():
     model_name = args.model
     train_dataset_path = args.train_dataset_path
     executor_name = model_name
+    object_detection_model_name = args.object_detection_model_name
+    object_detection_checkout_prefix = args.object_detection_checkout_prefix
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
     model = get_model(model_name)
+
+    model_utility = ModelUtility()
+    object_detection_model = model_utility.get_object_detection_model(object_detection_model_name,
+                                                                      object_detection_checkout_prefix)
     executor = get_executor(executor_name, model, train_dataset_path)
     executor.train_model(no_epochs, no_steps_per_epoch)
 

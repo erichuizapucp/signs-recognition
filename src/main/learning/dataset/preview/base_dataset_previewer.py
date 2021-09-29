@@ -9,15 +9,7 @@ class BaseDatasetPreviewer:
         self.dataset: tf.data.Dataset = preparer.prepare_train_dataset()
 
     def preview_dataset(self):
-        plot_images = []
-        for multi_sample in self.dataset.take(20):
-            figure = self._image_grid(multi_sample)
-            plot_image = self._plot_to_image(figure)
-            plot_images.append(plot_image)
-
-        with self.file_writer.as_default():
-            plot_images = tf.reshape(plot_images, [-1, 1000, 1000, 4])
-            tf.summary.image("SwAV Training Data", plot_images, max_outputs=25, step=0)
+        raise NotImplementedError('preview_dataset method not implemented.')
 
     @staticmethod
     def _plot_to_image(figure):

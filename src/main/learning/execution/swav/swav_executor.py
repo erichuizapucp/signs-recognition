@@ -12,12 +12,13 @@ from learning.common.model_utility import SWAV
 class SwAVExecutor(BaseModelExecutor):
     def __init__(self, feature_detection_model: Model,
                  projection_model: Model,
-                 train_dataset_path=None,
-                 test_dataset_path=None):
+                 train_dataset_path,
+                 test_dataset_path,
+                 object_detection_model):
 
         super().__init__(feature_detection_model, projection_model)
 
-        self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path)
+        self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path, object_detection_model)
 
         self.num_crops = [2, 3]
         self.crops_for_assign = [0, 1]
@@ -54,8 +55,8 @@ class SwAVExecutor(BaseModelExecutor):
         return epoch_wise_loss, [feature_backbone_model, prototype_projection_model]
 
     def train_step(self, input_views, feature_backbone, projection_prototype, optimizer, crops_for_assign, temperature):
-        im1, im2, im3, im4, im5 = input_views
-        inputs = [im1, im2, im3, im4, im5]
+        clip1, clip2, clip3, clip4, clip5 = input_views
+        inputs = [clip1, clip2, clip3, clip4, clip5]
         batch_size = inputs[0].shape[0]
 
         crop_sizes = [inp.shape[1] for inp in inputs]  # list of crop size of views

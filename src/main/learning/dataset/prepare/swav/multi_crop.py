@@ -13,7 +13,7 @@ class MultiCropTransformer:
         video_fragment = self.random_resize_crop(video_fragment, min_scale, max_scale, crop_size)
 
         # Color distortions & Gaussian blur
-        # video_fragment = self.custom_augment(video_fragment)
+        video_fragment = self.custom_augment(video_fragment)
 
         return video_fragment
 
@@ -22,7 +22,10 @@ class MultiCropTransformer:
     def random_resize_crop(video_fragment, min_scale, max_scale, crop_size):
         crop_resized_images = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
 
+        index = 0
         for image in video_fragment:
+            seed = (index, 0)
+            index = index + 1
             # Conditional resizing
             image_shape = 260 if crop_size == 224 else 160
             resized_image = tf.image.resize(image, (image_shape, image_shape))
@@ -32,7 +35,7 @@ class MultiCropTransformer:
                                      dtype=tf.float32)
             size = tf.cast(size, tf.int32)[0]
             # Get the crop from the image
-            crop = tf.image.random_crop(resized_image, (size, size, 3))
+            crop = tf.image.stateless_random_crop(resized_image, size=[size, size, 3], seed=seed)
             crop_resize = tf.image.resize(crop, (crop_size, crop_size))
             crop_resized_images.append(crop_resize)
 
@@ -49,7 +52,7 @@ class MultiCropTransformer:
         video_fragment = self.random_apply(self.color_jitter, video_fragment, p=0.8)
 
         # Randomly apply grayscale
-        video_fragment = self.random_apply(self.color_drop, video_fragment, p=0.2)
+        video_fragment = self.random_apply(self.color_drop, video_fragment, p=0.1)
 
         return video_fragment
 
@@ -91,11 +94,18 @@ class MultiCropTransformer:
     @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.LISTS)
     def color_jitter(video_fragment, s=0.5):
         transformed_video_fragment = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+        index = 0
         for image in video_fragment:
-            transformed_image = tf.image.random_brightness(image, max_delta=0.8 * s)
-            transformed_image = tf.image.random_contrast(transformed_image, lower=1-0.8 * s, upper=1 + 0.8 * s)
-            transformed_image = tf.image.random_saturation(transformed_image, lower=1-0.8 * s, upper=1 + 0.8 * s)
-            transformed_image = tf.image.random_hue(transformed_image, max_delta=0.2 * s)
+            seed = (index, 0)
+            index = index + 1
+            # random brightness is giving issues so it is removed from transformation for now.
+            # transformed_image = tf.image.stateless_random_brightness(image, max_delta=0.8 * s, seed=seed)
+
+            transformed_image = tf.image.stateless_random_contrast(image, lower=1-0.8 * s,
+                                                                   upper=1 + 0.8 * s, seed=seed)
+            transformed_image = tf.image.stateless_random_saturation(transformed_image, lower=1-0.8 * s,
+                                                                     upper=1 + 0.8 * s, seed=seed)
+            transformed_image = tf.image.stateless_random_hue(transformed_image, max_delta=0.2 * s, seed=seed)
             transformed_image = tf.clip_by_value(transformed_image, 0, 1)
 
             transformed_video_fragment.append(transformed_image)

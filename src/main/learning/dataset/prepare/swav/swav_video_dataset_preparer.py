@@ -9,7 +9,10 @@ from learning.dataset.prepare.swav.multi_crop import MultiCropTransformer
 
 
 class SwAVDatasetPreparer(RawDatasetPreparer):
-    def __init__(self, train_dataset_path, test_dataset_path):
+    def __init__(self,
+                 train_dataset_path,
+                 test_dataset_path,
+                 object_detection_model):
         super().__init__(train_dataset_path, test_dataset_path)
 
         self.crop_sizes = [224, 96]
@@ -18,6 +21,8 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         self.max_scale = [1., 0.5]
 
         self.multi_crop = MultiCropTransformer()
+
+        self.object_detection_model = object_detection_model
 
     def _prepare(self, dataset_path):
         return super()._prepare(dataset_path)
@@ -35,12 +40,15 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
             while end_time < duration:
                 fragment_frames = extractor.extract_sample(VideoPath=str_video_path,
                                                            StartTime=start_time,
-                                                           EndTime=end_time)
+                                                           EndTime=end_time,
+                                                           DetectPerson=True,
+                                                           DetectionModel=self.object_detection_model)
 
                 start_time = end_time
                 end_time = self.__get_next_end_time(start_time=start_time)
 
-                yield fragment_frames
+                if len(fragment_frames) > 0:
+                    yield fragment_frames
 
     @staticmethod
     def __get_next_end_time(start_time):
@@ -49,11 +57,6 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         return end_time
 
     def _prepare_sample3(self, video_fragment):
-        self.crop_sizes = [224, 96]
-        self.num_crops = [2, 3]
-        self.min_scale = [0.5, 0.14]
-        self.max_scale = [1., 0.5]
-
         crops = tuple()
         for idx, num_crop in enumerate(self.num_crops):
             for _ in range(num_crop):

@@ -25,6 +25,18 @@ class SwAVModelBuilder(BaseModelBuilder):
 
         inputs = Input(shape=input_shape)
         x = backbone_model(inputs, training=True)
+
+
+        # # (no_steps, 224x224x3), no_steps is None because it will be determined at runtime by Keras
+        # input_shape = (None, self.feature_dim)
+        # inputs = Input(shape=input_shape, name='rgb_inputs')
+        # x = Masking(name='masking')(inputs)
+        # x = Bidirectional(LSTM(self.no_lstm_units), name='rgb_bidirectional')(x)
+        # x = Dense(self.no_dense_neurons_1, activation='relu', name='rgb_dense_layer1')(x)
+        # output = Dense(self.no_classes, activation='softmax', name='rgb_classifier')(x)
+        #
+        # return Model(inputs=inputs, outputs=output, name='rgb_model')
+
         x = GlobalAveragePooling2D()(x)
 
         model = Model(inputs, x)

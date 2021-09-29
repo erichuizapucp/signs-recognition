@@ -21,3 +21,5 @@ serialized-dataset
 /logs/
 /pre-trained-models/
 tensorboard_logs
+models
+test_images

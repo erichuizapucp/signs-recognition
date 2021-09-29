@@ -2,11 +2,26 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from learning.dataset.preview.base_dataset_previewer import BaseDatasetPreviewer
+from datetime import datetime
 
 
 class SwAVDatasetPreviewer(BaseDatasetPreviewer):
     def __init__(self, logs_folder, preparer):
         super().__init__(logs_folder, preparer)
+
+    def preview_dataset(self):
+        plot_images = []
+        start_time = datetime.now()
+        for multi_sample in self.dataset.take(5):
+            figure = self._image_grid(multi_sample)
+            plot_image = self._plot_to_image(figure)
+            plot_images.append(plot_image)
+        end_time = datetime.now()
+        print('Duration: {}'.format(end_time - start_time))
+
+        with self.file_writer.as_default():
+            plot_images = tf.reshape(plot_images, [-1, 1000, 1000, 4])
+            tf.summary.image("SwAV Training Data", plot_images, max_outputs=25, step=0)
 
     def _image_grid(self, multi_sample):
         figure = plt.figure(figsize=(10, 10))

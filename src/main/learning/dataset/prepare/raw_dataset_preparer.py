@@ -15,6 +15,7 @@ class RawDatasetPreparer(BaseDatasetPreparer):
                                                                   args=[raw_file_list],
                                                                   output_signature=gen_out_signature)
         dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
+        dataset = dataset.batch(self.dataset_batch_size)
 
         return dataset
 
