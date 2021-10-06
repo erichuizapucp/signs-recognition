@@ -46,5 +46,5 @@ if __name__ == '__main__':
     setup_logging(working_folder, 'pre-processing-logging.yaml')
     logger = logging.getLogger(__name__)
 
-    # execute video pre_processing logic
+    # execute samples_generation pre_processing logic
     main()

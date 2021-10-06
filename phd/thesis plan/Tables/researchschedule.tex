@@ -1,0 +1,72 @@
+\begingroup
+\footnotesize
+\begin{longtable}{|>{\hspace{0pt}}m{0.042\linewidth}|>{\hspace{0pt}}m{0.311\linewidth}|>{\hspace{0pt}}m{0.388\linewidth}|>{\centering\hspace{0pt}}m{0.096\linewidth}|>{\centering\arraybackslash\hspace{0pt}}m{0.096\linewidth}|} 
+\hline
+\rowcolor[rgb]{0.502,0.502,0.502}  & \multicolumn{1}{>{\centering\hspace{0pt}}m{0.311\linewidth}|}{TASK\textbf{}} & \multicolumn{1}{>{\centering\hspace{0pt}}m{0.388\linewidth}|}{DESCRIPTION} & START \par{}DATE & END \par{}DATE \endfirsthead 
+\hline
+\rowcolor[rgb]{0.753,0.753,0.753} 1 & SELF SUPERVISED CORPUS \par{}ANNOTATION & DESIGN AND IMPLEMENT A SELF \par{}SUPERVISED PSL CORPUS \par{}ANNOTATION~METHOD & 03/15/2021 & 07/14/2022 \\ 
+\hline
+1.1 & Initial corpus clean up. & Perform initial corpus cleaning tasks \par{}including\par{}1. Video organization (titles, dates, \par{}duration, signer).\par{}2. Video storage in a cloud system. & 03/15/2021 & 03/26/2021 \\ 
+\hline
+1.2 & Peruvian sings language grammatical \par{}rules description. & Perform a detailed description of the \par{}Peruvian signs language elements \par{}including:\par\null\par{}1. Phonology.\par{}2. Dactylology.\par{}3. Numbers.\par{}4. Common Expressions.\par{}5. Vocabulary.\par{}6. Gender.\par{}7. Verb tenses.\par{}8. Question forms.\par{}9. Nouns.\par{}10. Adjectives. & 03/15/2021 & 23/07/2021 \\ 
+\hline
+1.3 & Define peruvian signs language \par{}manual and non manual features. & Create a descriptive list of manual \par{}and non manual features available in \par{}PSL e.g. hand shapes, rotation, \par{}orientation and other body parts like \par{}neck orientation, shoulders and arms \par{}movements. & 03/15/2021 & 03/15/2021 \\ 
+\hline
+1.4 & Establish relations between \par{}grammatical rules, manual and \par{}non manual features. & Using the HamNoSys / SiGML notation \par{}define the manual and non manual \par{}features for the most common \par{}PSL elements. & 03/15/2021 & 12/17/2021 \\ 
+\hline
+1.5 & Design the input preprocessing \par{}method. & Design the architecture design for the \par{}data input pipeline including data \par{}transformation and augmentation. \par{}The design should contain elements to \par{}detect the signer (object detection) and \par{}perform a more granular body parts \par{}detection using state of art mechanisms. & 04/19/2021 & 05/14/2021 \\ 
+\hline
+1.6 & Implement the input preprocessing \par{}method. & Implement the architecture designed \par{}in 1.5 and produce a software based \par{}solution for pre-processing raw PSL videos \par{}and generate a list of PSL manual and \par{}non manual elements. & 05/17/2021 & 09/10/2021 \\ 
+\hline
+1.7 & Design the feature extraction \par{}method. & Design a method that is capable to find \par{}relations between manual and non manual \par{}features using Word2Vec as a \par{}starting point but extended to a Visual words. & 06/07/2021 & 07/05/2021 \\ 
+\hline
+1.8 & Implement the feature extraction \par{}method. & Implement a software solution based on \par{}1.7 that is capable to find relations between \par{}manual and non manual features on the \par{}same glose (isolated signs detection). & 07/06/2021 & 10/11/2021 \\ 
+\hline
+1.9 & Design the temporal sequencing \par{}method. & Once an isolated signs detection method \par{}is implemented, extend it to a method to \par{}determine temporal sequencing between \par{}isolated signs in order to detect more complex \par{}PSL elements (e.g expressions). & 10/12/2021 & 11/12/2021 \\ 
+\hline
+1.10 & Implement the temporal sequencing \par{}method. & Implement a software solution that is \par{}capable to perform a continuous \par{}signs detection using temporal \par{}sequencing based on the design in 1.9. & 11/15/2021 & 12/17/2021 \\ 
+\hline
+1.11 & Isolated Signs Language \par{}Recognition. & Based on 1.8 create an isolated signs \par{}language dataset. & 20/12/2021 & 01/14/2022 \\ 
+\hline
+1.12 & Continuous Signs Language \par{}Recognition. & Based on 1.10 create a continuous signs \par{}language dataset. & 01/17/2022 & 01/31/2022 \\ 
+\hline
+1.13 & Design the self and continuously \par{}improving signs detection method. & Design a solution based on Energy functions \par{}and Representational Autoencoders to allow \par{}predicting and reconstructing PSL elements \par{}in order to enter into a continuous improvement \par{}executing tasks 1.5 to 1.12. & 01/02/2022 & 03/31/2022 \\ 
+\hline
+1.14 & Implement the self and continuously \par{}improving signs detection method. & Based on the design 1.13 implement a \par{}network architecture based on representational \par{}auto encoders with the objective to \par{}optimize an energy function. & 04/01/2022 & 07/14/2022 \\ 
+\hline
+1.15 & Estimate the average duration \par{}of a gloss. & Based on the design 1.13 implement a \par{}network architecture that is based on \par{}representational auto encoders and \par{}energy functions optimization to \par{}progressively detect the average \par{}duration of a PSL gloss. & 01/07/2022 & 07/14/2022 \\ 
+\hline
+\rowcolor[rgb]{0.753,0.753,0.753} 2 & GRAPHICAL GESTURAL USER \par{}INTERFACE & DESIGN AND IMPLEMENT A GESTURAL\par{}USER INTERFACE FOR PSL SIGNERS & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/18/2022} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/14/2023} \\ 
+\hline
+2.1 & Design the conversational user \par{}interface. & Design a user interface to enable \par{}conversations between a signer and \par{}a computer. For this task we propose \par{}designing a chatbot using today’s available \par{}cloud options (e.g. Alexa) by extending it \par{}with the models implemented in 1. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/18/2022} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/26/2022} \\ 
+\hline
+2.2 & Implement the conversational user \par{}interface. & Implement the user interface designed in 2.1, \par{}it will use 3D modeling using a Human \par{}simulation approach instead of concatenating \par{}a series of videos. Human simulation modeling \par{}is achievable using current technologies like \par{}Humanoid Animation (HAmin). & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/29/2022} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{11/30/2022} \\ 
+\hline
+2.3 & Signs Language synthesis to Spanish. & Using the algorithms approximated in 1\textbf{ }as well \par{}as the grammatical rules defined and created \par{}in 1.1, 1.2, 1.3 and 1.4 implement a software \par{}solution for synthesizing PSL elements to \par{}Spanish. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/01/2022} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{02/01/2023} \\ 
+\hline
+2.4 & Spanish synthesis to Signs Language. & Using the algorithms approximated in 1\textbf{ }as well \par{}as the grammatical rules defined and created \par{}in 1.1, 1.2, 1.3 and 1.4 implement a software \par{}solution for synthesizing Spanish to \par{}PSL elements. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{02/01/2023} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{04/01/2023} \\ 
+\hline
+2.5 & Signs Language Animation. & Implement the signs language animation or \par{}Human simulation modeling which is \par{}achievable using current technologies \par{}like Humanoid Animation (HAmin). & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{04/04/2023} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/14/2023} \\ 
+\hline
+\rowcolor[rgb]{0.753,0.753,0.753} 3 & PROTOTYPE APPLICATION & DESIGN AND IMPLEMENT AN INSTALLABLE \par{}APPLICATION TO ENABLE INTERACTION\par{}BETWEEN SIGNERS AND COMPUTERS & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/17/2023} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/15/2023} \\ 
+\hline
+3.1 & Design an application that can be \par{}installed in devices \par{}(e.g. mobile phones and tablets) \par{}for signers human computer \par{}interaction. & Design an iOS application that can be installed \par{}in apple devices, the application to be capable \par{}to use the set of algorithms implemented in 1 \par{}and the user gestural user interface \par{}implemented in 2. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/17/2023} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/21/2023} \\ 
+\hline
+3.2 & Implement an application that can \par{}be installed in devices and enable \par{}signers human computer interaction. & Implement an iOS application that use the \par{}design defined in 3.1. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/22/2023} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/15/2023} \\ 
+\hline
+\rowcolor[rgb]{0.753,0.753,0.753} 4 & GENERAL TASKS & COMMON GENERAL AND ADMINISTRATIVE\par{}TASKS & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{03/15/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/15/2023} \\ 
+\hline
+4.1 & Weekly meetings with thesis advisor. &  & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{03/15/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/12/2023} \\ 
+\hline
+4.2 & Weekly visits to the PUCP campus. &  & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{03/15/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/12/2023} \\ 
+\hline
+4.3 & Doctoral thesis plan. & Design and writing of the doctoral thesis plan. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{03/15/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/16/2023} \\ 
+\hline
+4.4 & Write and publish First paper. & Write and publishing of the first paper required \par{}for the doctoral program. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/02/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/15/2022} \\ 
+\hline
+4.5 & Write and publish Second paper. & Write and publishing of the second paper \par{}required for the doctoral program. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{08/15/2022} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{07/17/2023} \\ 
+\hline
+4.6 & Doctoral thesis. & Design and writing of the doctoral thesis. & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{03/15/2021} & \multicolumn{1}{>{\hspace{0pt}}m{0.096\linewidth}|}{12/15/2023} \\
+\hline
+\end{longtable}
+\endgroup

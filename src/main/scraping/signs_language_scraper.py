@@ -33,7 +33,7 @@ class SignsLanguageScraper:
                 video_url = video_link['href']
                 video_label = video_link.next.next
 
-                self.logger.debug('Scraping video ''%s'' at %s', video_label, video_url)
+                self.logger.debug('Scraping samples_generation ''%s'' at %s', video_label, video_url)
 
                 local_video_path = self.get_video_local_path(index + 1, video_label)
                 if not os.path.exists(local_video_path):
