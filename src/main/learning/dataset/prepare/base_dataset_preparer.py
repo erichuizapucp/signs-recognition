@@ -1,7 +1,7 @@
 import logging
 import tensorflow as tf
 
-from learning.common.common_config import IMAGENET_CONFIG, FRAMES_SEQ_CONFIG, DATASET_BATCH_SIZE
+from learning.common.common_config import IMAGENET_CONFIG, FRAMES_SEQ_CONFIG
 
 
 class BaseDatasetPreparer:
@@ -21,13 +21,11 @@ class BaseDatasetPreparer:
 
         self.rgb_feature_dim = self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels
 
-        self.dataset_batch_size = DATASET_BATCH_SIZE
+    def prepare_train_dataset(self, batch_size):
+        return self._prepare(self.train_dataset_path, batch_size)
 
-    def prepare_train_dataset(self):
-        return self._prepare(self.train_dataset_path)
-
-    def prepare_test_dataset(self):
-        return self._prepare(self.test_dataset_path)
+    def prepare_test_dataset(self, batch_size):
+        return self._prepare(self.test_dataset_path, batch_size)
 
     def _transform_image(self, img, resize_shape=None):
         if resize_shape is None:
@@ -81,7 +79,7 @@ class BaseDatasetPreparer:
             transformed_images.extend([transformed_img])
         return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
 
-    def _prepare(self, get_dataset_path_func):
+    def _prepare(self, dataset_path, batch_size):
         raise NotImplementedError('_prepare method not implemented.')
 
     def _prepare_sample(self, feature, label):

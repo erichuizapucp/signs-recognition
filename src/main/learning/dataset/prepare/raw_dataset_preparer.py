@@ -8,14 +8,14 @@ class RawDatasetPreparer(BaseDatasetPreparer):
     def __init__(self, train_dataset_path, test_dataset_path):
         super().__init__(train_dataset_path, test_dataset_path)
 
-    def _prepare(self, dataset_path):
+    def _prepare(self, dataset_path, batch_size):
         raw_file_list = self._get_raw_file_list(dataset_path)
         gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
         dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self._data_generator,
                                                                   args=[raw_file_list],
                                                                   output_signature=gen_out_signature)
         dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
-        dataset = dataset.batch(self.dataset_batch_size)
+        # dataset = dataset.batch(batch_size)
 
         return dataset
 

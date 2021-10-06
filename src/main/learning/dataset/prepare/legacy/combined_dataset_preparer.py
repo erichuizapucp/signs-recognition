@@ -10,17 +10,19 @@ class CombinedDatasetPreparer(SerializedDatasetPreparer):
         super().__init__(train_dataset_path, test_dataset_path)
         self.logger = logging.getLogger(__name__)
 
-    def prepare_train_dataset(self):
-        dataset = super().prepare_train_dataset()
+    def prepare_train_dataset(self, batch_size):
+        # don't batch the resulting dataset
+        dataset = super().prepare_train_dataset(batch_size=None)
+
         # apply transformations
         dataset = dataset.map(self._prepare_sample2, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataset = dataset.padded_batch(self.dataset_batch_size,
+        dataset = dataset.padded_batch(batch_size,
                                        padded_shapes=([None, None, None], [None, None], [None]))
         return dataset
 
     # TODO: implement prepare_test_dataset
-    def prepare_test_dataset(self):
-        return self.prepare_train_dataset()
+    def prepare_test_dataset(self, batch_size):
+        return self.prepare_train_dataset(batch_size)
 
     def _prepare_sample(self, feature, sample):
         raise NotImplementedError('This method is not supported for the Combined dataset')

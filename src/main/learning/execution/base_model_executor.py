@@ -32,8 +32,8 @@ class BaseModelExecutor:
 
         self.model1.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, no_epochs, no_steps_per_epoch=None):
-        dataset = self._get_train_dataset()
+    def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
+        dataset = self._get_train_dataset(batch_size)
         history = self.model1.fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
 
         # save training history in fs for further review
@@ -44,12 +44,12 @@ class BaseModelExecutor:
         model_serialization_path = self._get_model_serialization_path()
         self.model1.save(model_serialization_path)
 
-    def evaluate_model(self):
-        dataset = self._get_test_dataset()
+    def evaluate_model(self, batch_size):
+        dataset = self._get_test_dataset(batch_size)
         return self.model1.evaluate(dataset)
 
-    def predict_with_model(self):
-        dataset = self._get_test_dataset()
+    def predict_with_model(self, batch_size):
+        dataset = self._get_test_dataset(batch_size)
         return self.model1.predict(dataset)
 
     def _get_optimizer(self):
@@ -69,12 +69,12 @@ class BaseModelExecutor:
     def _get_model_history_serialization_path(self):
         return self.model_utility.get_model_history_serialization_path(self._get_model_type())
 
-    def _get_train_dataset(self):
-        dataset = self.dataset_preparer.prepare_train_dataset()
+    def _get_train_dataset(self, batch_size):
+        dataset = self.dataset_preparer.prepare_train_dataset(batch_size)
         return dataset
 
-    def _get_test_dataset(self):
-        dataset = self.dataset_preparer.prepare_test_dataset()
+    def _get_test_dataset(self, batch_size):
+        dataset = self.dataset_preparer.prepare_test_dataset(batch_size)
         return dataset
 
     def _get_model_type(self):

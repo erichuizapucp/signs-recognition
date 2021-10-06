@@ -6,10 +6,12 @@ class SerializedDatasetPreparer(BaseDatasetPreparer):
     def __init__(self, train_dataset_path, test_dataset_path):
         super().__init__(train_dataset_path, test_dataset_path)
 
-    def _prepare(self, get_dataset_path_func):
-        dataset_path = get_dataset_path_func()
+    def _prepare(self, dataset_path, batch_size):
         dataset_reader = TFRecordDatasetReader(self._get_dataset_type(), dataset_path)
         dataset = dataset_reader.read()
+        if batch_size:
+            dataset = dataset.batch(batch_size)
+
         return dataset
 
     def _prepare_sample(self, feature, label):

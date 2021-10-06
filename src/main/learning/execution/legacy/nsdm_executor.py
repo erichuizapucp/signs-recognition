@@ -14,14 +14,14 @@ class NSDMExecutor(BaseModelExecutor):
 
         self.dataset_preparer = CombinedDatasetPreparer(train_dataset_path, test_dataset_path)
 
-    def _get_train_dataset(self):
-        dataset = self.dataset_preparer.prepare_train_dataset()
+    def _get_train_dataset(self, batch_size):
+        dataset = self.dataset_preparer.prepare_train_dataset(batch_size)
         dataset = dataset.map(self.__map_combined_sample,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         return dataset
 
-    def _get_test_dataset(self):
-        dataset = self.dataset_preparer.prepare_test_dataset()
+    def _get_test_dataset(self, batch_size):
+        dataset = self.dataset_preparer.prepare_test_dataset(batch_size)
         dataset = dataset.map(self.__map_combined_sample,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         return dataset

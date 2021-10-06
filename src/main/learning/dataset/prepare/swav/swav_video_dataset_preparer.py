@@ -24,8 +24,8 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
 
         self.object_detection_model = object_detection_model
 
-    def _prepare(self, dataset_path):
-        return super()._prepare(dataset_path)
+    def _prepare(self, dataset_path, batch_size):
+        return super()._prepare(dataset_path, batch_size)
 
     def _data_generator(self, list_video_path):
         extractor = RGBSamplesExtractor()

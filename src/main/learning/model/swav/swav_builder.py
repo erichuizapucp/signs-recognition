@@ -4,7 +4,8 @@ from learning.model.base_model_builder import BaseModelBuilder
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras import Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, BatchNormalization, Activation
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, BatchNormalization, Activation, Masking, \
+    Bidirectional, LSTM, TimeDistributed
 from learning.common.model_utility import SWAV
 
 
@@ -15,36 +16,35 @@ class SwAVModelBuilder(BaseModelBuilder):
         self.no_projection_1_neurons = 1024
         self.no_projection_2_neurons = 96
         self.prototype_vector_dim = 15
+        self.num_channels = 3
+        self.lstm_cells = 2048
+        self.embedding_size = 4096
 
-    # Features detection (Embeddings)
+    # Features detection (Embeddings) / CNN-LSTM model
     def build(self, **kwargs) -> Model:
-        input_shape = (None, None, 3)
-
-        backbone_model: Model = ResNet50(include_top=False, weights=None, input_shape=(None, None, 3))
+        backbone_model: Model = ResNet50(include_top=False, weights=None, input_shape=(None, None, self.num_channels))
         backbone_model.trainable = True
 
-        inputs = Input(shape=input_shape)
-        x = backbone_model(inputs, training=True)
+        features_input_shape = (None, None, self.num_channels)
+        features_inputs = Input(shape=features_input_shape)
+        features_x = backbone_model(features_inputs, training=True)
+        # TODO: evaluate if using Flatten instead of GlobalAveragePooling2D
+        features_x = GlobalAveragePooling2D()(features_x)
+        features_model = Model(features_inputs, features_x)
 
+        seq_input_shape = (None, None, None, self.num_channels)
+        seq_inputs = Input(shape=seq_input_shape)
+        seq_x = TimeDistributed(features_model)(seq_inputs)
+        seq_x = Masking()(seq_x)
+        seq_x = Bidirectional(LSTM(self.lstm_cells))(seq_x)
 
-        # # (no_steps, 224x224x3), no_steps is None because it will be determined at runtime by Keras
-        # input_shape = (None, self.feature_dim)
-        # inputs = Input(shape=input_shape, name='rgb_inputs')
-        # x = Masking(name='masking')(inputs)
-        # x = Bidirectional(LSTM(self.no_lstm_units), name='rgb_bidirectional')(x)
-        # x = Dense(self.no_dense_neurons_1, activation='relu', name='rgb_dense_layer1')(x)
-        # output = Dense(self.no_classes, activation='softmax', name='rgb_classifier')(x)
-        #
-        # return Model(inputs=inputs, outputs=output, name='rgb_model')
+        model = Model(seq_inputs, seq_x)
 
-        x = GlobalAveragePooling2D()(x)
-
-        model = Model(inputs, x)
         return model
 
     # Prototype vector and projections
     def build2(self, **kwargs) -> Model:
-        input_shape = (2048,)
+        input_shape = (self.embedding_size,)
 
         inputs = Input(shape=input_shape)
         projection_1 = Dense(self.no_projection_1_neurons)(inputs)

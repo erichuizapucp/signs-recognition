@@ -23,6 +23,8 @@ from learning.common.model_utility import ModelUtility
 
 DEFAULT_NO_EPOCHS = 5
 DEFAULT_NO_STEPS_EPOCHS = None
+DEFAULT_NO_BATCH_SIZE = 1
+# DEFAULT_NO_BATCH_SIZE = 64
 
 
 def get_cmd_args():
@@ -32,6 +34,7 @@ def get_cmd_args():
     parser.add_argument('-tr', '--train_dataset_path', help='Train Dataset Path', required=True)
     parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
     parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
+    parser.add_argument('-bs', '--batch_size', help='Dataset batch size', default=DEFAULT_NO_BATCH_SIZE)
     parser.add_argument('-odm', '--object_detection_model_name', help='Object Detection Model Name', required=False)
     parser.add_argument('-odcp', '--object_detection_checkout_prefix', help='Object Detection Checkout Prefix',
                         required=False)
@@ -99,7 +102,7 @@ def get_model(model_name):
     return model
 
 
-def get_executor(executor_name, model, train_dataset_path, **kwargs):
+def get_executor(executor_name, model, train_dataset_path, test_dataset_path, **kwargs):
     executors = {
         OPTICAL_FLOW: lambda: OpticalflowExecutor(model=model, train_dataset_path=train_dataset_path),
         RGB: lambda: RGBExecutor(model=model, train_dataset_path=train_dataset_path),
@@ -108,6 +111,7 @@ def get_executor(executor_name, model, train_dataset_path, **kwargs):
         SWAV: lambda: SwAVExecutor(feature_detection_model=model[0],
                                    projection_model=model[1],
                                    train_dataset_path=train_dataset_path,
+                                   test_dataset_path=test_dataset_path,
                                    object_detection_model=kwargs['ObjectDetectionModel'])
     }
     executor = executors[executor_name]()
@@ -125,6 +129,8 @@ def main():
     args = get_cmd_args()
     no_epochs = int(args.no_epochs)
     no_steps_per_epoch = args.no_steps
+    batch_size = int(args.batch_size)
+
     model_name = args.model
     train_dataset_path = args.train_dataset_path
     executor_name = model_name
@@ -138,8 +144,8 @@ def main():
     model_utility = ModelUtility()
     object_detection_model = model_utility.get_object_detection_model(object_detection_model_name,
                                                                       object_detection_checkout_prefix)
-    executor = get_executor(executor_name, model, train_dataset_path)
-    executor.train_model(no_epochs, no_steps_per_epoch)
+    executor = get_executor(executor_name, model, train_dataset_path, None, ObjectDetectionModel=object_detection_model)
+    executor.train_model(batch_size, no_epochs, no_steps_per_epoch)
 
     logger.debug('learning operation is completed')
 

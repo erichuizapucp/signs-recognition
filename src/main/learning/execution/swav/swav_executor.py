@@ -24,14 +24,14 @@ class SwAVExecutor(BaseModelExecutor):
         self.crops_for_assign = [0, 1]
         self.temperature = 0.1
 
-    def train_model(self, no_epochs, no_steps_per_epoch=None):
+    def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
         step_wise_loss = []
         epoch_wise_loss = []
 
         feature_backbone_model = self.__get_feature_backbone_model()
         prototype_projection_model = self.__get_prototype_projection_model()
 
-        dataset = self._get_train_dataset()
+        dataset = self._get_train_dataset(batch_size)
 
         for epoch in range(no_epochs):
             w = prototype_projection_model.get_layer('prototype').get_weights()
@@ -56,10 +56,14 @@ class SwAVExecutor(BaseModelExecutor):
 
     def train_step(self, input_views, feature_backbone, projection_prototype, optimizer, crops_for_assign, temperature):
         clip1, clip2, clip3, clip4, clip5 = input_views
-        inputs = [clip1, clip2, clip3, clip4, clip5]
+        inputs = [tf.expand_dims(clip1, axis=0),
+                  tf.expand_dims(clip2, axis=0),
+                  tf.expand_dims(clip3, axis=0),
+                  tf.expand_dims(clip4, axis=0),
+                  tf.expand_dims(clip5, axis=0)]
         batch_size = inputs[0].shape[0]
 
-        crop_sizes = [inp.shape[1] for inp in inputs]  # list of crop size of views
+        crop_sizes = [inp.shape[2] for inp in inputs]  # list of crop size of views
         unique_consecutive_count = [len([elem for elem in g]) for _, g in groupby(crop_sizes)]
         idx_crops = tf.cumsum(unique_consecutive_count)
 
