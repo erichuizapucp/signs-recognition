@@ -6,6 +6,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import Precision, Recall, AUC
+from tensorflow.keras.callbacks import Callback
 from learning.common.model_utility import ModelUtility
 from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 
@@ -24,6 +25,10 @@ class BaseModelExecutor:
 
         self.model_utility = ModelUtility()
         self.dataset_preparer: BaseDatasetPreparer = ...
+
+        self.callback1: Callback = ...
+        self.callback2: Callback = ...
+        self.callback3: Callback = ...
 
     def configure(self):
         optimizer = self._get_optimizer()

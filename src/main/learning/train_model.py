@@ -35,8 +35,9 @@ def get_cmd_args():
     parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
     parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
     parser.add_argument('-bs', '--batch_size', help='Dataset batch size', default=DEFAULT_NO_BATCH_SIZE)
-    parser.add_argument('-odm', '--object_detection_model_name', help='Object Detection Model Name', required=False)
-    parser.add_argument('-odcp', '--object_detection_checkout_prefix', help='Object Detection Checkout Prefix',
+    parser.add_argument('-dp', '--detect_person', help='Detect person on frames', action='store_true', required=False)
+    parser.add_argument('-odm', '--person_detection_model_name', help='Person Detection Model Name', required=False)
+    parser.add_argument('-odcp', '--person_detection_checkout_prefix', help='Person Detection Checkout Prefix',
                         required=False)
 
     return parser.parse_args()
@@ -103,19 +104,81 @@ def get_model(model_name):
 
 
 def get_executor(executor_name, model, train_dataset_path, test_dataset_path, **kwargs):
+    if 'detect_person' in kwargs:
+        if 'person_detection_model_name' in kwargs and 'person_detection_checkout_prefix' in kwargs:
+            person_detection_model_name = kwargs['person_detection_model_name']
+            person_detection_checkout_prefix = kwargs['person_detection_checkout_prefix']
+
+            model_utility = ModelUtility()
+            person_detection_model = model_utility.get_object_detection_model(person_detection_model_name,
+                                                                              person_detection_checkout_prefix)
+
+            executor = __get_executor(executor_name,
+                                      model,
+                                      train_dataset_path,
+                                      test_dataset_path,
+                                      PersonDetectionModel=person_detection_model)
+            return executor
+        else:
+            raise ValueError('\'object_detection_model_name\' and \'object_detection_checkout_prefix\' '
+                             'are required when \'detect_person\' is enabled.')
+
+    executor = __get_executor(executor_name,
+                              model,
+                              train_dataset_path,
+                              test_dataset_path)
+    return executor
+
+
+def __get_executor(executor_name, model, train_dataset_path, test_dataset_path, **kwargs):
     executors = {
-        OPTICAL_FLOW: lambda: OpticalflowExecutor(model=model, train_dataset_path=train_dataset_path),
-        RGB: lambda: RGBExecutor(model=model, train_dataset_path=train_dataset_path),
-        NSDM: lambda: NSDMExecutor(model=model, train_dataset_path=train_dataset_path),
-        NSDMV2: lambda: NSDMExecutorV2(model=model, train_dataset_path=train_dataset_path),
-        SWAV: lambda: SwAVExecutor(feature_detection_model=model[0],
-                                   projection_model=model[1],
-                                   train_dataset_path=train_dataset_path,
-                                   test_dataset_path=test_dataset_path,
-                                   object_detection_model=kwargs['ObjectDetectionModel'])
+        OPTICAL_FLOW: lambda: OpticalflowExecutor(
+            model=model,
+            train_dataset_path=train_dataset_path,
+            test_dataset_path=test_dataset_path),
+
+        RGB: lambda: RGBExecutor(
+            model=model,
+            train_dataset_path=train_dataset_path,
+            test_dataset_path=test_dataset_path),
+
+        NSDM: lambda: NSDMExecutor(
+            model=model,
+            train_dataset_path=train_dataset_path,
+            test_dataset_path=test_dataset_path),
+
+        NSDMV2: lambda: NSDMExecutorV2(
+            model=model,
+            train_dataset_path=train_dataset_path,
+            test_dataset_path=test_dataset_path),
+
+        SWAV: lambda: __get_swav_executor(
+            model[0],
+            model[1],
+            train_dataset_path,
+            **kwargs)
     }
     executor = executors[executor_name]()
     executor.configure()
+
+    return executor
+
+
+def __get_swav_executor(features_model, projections_model, train_dataset_path, **kwargs):
+    if 'PersonDetectionModel' in kwargs:
+        person_detection_model = kwargs['PersonDetectionModel']
+
+        executor = SwAVExecutor(feature_detection_model=features_model,
+                                projection_model=projections_model,
+                                train_dataset_path=train_dataset_path,
+                                test_dataset_path=train_dataset_path,
+                                person_detection_model=person_detection_model)
+        return executor
+
+    executor = SwAVExecutor(feature_detection_model=features_model,
+                            projection_model=projections_model,
+                            train_dataset_path=train_dataset_path,
+                            test_dataset_path=train_dataset_path)
     return executor
 
 
@@ -134,17 +197,19 @@ def main():
     model_name = args.model
     train_dataset_path = args.train_dataset_path
     executor_name = model_name
-    object_detection_model_name = args.object_detection_model_name
-    object_detection_checkout_prefix = args.object_detection_checkout_prefix
+
+    detect_person = args.detect_person
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
     model = get_model(model_name)
-
-    model_utility = ModelUtility()
-    object_detection_model = model_utility.get_object_detection_model(object_detection_model_name,
-                                                                      object_detection_checkout_prefix)
-    executor = get_executor(executor_name, model, train_dataset_path, None, ObjectDetectionModel=object_detection_model)
+    executor = get_executor(executor_name=executor_name,
+                            model=model,
+                            train_dataset_path=train_dataset_path,
+                            test_dataset_path=None,
+                            detect_person=detect_person,
+                            person_detection_model_name=args.person_detection_model_name,
+                            person_detection_checkout_prefix=args.person_detection_checkout_prefix)
     executor.train_model(batch_size, no_epochs, no_steps_per_epoch)
 
     logger.debug('learning operation is completed')

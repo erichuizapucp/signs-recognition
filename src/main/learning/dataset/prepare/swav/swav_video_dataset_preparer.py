@@ -12,7 +12,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
     def __init__(self,
                  train_dataset_path,
                  test_dataset_path,
-                 object_detection_model):
+                 person_detection_model):
         super().__init__(train_dataset_path, test_dataset_path)
 
         self.crop_sizes = [224, 96]
@@ -22,7 +22,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
 
         self.multi_crop = MultiCropTransformer()
 
-        self.object_detection_model = object_detection_model
+        self.person_detection_model = person_detection_model
 
     def _prepare(self, dataset_path, batch_size):
         return super()._prepare(dataset_path, batch_size)
@@ -41,8 +41,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
                 fragment_frames = extractor.extract_sample(VideoPath=str_video_path,
                                                            StartTime=start_time,
                                                            EndTime=end_time,
-                                                           DetectPerson=True,
-                                                           DetectionModel=self.object_detection_model)
+                                                           DetectionModel=self.person_detection_model)
 
                 start_time = end_time
                 end_time = self.__get_next_end_time(start_time=start_time)

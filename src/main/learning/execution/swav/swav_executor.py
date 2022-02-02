@@ -6,6 +6,7 @@ from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatase
 
 from itertools import groupby
 from tensorflow.keras.models import Model
+from learning.execution.swav.swav_callback import SwAVCallback
 from learning.common.model_utility import SWAV
 
 
@@ -14,45 +15,51 @@ class SwAVExecutor(BaseModelExecutor):
                  projection_model: Model,
                  train_dataset_path,
                  test_dataset_path,
-                 object_detection_model):
+                 person_detection_model=None):
 
         super().__init__(feature_detection_model, projection_model)
 
-        self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path, object_detection_model)
+        self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path, person_detection_model)
 
         self.num_crops = [2, 3]
         self.crops_for_assign = [0, 1]
         self.temperature = 0.1
 
+        self.feature_backbone_model = self.model1
+        self.prototype_projection_model = self.model2
+
+        self.callback1 = SwAVCallback(self.feature_backbone_model, self.prototype_projection_model)
+
     def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
         step_wise_loss = []
         epoch_wise_loss = []
 
-        feature_backbone_model = self.__get_feature_backbone_model()
-        prototype_projection_model = self.__get_prototype_projection_model()
-
         dataset = self._get_train_dataset(batch_size)
 
+        self.callback1.on_train_begin()
         for epoch in range(no_epochs):
-            w = prototype_projection_model.get_layer('prototype').get_weights()
+            self.callback1.on_epoch_begin(epoch=epoch)
+            w = self.prototype_projection_model.get_layer('prototype').get_weights()
             w = tf.transpose(w)
             w = tf.math.l2_normalize(w, axis=1)
-            prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
+            self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
             for i, inputs in enumerate(dataset):
                 loss = self.train_step(inputs,
-                                       feature_backbone_model,  # feature learning model
-                                       prototype_projection_model,  # prototype projection model
+                                       self.feature_backbone_model,  # feature learning model
+                                       self.prototype_projection_model,  # prototype projection model
                                        self._get_optimizer(),
                                        self.crops_for_assign,
                                        self.temperature)
 
                 step_wise_loss.append(loss)
-            epoch_wise_loss.append(np.mean(step_wise_loss))
+
+            epoch_loss = np.mean(step_wise_loss)
+            epoch_wise_loss.append(epoch_loss)
 
             print("epoch: {} loss: {:.3f}".format(epoch + 1, np.mean(step_wise_loss)))
 
-        return epoch_wise_loss, [feature_backbone_model, prototype_projection_model]
+            self.callback1.on_epoch_end(epoch, logs={'loss': epoch_loss})
 
     def train_step(self, input_views, feature_backbone, projection_prototype, optimizer, crops_for_assign, temperature):
         clip1, clip2, clip3, clip4, clip5 = input_views
@@ -128,12 +135,6 @@ class SwAVExecutor(BaseModelExecutor):
 
     def _get_model_type(self):
         return SWAV
-
-    def __get_feature_backbone_model(self):
-        return self.model1
-
-    def __get_prototype_projection_model(self):
-        return self.model2
 
     def configure(self):
         print('SwAV models do not require configuration.')
