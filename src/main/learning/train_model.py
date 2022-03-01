@@ -1,6 +1,5 @@
 import os
 import logging
-import tensorflow as tf
 
 from argparse import ArgumentParser
 from logger_config import setup_logging
