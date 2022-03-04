@@ -14,33 +14,46 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
-#  core_file_handler:
-#    class: logging.handlers.RotatingFileHandler
-#    level: DEBUG
-#    formatter: standard
-#    filename: logs/learning.log
-#    maxBytes: 10485760 # 10MB
-#    backupCount: 20
-#    encoding: utf8
+  core_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: standard
+    filename: logs/app.log
+    maxBytes: 10485760 # 10MB
+    backupCount: 20
+    encoding: utf8
+
+  training_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: standard
+    filename: logs/training.log
+    maxBytes: 10485760 # 10MB
+    backupCount: 20
+    encoding: utf8
 
 root:
   level: DEBUG
-  handlers: [console]
+  handlers: [console, core_file_handler]
 
 loggers:
   common:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   dataset:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   model:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   execution:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
+    propagate: no
+  training:
+    level: DEBUG
+    handlers: [console, training_file_handler]
     propagate: no

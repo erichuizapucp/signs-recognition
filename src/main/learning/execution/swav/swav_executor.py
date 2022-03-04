@@ -1,3 +1,5 @@
+import logging
+
 import tensorflow as tf
 import numpy as np
 
@@ -30,36 +32,48 @@ class SwAVExecutor(BaseModelExecutor):
 
         self.callback1 = SwAVCallback(self.feature_backbone_model, self.prototype_projection_model)
 
+        self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
+                                  'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
+
     def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
-        step_wise_loss = []
-        epoch_wise_loss = []
+        try:
+            step_wise_loss = []
+            epoch_wise_loss = []
 
-        dataset = self._get_train_dataset(batch_size)
+            self.training_logger.info('SwAV Training started with: batch_size: %s, no_epochs: %s', batch_size, no_epochs)
 
-        self.callback1.on_train_begin()
-        for epoch in range(no_epochs):
-            self.callback1.on_epoch_begin(epoch=epoch)
-            w = self.prototype_projection_model.get_layer('prototype').get_weights()
-            w = tf.transpose(w)
-            w = tf.math.l2_normalize(w, axis=1)
-            self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
+            dataset = self._get_train_dataset(batch_size)
 
-            for i, inputs in enumerate(dataset):
-                loss = self.train_step(inputs,
-                                       self.feature_backbone_model,  # feature learning model
-                                       self.prototype_projection_model,  # prototype projection model
-                                       self._get_optimizer(),
-                                       self.crops_for_assign,
-                                       self.temperature)
+            self.callback1.on_train_begin()
+            for epoch in range(no_epochs):
+                self.callback1.on_epoch_begin(epoch=epoch)
+                w = self.prototype_projection_model.get_layer('prototype').get_weights()
+                w = tf.transpose(w)
+                w = tf.math.l2_normalize(w, axis=1)
+                self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
-                step_wise_loss.append(loss)
+                for i, inputs in enumerate(dataset):
+                    loss = self.train_step(inputs,
+                                           self.feature_backbone_model,  # feature learning model
+                                           self.prototype_projection_model,  # prototype projection model
+                                           self._get_optimizer(),
+                                           self.crops_for_assign,
+                                           self.temperature)
 
-            epoch_loss = np.mean(step_wise_loss)
-            epoch_wise_loss.append(epoch_loss)
+                    step_wise_loss.append(loss)
 
-            print("epoch: {} loss: {:.3f}".format(epoch + 1, np.mean(step_wise_loss)))
+                    self.training_logger.debug('training step: {} loss: {:.3f}'.format(i + 1, loss))
 
-            self.callback1.on_epoch_end(epoch, logs={'loss': epoch_loss})
+                epoch_loss = np.mean(step_wise_loss)
+                epoch_wise_loss.append(epoch_loss)
+
+                self.training_logger.info('epoch: {} loss: {:.3f}'.format(epoch + 1, epoch_loss))
+
+                self.callback1.on_epoch_end(epoch, logs={'loss': epoch_loss})
+
+            self.training_logger.info('SwAV Training is completed.')
+        except Exception as e:
+            self.training_logger.error(e)
 
     def train_step(self, input_views, feature_backbone, projection_prototype, optimizer, crops_for_assign, temperature):
         clip1, clip2, clip3, clip4, clip5 = input_views

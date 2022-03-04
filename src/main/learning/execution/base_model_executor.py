@@ -14,6 +14,7 @@ from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 class BaseModelExecutor:
     def __init__(self, model1: Model, model2: Model = None, model3: Model = None):
         self.logger = logging.getLogger(__name__)
+        self.training_logger = logging.getLogger('training')
 
         self.model1 = model1
         self.model2 = model2
