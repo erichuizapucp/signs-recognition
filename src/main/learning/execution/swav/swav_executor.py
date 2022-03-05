@@ -1,5 +1,3 @@
-import logging
-
 import tensorflow as tf
 import numpy as np
 
@@ -40,7 +38,8 @@ class SwAVExecutor(BaseModelExecutor):
             step_wise_loss = []
             epoch_wise_loss = []
 
-            self.training_logger.info('SwAV Training started with: batch_size: %s, no_epochs: %s', batch_size, no_epochs)
+            self.training_logger.info('SwAV Training started with: batch_size: %s, no_epochs: %s', batch_size,
+                                      no_epochs)
 
             dataset = self._get_train_dataset(batch_size)
 
