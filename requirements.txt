@@ -136,7 +136,7 @@ traitlets==5.0.5
 typeguard==2.12.1
 typing-extensions==3.7.4.3
 uritemplate==3.0.1
-urllib3==1.26.4
+urllib3==1.26.5
 watchdog==2.0.2
 wcwidth==0.2.5
 Werkzeug==1.0.1
