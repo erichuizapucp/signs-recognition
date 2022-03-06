@@ -1,4 +1,4 @@
-from tensorflow.python.keras import Model
+import tensorflow as tf
 
 from learning.model.base_model_builder import BaseModelBuilder
 from learning.common.labels import SIGNS_CLASSES
@@ -20,13 +20,13 @@ class SignsDetectionBaseModelBuilder(BaseModelBuilder):
         self.frames_seq_img_height = FRAMES_SEQ_CONFIG['img_height']
         self.frames_seq_no_channels = FRAMES_SEQ_CONFIG['rgb_no_channels']
 
-    def build(self, **kwargs) -> Model:
+    def build(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build1 method not implemented.')
 
-    def build2(self, **kwargs) -> Model:
+    def build2(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build2 method not implemented.')
 
-    def build3(self, **kwargs) -> Model:
+    def build3(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build3 method not implemented.')
 
     def get_model_type(self):

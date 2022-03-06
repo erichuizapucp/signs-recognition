@@ -1,13 +1,11 @@
 import os
 import logging
-
-from tensorflow.keras.callbacks import Callback, ModelCheckpoint
-from tensorflow.keras.models import Model
+import tensorflow as tf
 
 
-class SwAVCallback(Callback):
-    def __init__(self, features_model: Model, projections_model: Model):
-        super(Callback, self).__init__()
+class SwAVCallback(tf.keras.callbacks.Callback):
+    def __init__(self, features_model: tf.keras.models.Model, projections_model: tf.keras.models.Model):
+        super(tf.keras.callbacks.Callback, self).__init__()
 
         self.working_dir = os.getenv('WORK_DIR', 'src/')
         self.logger = logging.getLogger(__name__)
@@ -17,23 +15,23 @@ class SwAVCallback(Callback):
                                                         'feature-model-weights.{epoch:02d}-{loss:.2f}.hdf5')
         self.logger.debug('Features Detection Weights to be saved on: %s', features_model_weights_file_path)
 
-        projections_model_weights_file_path = os.path.join(self.working_dir,
+        proj_model_weights_file_path = os.path.join(self.working_dir,
                                                            'ckpt',
                                                            'projections-model-weights.{epoch:02d}-{loss:.2f}.hdf5')
-        self.logger.debug('Projections Weights to be saved on: %s', projections_model_weights_file_path)
+        self.logger.debug('Projections Weights to be saved on: %s', proj_model_weights_file_path)
 
-        self.feature_model_callback = ModelCheckpoint(filepath=features_model_weights_file_path,
-                                                      monitor='loss',
-                                                      save_best_only=True,
-                                                      save_weights_only=True,
-                                                      load_weights_on_restart=True)
+        self.feature_model_callback = tf.keras.callbacks.ModelCheckpoint(filepath=features_model_weights_file_path,
+                                                                         monitor='loss',
+                                                                         save_best_only=True,
+                                                                         save_weights_only=True,
+                                                                         load_weights_on_restart=True)
         self.feature_model_callback.set_model(features_model)
 
-        self.projections_model_callback = ModelCheckpoint(filepath=projections_model_weights_file_path,
-                                                          monitor='loss',
-                                                          save_best_only=True,
-                                                          save_weights_only=True,
-                                                          load_weights_on_restart=True)
+        self.projections_model_callback = tf.keras.callbacks.ModelCheckpoint(filepath=proj_model_weights_file_path,
+                                                                             monitor='loss',
+                                                                             save_best_only=True,
+                                                                             save_weights_only=True,
+                                                                             load_weights_on_restart=True)
         self.projections_model_callback.set_model(projections_model)
 
     def on_train_begin(self, logs=None):

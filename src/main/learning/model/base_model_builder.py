@@ -1,7 +1,7 @@
 import logging
+import tensorflow as tf
 
 from abc import abstractmethod
-from tensorflow.keras.models import Model, load_model
 from learning.common.model_utility import ModelUtility
 
 
@@ -11,20 +11,20 @@ class BaseModelBuilder:
         self.model_utility = ModelUtility()
 
     @abstractmethod
-    def build(self, **kwargs) -> Model:
+    def build(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build method not implemented.')
 
     @abstractmethod
-    def build2(self, **kwargs) -> Model:
+    def build2(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build2 method not implemented.')
 
     @abstractmethod
-    def build3(self, **kwargs) -> Model:
+    def build3(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build3 method not implemented.')
 
     @abstractmethod
     def get_model_type(self):
         raise NotImplementedError('get_model_type method not implemented.')
 
-    def load_saved_model(self) -> Model:
-        return load_model(self.model_utility.get_model_serialization_path(self.get_model_type()))
+    def load_saved_model(self) -> tf.keras.models.Model:
+        return tf.keras.models.load_model(self.model_utility.get_model_serialization_path(self.get_model_type()))

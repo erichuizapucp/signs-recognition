@@ -1,18 +1,17 @@
-import numpy as np
 import os
 import logging
+import tensorflow as tf
+import numpy as np
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import Precision, Recall, AUC
-from tensorflow.keras.callbacks import Callback
 from learning.common.model_utility import ModelUtility
 from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 
 
 class BaseModelExecutor:
-    def __init__(self, model1: Model, model2: Model = None, model3: Model = None):
+    def __init__(self,
+                 model1: tf.keras.models.Model,
+                 model2: tf.keras.models.Model = None,
+                 model3: tf.keras.models.Model = None):
         self.logger = logging.getLogger(__name__)
         self.training_logger = logging.getLogger('training')
 
@@ -27,9 +26,9 @@ class BaseModelExecutor:
         self.model_utility = ModelUtility()
         self.dataset_preparer: BaseDatasetPreparer = ...
 
-        self.callback1: Callback = ...
-        self.callback2: Callback = ...
-        self.callback3: Callback = ...
+        self.callback1: tf.keras.callbacks.Callback = ...
+        self.callback2: tf.keras.callbacks.Callback = ...
+        self.callback3: tf.keras.callbacks.Callback = ...
 
     def configure(self):
         optimizer = self._get_optimizer()
@@ -59,15 +58,15 @@ class BaseModelExecutor:
         return self.model1.predict(dataset)
 
     def _get_optimizer(self):
-        return Adam(learning_rate=self.learning_rate)
+        return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
     @staticmethod
     def _get_loss():
-        return CategoricalCrossentropy()
+        return tf.keras.losses.CategoricalCrossentropy()
 
     @staticmethod
     def _get_metrics():
-        return [Recall(), AUC(curve='PR'), Precision()]
+        return [tf.keras.metrics.Recall(), tf.keras.metrics.AUC(curve='PR'), tf.keras.metrics.Precision()]
 
     def _get_model_serialization_path(self):
         return self.model_utility.get_model_serialization_path(self._get_model_type())

@@ -5,14 +5,14 @@ from learning.execution.base_model_executor import BaseModelExecutor
 from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
 
 from itertools import groupby
-from tensorflow.keras.models import Model
 from learning.execution.swav.swav_callback import SwAVCallback
 from learning.common.model_utility import SWAV
 
 
 class SwAVExecutor(BaseModelExecutor):
-    def __init__(self, feature_detection_model: Model,
-                 projection_model: Model,
+    def __init__(self,
+                 feature_detection_model: tf.keras.models.Model,
+                 projection_model: tf.keras.models.Model,
                  train_dataset_path,
                  test_dataset_path,
                  person_detection_model=None):

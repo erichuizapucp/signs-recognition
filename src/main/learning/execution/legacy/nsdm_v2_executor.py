@@ -1,12 +1,12 @@
 import logging
+import tensorflow as tf
 
-from tensorflow.keras.models import Model
 from learning.execution.legacy.nsdm_executor import NSDMExecutor
 from learning.common import model_type
 
 
 class NSDMExecutorV2(NSDMExecutor):
-    def __init__(self, model: Model, train_dataset_path=None, test_dataset_path=None):
+    def __init__(self, model: tf.keras.models.Model, train_dataset_path=None, test_dataset_path=None):
         super().__init__(model, train_dataset_path, test_dataset_path)
         self.logger = logging.getLogger(__name__)
 

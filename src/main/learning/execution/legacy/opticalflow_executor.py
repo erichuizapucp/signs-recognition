@@ -1,13 +1,13 @@
 import logging
+import tensorflow as tf
 
-from tensorflow.keras.models import Model
 from learning.execution.base_model_executor import BaseModelExecutor
 from learning.common import model_type
 from learning.dataset.prepare.legacy.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
 
 
 class OpticalflowExecutor(BaseModelExecutor):
-    def __init__(self, model: Model, train_dataset_path=None, test_dataset_path=None):
+    def __init__(self, model: tf.keras.models.Model, train_dataset_path=None, test_dataset_path=None):
         super().__init__(model)
         self.logger = logging.getLogger(__name__)
 
