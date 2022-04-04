@@ -12,7 +12,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
     def __init__(self,
                  train_dataset_path,
                  test_dataset_path,
-                 person_detection_model):
+                 person_detection_model=None):
         super().__init__(train_dataset_path, test_dataset_path)
 
         self.crop_sizes = [224, 96]

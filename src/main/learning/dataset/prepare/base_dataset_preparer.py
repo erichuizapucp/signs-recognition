@@ -27,6 +27,9 @@ class BaseDatasetPreparer:
     def prepare_test_dataset(self, batch_size):
         return self._prepare(self.test_dataset_path, batch_size)
 
+    def prepare(self, batch_size):
+        return self.prepare_train_dataset(batch_size), self.prepare_test_dataset(batch_size)
+
     def _transform_image(self, img, resize_shape=None):
         if resize_shape is None:
             resize_shape = [self.imagenet_img_width, self.imagenet_img_height]

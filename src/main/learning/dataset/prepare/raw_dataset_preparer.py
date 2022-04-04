@@ -2,6 +2,7 @@ import tensorflow as tf
 
 from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 from pathlib import Path
+from random import shuffle
 
 
 class RawDatasetPreparer(BaseDatasetPreparer):
@@ -15,7 +16,7 @@ class RawDatasetPreparer(BaseDatasetPreparer):
                                                                   args=[raw_file_list],
                                                                   output_signature=gen_out_signature)
         dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
-        # dataset = dataset.batch(batch_size)
+        dataset = dataset.padded_batch(batch_size)
 
         return dataset
 
@@ -25,6 +26,8 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
         for file_type in file_types:
             raw_file_list.extend([str(file_path) for file_path in Path(dataset_path).rglob(file_type)])
+
+        shuffle(raw_file_list)
 
         return raw_file_list
 
