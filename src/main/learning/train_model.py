@@ -38,6 +38,7 @@ def get_cmd_args():
     parser.add_argument('-odcp', '--person_detection_checkout_prefix', help='Person Detection Checkout Prefix',
                         required=False)
     parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', action='store_true', required=False)
+    parser.add_argument('-nr', '--no_replicas', help='No Replicas', required=False, default=0)
 
     return parser.parse_args()
 
@@ -109,6 +110,25 @@ def get_executor(executor_name, models_to_execute):
     return executor
 
 
+def get_distributed_strategy(no_replicas: 0, logger):
+    gpus = tf.config.list_physical_devices('GPU')
+    if len(gpus) > 0:
+        logger.debug('Using GPU Training with %s replicas', no_replicas if no_replicas > 0 else len(gpus))
+        return tf.distribute.MirroredStrategy(gpus[:no_replicas]) \
+            if no_replicas > 0 else tf.distribute.MirroredStrategy()
+    else:
+        cpus = tf.config.list_physical_devices('CPU')
+        logger.debug('Using CPU Training with %s replicas', no_replicas if no_replicas > 0 else len(gpus))
+        if len(cpus) == 1 and no_replicas:
+            tf.config.set_logical_device_configuration(cpus[0],
+                                                       [tf.config.LogicalDeviceConfiguration()] * int(no_replicas))
+            logical_gpus = tf.config.list_logical_devices('CPU')
+            return tf.distribute.MirroredStrategy(logical_gpus)
+        else:
+            return tf.distribute.MirroredStrategy(cpus[:no_replicas]) \
+                if no_replicas > 0 else tf.distribute.MirroredStrategy()
+
+
 def get_distributed_train_step(distribute_strategy, train_step_fn):
     @tf.function
     def step(inputs):
@@ -122,6 +142,12 @@ def get_distributed_optimizer(distribute_strategy, get_optimizer_fn):
     with distribute_strategy.scope():
         optimizer = get_optimizer_fn()
         return optimizer
+
+
+def get_distributed_callback(distribute_strategy, get_callback_fn):
+    with distribute_strategy.scope():
+        callback = get_callback_fn()
+        return callback
 
 
 def main():
@@ -145,8 +171,10 @@ def main():
     person_detection_checkout_prefix = args.person_detection_checkout_prefix
 
     mirrored_training = args.mirrored_training
-    distribute_strategy = tf.distribute.MirroredStrategy() if mirrored_training else None
-    batch_size = batch_size_per_replica * distribute_strategy.num_replicas_in_sync if mirrored_training else batch_size_per_replica
+    no_replicas = int(args.no_replicas)
+    distribute_strategy = get_distributed_strategy(no_replicas, logger) if mirrored_training else None
+    batch_size = batch_size_per_replica * \
+        distribute_strategy.num_replicas_in_sync if mirrored_training else batch_size_per_replica
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
@@ -168,9 +196,12 @@ def main():
                                           get_dataset_fn) if mirrored_training else get_dataset_fn()
         optimizer = get_distributed_optimizer(distribute_strategy,
                                               executor.get_optimizer) if mirrored_training else executor.get_optimizer()
-        train_step = get_distributed_train_step(distribute_strategy,
-                                                executor.train_step(batch_size)) if mirrored_training else executor.train_step(batch_size)
-        executor.train_model(model, dataset, no_epochs, no_steps_per_epoch)(optimizer, train_step)
+        callback = get_distributed_callback(distribute_strategy,
+                                            executor.get_callback) if mirrored_training else executor.get_callback()
+        train_step = get_distributed_train_step(distribute_strategy, executor.train_step(batch_size,
+                                                                                         batch_size_per_replica)) if \
+            mirrored_training else executor.train_step(batch_size, batch_size_per_replica)
+        executor.train_model(model, dataset, no_epochs, no_steps_per_epoch)(train_step, optimizer, callback)
     else:
         # Keras model.fit loops don't require a distributed dataset to be passed
         get_dataset_fn = get_dataset(model_name, train_dataset_path, batch_size, detect_person=detect_person)

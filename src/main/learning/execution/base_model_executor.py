@@ -47,6 +47,9 @@ class BaseModelExecutor:
     def get_optimizer(self):
         return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
+    def get_callback(self):
+        raise NotImplementedError('get_callback method not implemented.')
+
     @staticmethod
     def _get_loss():
         return tf.keras.losses.CategoricalCrossentropy()

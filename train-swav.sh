@@ -19,3 +19,4 @@ python $SCRIPT_PATH \
         --detect_person \
         --person_detection_model_name $PERSON_DETECTION_MODEL_NAME \
         --person_detection_checkout_prefix $PERSON_DETECTION_CHECKOUT_PREFIX
+
