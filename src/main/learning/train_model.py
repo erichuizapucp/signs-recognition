@@ -153,11 +153,12 @@ def get_distributed_callback(distribute_strategy, get_callback_fn):
         return callback
 
 
-def set_memory_growth_to_device():
-    gpus = tf.config.list_physical_devices('GPU')
-    if len(gpus) > 0:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
+# def set_memory_growth_to_device(logger):
+#     gpus = tf.config.list_physical_devices('GPU')
+#     if len(gpus) > 0:
+#         for gpu in gpus:
+#             logger.debug(gpu.name + 'set for memory growth')
+#             tf.config.experimental.set_memory_growth(gpu, True)
 
 
 def main():
@@ -183,9 +184,9 @@ def main():
     mirrored_training = args.mirrored_training
     no_replicas = int(args.no_replicas)
 
-    memory_growth = args.memory_growth
-    if memory_growth:
-        set_memory_growth_to_device()
+    # memory_growth = args.memory_growth
+    # if memory_growth:
+    #     set_memory_growth_to_device()
 
     distribute_strategy = get_distributed_strategy(no_replicas, logger) if mirrored_training else None
     batch_size = batch_size_per_replica * \
