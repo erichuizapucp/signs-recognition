@@ -115,7 +115,7 @@ def get_distributed_strategy(no_replicas: 0, logger):
     gpus = tf.config.list_physical_devices('GPU')
     if len(gpus) > 0:
         logger.debug('Using GPU Training with %s replicas', no_replicas if no_replicas > 0 else len(gpus))
-        return tf.distribute.MirroredStrategy(gpus[:no_replicas]) \
+        return tf.distribute.MirroredStrategy(tf.gather(gpus, tf.range(0, no_replicas))) \
             if no_replicas > 0 else tf.distribute.MirroredStrategy()
     else:
         cpus = tf.config.list_physical_devices('CPU')
@@ -126,7 +126,7 @@ def get_distributed_strategy(no_replicas: 0, logger):
             logical_gpus = tf.config.list_logical_devices('CPU')
             return tf.distribute.MirroredStrategy(logical_gpus)
         else:
-            return tf.distribute.MirroredStrategy(cpus[:no_replicas]) \
+            return tf.distribute.MirroredStrategy(tf.gather(cpus, tf.range(0, no_replicas))) \
                 if no_replicas > 0 else tf.distribute.MirroredStrategy()
 
 

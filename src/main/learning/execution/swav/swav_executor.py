@@ -109,7 +109,7 @@ class SwAVExecutor(BaseModelExecutor):
                         # prototype slice for the current 224x224 crop
                         crop_prototype_start = per_replica_batch_size * crop_id
                         crop_prototype_end = per_replica_batch_size * (crop_id + 1)
-                        crop_prototype = tf.gather(prototype, [crop_prototype_start, crop_prototype_end])
+                        crop_prototype = tf.gather(prototype, tf.range(crop_prototype_start, crop_prototype_end))
                         # Cluster assignment prediction
                         # Get cluster assignments using Sinkhorn Knopp: Optical Transport
                         # The code q is considered the "ground truth" - or a tuned prototype
@@ -131,10 +131,10 @@ class SwAVExecutor(BaseModelExecutor):
                     for crop_to_compare_index in crops_to_compare_indexes:
                         with tape.stop_recording():
                             crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
-                            crop_to_compare_prototype_end = (per_replica_batch_size * crop_to_compare_index) + 1
+                            crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
 
-                        crop_to_compare_prototype = tf.gather(prototype, [crop_to_compare_prototype_start,
-                                                                          crop_to_compare_prototype_end])
+                        crop_to_compare_prototype = tf.gather(prototype, tf.range(crop_to_compare_prototype_start,
+                                                                                  crop_to_compare_prototype_end))
                         crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
                         cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
 
