@@ -4,7 +4,7 @@
 export WORK_DIR=$(echo "$PWD")
 export PYTHONPATH="${PYTHONPATH}:${WORK_DIR}/src/main"
 export TF_GPU_ALLOCATOR=cuda_malloc_async
-export TF_FORCE_GPU_ALLOW_GROWTH=true
+#export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 SCRIPT_PATH='src/main/learning/train_model.py'
 MODEL='swav'
@@ -22,5 +22,4 @@ python $SCRIPT_PATH \
         --person_detection_model_name $PERSON_DETECTION_MODEL_NAME \
         --person_detection_checkout_prefix $PERSON_DETECTION_CHECKOUT_PREFIX \
         --mirrored_training \
-        --no_replicas $NO_REPLICAS \
-        --memory_growth
+        --no_replicas $NO_REPLICAS

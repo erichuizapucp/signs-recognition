@@ -39,7 +39,7 @@ def get_cmd_args():
                         required=False)
     parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', action='store_true', required=False)
     parser.add_argument('-nr', '--no_replicas', help='No Replicas', required=False, default=0)
-    parser.add_argument('-mg', '--memory_growth', help='Use Mirrored Growth', action='store_true', required=False)
+    parser.add_argument('-gp', '--gpus', help='GPUs to use', required=False)
 
     return parser.parse_args()
 
@@ -153,14 +153,6 @@ def get_distributed_callback(distribute_strategy, get_callback_fn):
         return callback
 
 
-# def set_memory_growth_to_device(logger):
-#     gpus = tf.config.list_physical_devices('GPU')
-#     if len(gpus) > 0:
-#         for gpu in gpus:
-#             logger.debug(gpu.name + 'set for memory growth')
-#             tf.config.experimental.set_memory_growth(gpu, True)
-
-
 def main():
     working_folder = os.getenv('WORK_DIR', './')
 
@@ -183,10 +175,10 @@ def main():
 
     mirrored_training = args.mirrored_training
     no_replicas = int(args.no_replicas)
+    gpus = args.gpus
 
-    # memory_growth = args.memory_growth
-    # if memory_growth:
-    #     set_memory_growth_to_device()
+    if gpus and len(gpus) > 0:
+        set_visible_gpus(gpus.split(','))
 
     distribute_strategy = get_distributed_strategy(no_replicas, logger) if mirrored_training else None
     batch_size = batch_size_per_replica * \
