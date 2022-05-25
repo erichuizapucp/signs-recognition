@@ -39,7 +39,6 @@ def get_cmd_args():
                         required=False)
     parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', action='store_true', required=False)
     parser.add_argument('-nr', '--no_replicas', help='No Replicas', required=False, default=0)
-    parser.add_argument('-gp', '--gpus', help='GPUs to use', required=False)
 
     return parser.parse_args()
 
@@ -175,10 +174,6 @@ def main():
 
     mirrored_training = args.mirrored_training
     no_replicas = int(args.no_replicas)
-    gpus = args.gpus
-
-    if gpus and len(gpus) > 0:
-        set_visible_gpus(gpus.split(','))
 
     distribute_strategy = get_distributed_strategy(no_replicas, logger) if mirrored_training else None
     batch_size = batch_size_per_replica * \

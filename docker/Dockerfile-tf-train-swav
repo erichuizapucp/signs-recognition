@@ -10,10 +10,10 @@ RUN apt install -y git-all
 RUN mkdir signs-recognition
 WORKDIR signs-recognition
 
-COPY src src
-COPY requirements.txt .
+COPY ../src src
+COPY ../requirements.txt .
 COPY *.yaml .
-COPY train-swav.sh .
+COPY ../scripts/train-swav.sh .
 RUN chmod +x train-swav.sh
 ENV PATH="/signs-recognition:$PATH"
 

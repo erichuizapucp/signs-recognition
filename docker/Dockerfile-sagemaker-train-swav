@@ -6,16 +6,16 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 RUN apt-get update
 RUN apt install -y protobuf-compiler
 RUN apt install -y git-all
+RUN apt install -y jq
 
-RUN mkdir signs-recognition
-WORKDIR signs-recognition
+WORKDIR /opt/ml/code
 
 COPY src src
 COPY requirements.txt .
 COPY *.yaml .
-COPY train-swav.sh .
-RUN chmod +x train-swav.sh
-ENV PATH="/signs-recognition:$PATH"
+COPY scripts/sagemaker-train-swav.sh train
+RUN chmod +x train
+ENV PATH="/opt/ml/code:$PATH"
 
 RUN python -m pip install -r requirements.txt
 
@@ -34,9 +34,3 @@ WORKDIR ..
 RUN mkdir logs
 RUN mkdir ckpt
 RUN mkdir tensorboard_logs
-
-VOLUME 'logs'
-VOLUME 'ckpt'
-VOLUME 'tensorboard_logs'
-
-ENTRYPOINT train-swav.sh
