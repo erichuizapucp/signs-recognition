@@ -24,7 +24,7 @@ class BaseModelExecutor:
 
         models[0].compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None):
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
         dataset = self._get_train_dataset(dataset)
         history = models[0].fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
 
@@ -47,7 +47,7 @@ class BaseModelExecutor:
     def get_optimizer(self):
         return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
-    def get_callback(self):
+    def get_callback(self, checkpoint_storage_path):
         raise NotImplementedError('get_callback method not implemented.')
 
     @staticmethod

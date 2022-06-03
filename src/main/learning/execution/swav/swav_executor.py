@@ -28,8 +28,8 @@ class SwAVExecutor(BaseModelExecutor):
         self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
                                   'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
 
-    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None):
-        def train(train_step, optimizer, callback):
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+        def train(train_step_fn, optimizer, callback):
             try:
                 self.feature_backbone_model = models[0]
                 self.prototype_projection_model = models[1]
@@ -49,15 +49,15 @@ class SwAVExecutor(BaseModelExecutor):
                     self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
                     for i, inputs in enumerate(dataset):
-                        loss = train_step(inputs)
+                        loss = train_step_fn(inputs)
                         step_wise_loss.append(loss)
 
-                        self.training_logger.debug('training step: {} loss: {:.3f}'.format(i + 1, loss))
+                        self.training_logger.debug('training step: {}, step_loss: {:.3f};'.format(i + 1, loss))
 
                     epoch_loss = np.mean(step_wise_loss)
                     epoch_wise_loss.append(epoch_loss)
 
-                    self.training_logger.info('epoch: {} loss: {:.3f}'.format(epoch + 1, epoch_loss))
+                    self.training_logger.info('epoch: {}, epoch_loss: {:.3f};'.format(epoch + 1, epoch_loss))
 
                     callback.on_epoch_end(epoch, logs={'loss': epoch_loss})
 
@@ -190,8 +190,8 @@ class SwAVExecutor(BaseModelExecutor):
     def _get_loss():
         return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
 
-    def get_callback(self):
-        callback = SwAVCallback(self.feature_backbone_model, self.prototype_projection_model)
+    def get_callback(self, checkpoint_storage_path):
+        callback = SwAVCallback(self.feature_backbone_model, self.prototype_projection_model, checkpoint_storage_path)
         return callback
 
     def configure(self, models):

@@ -4,20 +4,20 @@ import tensorflow as tf
 
 
 class SwAVCallback(tf.keras.callbacks.Callback):
-    def __init__(self, features_model: tf.keras.models.Model, projections_model: tf.keras.models.Model):
+    def __init__(self,
+                 features_model: tf.keras.models.Model,
+                 projections_model: tf.keras.models.Model,
+                 checkpoint_storage_path):
         super(tf.keras.callbacks.Callback, self).__init__()
 
-        self.working_dir = os.getenv('WORK_DIR', 'src/')
         self.logger = logging.getLogger(__name__)
 
-        features_model_weights_file_path = os.path.join(self.working_dir,
-                                                        'ckpt',
+        features_model_weights_file_path = os.path.join(checkpoint_storage_path,
                                                         'feature-model-weights.{epoch:02d}-{loss:.2f}.hdf5')
         self.logger.debug('Features Detection Weights to be saved on: %s', features_model_weights_file_path)
 
-        proj_model_weights_file_path = os.path.join(self.working_dir,
-                                                           'ckpt',
-                                                           'projections-model-weights.{epoch:02d}-{loss:.2f}.hdf5')
+        proj_model_weights_file_path = os.path.join(checkpoint_storage_path,
+                                                    'projections-model-weights.{epoch:02d}-{loss:.2f}.hdf5')
         self.logger.debug('Projections Weights to be saved on: %s', proj_model_weights_file_path)
 
         self.feature_model_callback = tf.keras.callbacks.ModelCheckpoint(filepath=features_model_weights_file_path,
