@@ -14,10 +14,10 @@ DETECT_PERSON=$(jq -r '.detect_person' "${PARAMS_FILE:-'True'}")
 MIRRORED_TRAINING=$(jq -r '.mirrored_training' "${PARAMS_FILE:-'True'}")
 NO_EPOCHS=$(jq -r '.no_epochs' "${PARAMS_FILE:-5}")
 
-MODEL='fake_swav'
+MODEL='swav'
 TRAIN_DATASET_PATH='/opt/ml/input/data/training'
 MODEL_OUTPUT_PATH='/opt/ml/model'
-CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoint'
+CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoints'
 FAILURE_REASON_PATH='/opt/ml/output/failure'
 PERSON_DETECTION_MODEL_NAME='centernet_resnet50_v1_fpn_512x512_coco17_tpu-8'
 PERSON_DETECTION_CHECKOUT_PREFIX='ckpt-0'
