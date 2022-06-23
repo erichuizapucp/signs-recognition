@@ -10,6 +10,7 @@ from learning.execution.legacy.rgb_executor import RGBExecutor
 from learning.execution.legacy.nsdm_executor import NSDMExecutor
 from learning.execution.legacy.nsdm_v2_executor import NSDMExecutorV2
 from learning.execution.swav.swav_executor import SwAVExecutor
+from learning.execution.swav.fake_swav_executor import FakeSwAVExecutor
 
 from learning.dataset.prepare.legacy.rgb_dataset_preparer import RGBDatasetPreparer
 from learning.dataset.prepare.legacy.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
@@ -17,7 +18,7 @@ from learning.dataset.prepare.legacy.combined_dataset_preparer import CombinedDa
 from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
 
 from learning.model import models
-from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV
+from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV, FAKE_SWAV
 from learning.common.model_utility import ModelUtility
 
 DEFAULT_NO_EPOCHS = 5
@@ -30,9 +31,9 @@ def get_cmd_args():
 
     parser.add_argument('-m', '--model', help='Model Name', required=True)
     parser.add_argument('-tr', '--train_dataset_path', help='Train Dataset Path', required=True)
-    parser.add_argument('-mp', '--model_storage_path', 'Model Storage Path', required=True)
-    parser.add_argument('-ckp', '--checkpoint_storage_path', 'Checkpoint Storage Path', required=True)
-    parser.add_argument('-fp', '--failure_reason_path', 'Failure Reason', required=True)
+    parser.add_argument('-mp', '--model_storage_path', help='Model Storage Path', required=True)
+    parser.add_argument('-ckp', '--checkpoint_storage_path', help='Checkpoint Storage Path', required=True)
+    parser.add_argument('-fp', '--failure_reason_path', help='Failure Reason', required=True)
     parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
     parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
     parser.add_argument('-bs', '--batch_size', help='Dataset batch size', default=DEFAULT_NO_BATCH_SIZE)
@@ -52,7 +53,8 @@ def get_model(model_name):
         RGB: lambda: models.get_rgb_model(),
         NSDM: lambda: models.get_nsdm_model(),
         NSDMV2: lambda: models.get_nsdm_v2_model(),
-        SWAV: lambda: models.get_swav_models()
+        SWAV: lambda: models.get_swav_models(),
+        FAKE_SWAV: lambda: models.get_swav_models()
     }
 
     def model_fn():
@@ -84,6 +86,8 @@ def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
         NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
         SWAV: lambda: SwAVDatasetPreparer(train_dataset_path, test_dataset_path=None,
                                           person_detection_model=person_detection_model),
+        FAKE_SWAV: lambda: SwAVDatasetPreparer(train_dataset_path, test_dataset_path=None,
+                                               person_detection_model=person_detection_model),
     }
     data_preparer = data_preparers[model_name]()
 
@@ -104,10 +108,11 @@ def get_executor(executor_name, models_to_execute):
         NSDM: lambda: NSDMExecutor(),
         NSDMV2: lambda: NSDMExecutorV2(),
         SWAV: lambda: SwAVExecutor(),
+        FAKE_SWAV: lambda: FakeSwAVExecutor()
     }
     executor = executors[executor_name]()
 
-    if executor_name != SWAV:
+    if executor_name != SWAV or executor_name != FAKE_SWAV:
         executor.configure(models_to_execute)
 
     return executor
@@ -149,9 +154,9 @@ def get_distributed_optimizer(distribute_strategy, get_optimizer_fn):
         return optimizer
 
 
-def get_distributed_callback(distribute_strategy, get_callback_fn, checkpoint_storage_path):
+def get_distributed_callback(distribute_strategy, get_callback_fn, checkpoint_storage_path, model):
     with distribute_strategy.scope():
-        callback = get_callback_fn(checkpoint_storage_path)
+        callback = get_callback_fn(checkpoint_storage_path, model)
         return callback
 
 
@@ -193,7 +198,7 @@ def main():
 
     executor = get_executor(executor_name, model)
 
-    if model_name == SWAV:
+    if model_name == SWAV or model_name == FAKE_SWAV:
         # Custom training loops require a distributed dataset to be passed
         get_dataset_fn = get_dataset(model_name,
                                      train_dataset_path,
@@ -209,7 +214,8 @@ def main():
         callback = \
             get_distributed_callback(distribute_strategy,
                                      executor.get_callback,
-                                     checkpoint_storage_path) if mirrored_training else executor.get_callback(checkpoint_storage_path)
+                                     checkpoint_storage_path,
+                                     model) if mirrored_training else executor.get_callback(checkpoint_storage_path, model)
         train_step_fn = \
             get_distributed_train_step(distribute_strategy,
                                        executor.train_step(batch_size, batch_size_per_replica)) if mirrored_training else executor.train_step(batch_size, batch_size_per_replica)

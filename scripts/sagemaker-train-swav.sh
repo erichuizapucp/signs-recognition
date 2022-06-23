@@ -14,7 +14,7 @@ DETECT_PERSON=$(jq -r '.detect_person' "${PARAMS_FILE:-'True'}")
 MIRRORED_TRAINING=$(jq -r '.mirrored_training' "${PARAMS_FILE:-'True'}")
 NO_EPOCHS=$(jq -r '.no_epochs' "${PARAMS_FILE:-5}")
 
-MODEL='swav'
+MODEL='fake_swav'
 TRAIN_DATASET_PATH='/opt/ml/input/data/training'
 MODEL_OUTPUT_PATH='/opt/ml/model'
 CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoint'

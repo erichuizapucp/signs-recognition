@@ -190,8 +190,8 @@ class SwAVExecutor(BaseModelExecutor):
     def _get_loss():
         return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
 
-    def get_callback(self, checkpoint_storage_path):
-        callback = SwAVCallback(self.feature_backbone_model, self.prototype_projection_model, checkpoint_storage_path)
+    def get_callback(self, checkpoint_storage_path, model):
+        callback = SwAVCallback(model[0], model[1], checkpoint_storage_path)
         return callback
 
     def configure(self, models):

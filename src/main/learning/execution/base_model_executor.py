@@ -47,7 +47,7 @@ class BaseModelExecutor:
     def get_optimizer(self):
         return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
-    def get_callback(self, checkpoint_storage_path):
+    def get_callback(self, checkpoint_storage_path, model):
         raise NotImplementedError('get_callback method not implemented.')
 
     @staticmethod
