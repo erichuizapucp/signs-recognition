@@ -25,7 +25,7 @@ role = os.getenv('SAGEMAKER_ROLE')
 hyper_parameters = {
     'detect_person': True,
     'mirrored_training': True,
-    'batch_size': 64,
+    'batch_size': 1,
     'no_replicas': 4,
     'no_epochs': 20,
 }
