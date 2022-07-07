@@ -4,11 +4,11 @@ from sagemaker.estimator import Estimator
 
 role = os.getenv("SAGEMAKER_ROLE")
 hyper_parameters = {
-    'detect_person': True,
-    'mirrored_training': True,
+    'detect_person': False,
+    'mirrored_training': False,
     'batch_size': 1,
-    'no_replicas': 2,
-    'no_epochs': 20,
+    'no_replicas': 1,
+    'no_epochs': 5,
 }
 instance_type = "local"
 estimator = Estimator(

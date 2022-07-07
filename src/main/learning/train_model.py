@@ -37,11 +37,11 @@ def get_cmd_args():
     parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
     parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
     parser.add_argument('-bs', '--batch_size', help='Dataset batch size', default=DEFAULT_NO_BATCH_SIZE)
-    parser.add_argument('-dp', '--detect_person', help='Detect person on frames', action='store_true', required=False)
+    parser.add_argument('-dp', '--detect_person', help='Detect person on frames', default="False")
     parser.add_argument('-odm', '--person_detection_model_name', help='Person Detection Model Name', required=False)
     parser.add_argument('-odcp', '--person_detection_checkout_prefix', help='Person Detection Checkout Prefix',
                         required=False)
-    parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', action='store_true', required=False)
+    parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', default="False")
     parser.add_argument('-nr', '--no_replicas', help='No Replicas', required=False, default=0)
 
     return parser.parse_args()
@@ -84,9 +84,11 @@ def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
         RGB: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=None),
         NSDM: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
         NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        SWAV: lambda: SwAVDatasetPreparer(train_dataset_path, test_dataset_path=None,
+        SWAV: lambda: SwAVDatasetPreparer(train_dataset_path,
+                                          test_dataset_path=None,
                                           person_detection_model=person_detection_model),
-        FAKE_SWAV: lambda: SwAVDatasetPreparer(train_dataset_path, test_dataset_path=None,
+        FAKE_SWAV: lambda: SwAVDatasetPreparer(train_dataset_path,
+                                               test_dataset_path=None,
                                                person_detection_model=person_detection_model),
     }
     data_preparer = data_preparers[model_name]()
@@ -176,11 +178,11 @@ def main():
     train_dataset_path = args.train_dataset_path
     executor_name = model_name
 
-    detect_person = args.detect_person
+    detect_person = args.detect_person == "True"
     person_detection_model_name = args.person_detection_model_name
     person_detection_checkout_prefix = args.person_detection_checkout_prefix
 
-    mirrored_training = args.mirrored_training
+    mirrored_training = args.mirrored_training == "True"
     no_replicas = int(args.no_replicas)
 
     model_storage_path = args.model_storage_path

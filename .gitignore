@@ -24,3 +24,4 @@ tensorboard_logs
 models
 test_images
 ckpt
+tf_models

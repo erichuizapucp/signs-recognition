@@ -9,8 +9,8 @@ class SwAVModelBuilder(BaseModelBuilder):
         super().__init__()
 
         self.no_projection_1_neurons = 1024
-        self.no_projection_2_neurons = 96
-        self.prototype_vector_dim = 15
+        self.no_projection_2_neurons = 512
+        self.prototype_vector_dim = 128
         self.num_channels = 3
         self.lstm_cells = 512  # 2048
         self.embedding_size = 1024  # 4096

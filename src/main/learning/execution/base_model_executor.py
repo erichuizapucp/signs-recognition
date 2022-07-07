@@ -45,7 +45,8 @@ class BaseModelExecutor:
         return models[0].predict(dataset)
 
     def get_optimizer(self):
-        return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        # tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        return tf.keras.optimizers.SGD(learning_rate=self.learning_rate)
 
     def get_callback(self, checkpoint_storage_path, model):
         raise NotImplementedError('get_callback method not implemented.')
