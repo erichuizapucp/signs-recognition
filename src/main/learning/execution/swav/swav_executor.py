@@ -133,8 +133,7 @@ class SwAVExecutor(BaseModelExecutor):
                             crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
                             crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
 
-                        crop_to_compare_prototype = tf.gather(prototype, tf.range(crop_to_compare_prototype_start,
-                                                                                  crop_to_compare_prototype_end))
+                        crop_to_compare_prototype = prototype[crop_to_compare_prototype_start:crop_to_compare_prototype_end]
                         crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
                         cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
 
@@ -149,6 +148,7 @@ class SwAVExecutor(BaseModelExecutor):
             # back propagation
             variables = self.feature_backbone_model.trainable_variables + \
                 self.prototype_projection_model.trainable_variables
+
             gradients = tape.gradient(loss, variables)
             self.optimizer.apply_gradients(zip(gradients, variables))
 

@@ -8,12 +8,12 @@ class SwAVModelBuilder(BaseModelBuilder):
     def __init__(self):
         super().__init__()
 
-        self.no_projection_1_neurons = 1024
-        self.no_projection_2_neurons = 512
-        self.prototype_vector_dim = 128
+        self.no_projection_1_neurons = 256
+        self.no_projection_2_neurons = 128
+        self.prototype_vector_dim = 64
         self.num_channels = 3
-        self.lstm_cells = 512  # 2048
-        self.embedding_size = 1024  # 4096
+        self.lstm_cells = 256  # 2048
+        self.embedding_size = 512  # 4096
 
     # Features detection (Embeddings) / CNN-LSTM model
     def build(self, **kwargs) -> tf.keras.models.Model:
