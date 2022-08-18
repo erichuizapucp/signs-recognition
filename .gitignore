@@ -17,9 +17,11 @@ detected-syntax
 not-annotated-videos
 saved-models
 serialized-dataset
-/dataset/
+dataset
 /logs/
 /pre-trained-models/
 tensorboard_logs
 models
 test_images
+ckpt
+tf_models

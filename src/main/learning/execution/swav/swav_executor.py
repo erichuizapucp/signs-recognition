@@ -1,111 +1,168 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from learning.execution.base_model_executor import BaseModelExecutor
-from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
-
-from itertools import groupby
-from tensorflow.keras.models import Model
+from learning.execution.swav.swav_callback import SwAVCallback
 from learning.common.model_utility import SWAV
 
 
 class SwAVExecutor(BaseModelExecutor):
-    def __init__(self, feature_detection_model: Model,
-                 projection_model: Model,
-                 train_dataset_path,
-                 test_dataset_path,
-                 object_detection_model):
+    def __init__(self):
+        super().__init__()
 
-        super().__init__(feature_detection_model, projection_model)
-
-        self.dataset_preparer = SwAVDatasetPreparer(train_dataset_path, test_dataset_path, object_detection_model)
-
+        # 224x224, 224x224, 96x96, 96x96, 96x96
         self.num_crops = [2, 3]
+
+        # swapped assigment is intended only for 224x224 crops
         self.crops_for_assign = [0, 1]
+        self.crop_sizes = [224, 224, 96, 96, 96]
         self.temperature = 0.1
 
-    def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
-        step_wise_loss = []
-        epoch_wise_loss = []
+        # To be assigned on the train_model method
+        self.optimizer = None
+        self.feature_backbone_model = None
+        self.prototype_projection_model = None
 
-        feature_backbone_model = self.__get_feature_backbone_model()
-        prototype_projection_model = self.__get_prototype_projection_model()
+        self.loss = self._get_loss()
 
-        dataset = self._get_train_dataset(batch_size)
+        self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
+                                  'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
 
-        for epoch in range(no_epochs):
-            w = prototype_projection_model.get_layer('prototype').get_weights()
-            w = tf.transpose(w)
-            w = tf.math.l2_normalize(w, axis=1)
-            prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+        def train(train_step_fn, optimizer, callback):
+            try:
+                self.feature_backbone_model = models[0]
+                self.prototype_projection_model = models[1]
+                self.optimizer = optimizer
 
-            for i, inputs in enumerate(dataset):
-                loss = self.train_step(inputs,
-                                       feature_backbone_model,  # feature learning model
-                                       prototype_projection_model,  # prototype projection model
-                                       self._get_optimizer(),
-                                       self.crops_for_assign,
-                                       self.temperature)
+                step_wise_loss = []
+                epoch_wise_loss = []
 
-                step_wise_loss.append(loss)
-            epoch_wise_loss.append(np.mean(step_wise_loss))
+                self.training_logger.info('SwAV Training started with: no_epochs: %s', no_epochs)
 
-            print("epoch: {} loss: {:.3f}".format(epoch + 1, np.mean(step_wise_loss)))
+                callback.on_train_begin()
+                for epoch in range(no_epochs):
+                    callback.on_epoch_begin(epoch=epoch)
+                    w = self.prototype_projection_model.get_layer('prototype').get_weights()
+                    w = tf.transpose(w)
+                    w = tf.math.l2_normalize(w, axis=1)
+                    self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
-        return epoch_wise_loss, [feature_backbone_model, prototype_projection_model]
+                    for i, inputs in enumerate(dataset):
+                        loss = train_step_fn(inputs)
+                        step_wise_loss.append(loss)
 
-    def train_step(self, input_views, feature_backbone, projection_prototype, optimizer, crops_for_assign, temperature):
-        clip1, clip2, clip3, clip4, clip5 = input_views
-        inputs = [tf.expand_dims(clip1, axis=0),
-                  tf.expand_dims(clip2, axis=0),
-                  tf.expand_dims(clip3, axis=0),
-                  tf.expand_dims(clip4, axis=0),
-                  tf.expand_dims(clip5, axis=0)]
-        batch_size = inputs[0].shape[0]
+                        self.training_logger.debug('training step: {}, step_loss: {:.3f};'.format(i + 1, loss))
 
-        crop_sizes = [inp.shape[2] for inp in inputs]  # list of crop size of views
-        unique_consecutive_count = [len([elem for elem in g]) for _, g in groupby(crop_sizes)]
-        idx_crops = tf.cumsum(unique_consecutive_count)
+                    epoch_loss = np.mean(step_wise_loss)
+                    epoch_wise_loss.append(epoch_loss)
 
-        # multi-res forward passes
-        start_idx = 0
-        with tf.GradientTape() as tape:
-            for end_idx in idx_crops:
-                concat_input = tf.stop_gradient(tf.concat(inputs[start_idx:end_idx], axis=0))
-                _embedding = feature_backbone(concat_input)  # get embedding of same dim views together
-                if start_idx == 0:
-                    embeddings = _embedding  # for first iter
-                else:
-                    # concat all the embeddings from all the views
-                    embeddings = tf.concat((embeddings, _embedding), axis=0)
-                start_idx = end_idx
+                    self.training_logger.info('epoch: {}, epoch_loss: {:.3f};'.format(epoch + 1, epoch_loss))
 
-            projection, prototype = projection_prototype(embeddings)  # get normalized projection and prototype
-            _ = tf.stop_gradient(projection)
+                    callback.on_epoch_end(epoch, logs={'loss': epoch_loss})
 
-            loss = 0
-            for i, crop_id in enumerate(crops_for_assign):  # crops_for_assign = [0,1]
-                with tape.stop_recording():
-                    out = prototype[batch_size * crop_id: batch_size * (crop_id + 1)]
+                self.training_logger.info('SwAV Training is completed.')
+            except Exception as e:
+                self.training_logger.error(e)
+                raise RuntimeError(e)
 
-                    # get assignments
-                    q = self.sinkhorn(out)  # sinkhorn is used for cluster assignment
+        return train
 
-                # cluster assignment prediction
-                sub_loss = 0
-                for v in np.delete(np.arange(int(np.sum(self.num_crops))), crop_id):
-                    p = tf.nn.softmax(prototype[batch_size * v: batch_size * (v + 1)] / temperature)
-                    sub_loss -= tf.math.reduce_mean(tf.math.reduce_sum(q * tf.math.log(p), axis=1))
-                loss += sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32)
+    def train_step(self, global_batch_size, per_replica_batch_size):
+        @tf.function
+        def step(input_views):
+            inputs = tf.TensorArray(dtype=tf.float32, size=5, clear_after_read=False, infer_shape=False)
+            for index in range(5):
+                inputs = inputs.write(index, input_views[index])
 
-            loss /= len(crops_for_assign)
+            # e.g. [2, 3] -> needed for grouping same size crops so that embeddings
+            unique_consecutive_count = tf.unique_with_counts(self.crop_sizes).count
+            # e.g. [2, 5] -> needed for slicing inputs to include grouped crops
+            consecutive_crops = tf.cumsum(unique_consecutive_count)
+            # multi-res forward passes
+            start_idx = 0
 
-        # back propagation
-        variables = feature_backbone.trainable_variables + projection_prototype.trainable_variables
-        gradients = tape.gradient(loss, variables)
-        optimizer.apply_gradients(zip(gradients, variables))
+            with tf.GradientTape() as tape:
+                embeddings = tf.TensorArray(dtype=tf.float32, size=2, infer_shape=False)
 
-        return loss
+                for idx_consecutive_crops in range(2):
+                    with tape.stop_recording():
+                        end_idx = consecutive_crops[idx_consecutive_crops]
+                        concat_reshape = self.current_crop_size(per_replica_batch_size, start_idx)
+                        # need to reshape because inputs.gather would add an extra dimension.
+                        concat_input = tf.reshape(inputs.gather(tf.range(start_idx, end_idx)),
+                                                  shape=concat_reshape)
+                        start_idx = end_idx
+                    _embedding = self.feature_backbone_model(concat_input)  # get embedding of same dim views together
+                    embeddings = embeddings.write(idx_consecutive_crops, _embedding)
+
+                projection, prototype = self.prototype_projection_model(embeddings.concat())
+                _ = tf.stop_gradient(projection)
+
+                loss = 0.0
+                # Swap Assigment only happens on 224x224 crops
+                # crops_for_assign = [0, 1] -> first and second crops are 224x224
+                for idx_crop_for_assign in range(2):
+                    with tape.stop_recording():
+                        crop_id = self.crops_for_assign[idx_crop_for_assign]
+
+                        # prototype slice for the current 224x224 crop
+                        crop_prototype_start = per_replica_batch_size * crop_id
+                        crop_prototype_end = per_replica_batch_size * (crop_id + 1)
+                        crop_prototype = tf.gather(prototype, tf.range(crop_prototype_start, crop_prototype_end))
+                        # Cluster assignment prediction
+                        # Get cluster assignments using Sinkhorn Knopp: Optical Transport
+                        # The code q is considered the "ground truth" - or a tuned prototype
+                        crop_prototype_q_code = self.sinkhorn(crop_prototype)
+
+                        # Swapped comparison initialization
+                        # sum([2, 3] = 5
+                        crops_interval = tf.reduce_sum(self.num_crops)
+                        # [0, 1, 2, 3, 4]
+                        all_crops_indexes = tf.range(crops_interval)
+
+                        # take out one 224x224 crop and compare with the rest (Swap Assigment)
+                        # [1, 2, 3, 4] or [0, 2, 3, 4]
+                        crops_to_compare_indexes = tf.boolean_mask(all_crops_indexes,
+                                                                   tf.not_equal(all_crops_indexes, crop_id))
+
+                    sub_loss = 0.0
+
+                    for crop_to_compare_index in crops_to_compare_indexes:
+                        with tape.stop_recording():
+                            crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
+                            crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
+
+                        crop_to_compare_prototype = prototype[crop_to_compare_prototype_start:crop_to_compare_prototype_end]
+                        crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
+                        cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
+
+                        # average loss entropy
+                        # use compute_average_loss instead of reduce_mean to allow distributed training
+                        sub_loss += tf.nn.compute_average_loss(cross_entropy_loss, global_batch_size=global_batch_size)
+
+                    loss += sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32)
+
+                loss /= len(self.crops_for_assign)
+
+            # back propagation
+            variables = self.feature_backbone_model.trainable_variables + \
+                self.prototype_projection_model.trainable_variables
+
+            gradients = tape.gradient(loss, variables)
+            self.optimizer.apply_gradients(zip(gradients, variables))
+
+            return loss
+
+        return step
+
+    @staticmethod
+    def current_crop_size(batch_size, start_index):
+        def high_res_shape_fn(): return tf.constant([batch_size * 2, -1, 224, 224, 3])
+
+        def low_res_shape_fn(): return tf.constant([batch_size * 3, -1, 96, 96, 3])
+
+        return tf.cond(tf.equal(start_index, 0), high_res_shape_fn, low_res_shape_fn)
 
     @staticmethod
     def sinkhorn(sample_prototype_batch):
@@ -129,11 +186,13 @@ class SwAVExecutor(BaseModelExecutor):
     def _get_model_type(self):
         return SWAV
 
-    def __get_feature_backbone_model(self):
-        return self.model1
+    @staticmethod
+    def _get_loss():
+        return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
 
-    def __get_prototype_projection_model(self):
-        return self.model2
+    def get_callback(self, checkpoint_storage_path, model):
+        callback = SwAVCallback(model[0], model[1], checkpoint_storage_path)
+        return callback
 
-    def configure(self):
-        print('SwAV models do not require configuration.')
+    def configure(self, models):
+        print('SwAV does not require a configure method.')

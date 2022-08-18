@@ -9,7 +9,6 @@ class RGBSamplesExtractor(SamplesExtractor):
         video_path = kwargs['VideoPath']
         start_time = float(kwargs['StartTime'])
         end_time = float(kwargs['EndTime'])
-        detect_person = kwargs['DetectPerson']
         detection_model = kwargs['DetectionModel']
 
         video_capture = cv2.VideoCapture(video_path)
@@ -30,7 +29,7 @@ class RGBSamplesExtractor(SamplesExtractor):
             frame_no += 1
             img_index += 1
 
-            if detect_person:
+            if detection_model is not None:
                 is_detected, person_crop = self.extract_person_from_frame(frame, detection_model)
                 if is_detected:
                     extracted_frames.append(person_crop)

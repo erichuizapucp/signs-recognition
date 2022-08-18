@@ -1,40 +1,32 @@
-import numpy as np
 import os
 import logging
+import tensorflow as tf
+import numpy as np
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import Precision, Recall, AUC
 from learning.common.model_utility import ModelUtility
-from learning.dataset.prepare.base_dataset_preparer import BaseDatasetPreparer
 
 
 class BaseModelExecutor:
-    def __init__(self, model1: Model, model2: Model = None, model3: Model = None):
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
-
-        self.model1 = model1
-        self.model2 = model2
-        self.model3 = model3
+        self.training_logger = logging.getLogger('training')
 
         self.working_dir = os.getenv('WORK_DIR', 'src/')
 
         self.learning_rate = 0.001
 
         self.model_utility = ModelUtility()
-        self.dataset_preparer: BaseDatasetPreparer = ...
 
-    def configure(self):
-        optimizer = self._get_optimizer()
+    def configure(self, models):
+        optimizer = self.get_optimizer()
         loss = self._get_loss()
         metrics = self._get_metrics()
 
-        self.model1.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+        models[0].compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, batch_size, no_epochs, no_steps_per_epoch=None):
-        dataset = self._get_train_dataset(batch_size)
-        history = self.model1.fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+        dataset = self._get_train_dataset(dataset)
+        history = models[0].fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
 
         # save training history in fs for further review
         history_serialization_path = self._get_model_history_serialization_path()
@@ -42,26 +34,30 @@ class BaseModelExecutor:
 
         # save trained model and weights to the file system for future use
         model_serialization_path = self._get_model_serialization_path()
-        self.model1.save(model_serialization_path)
+        models[0].save(model_serialization_path)
 
-    def evaluate_model(self, batch_size):
+    def evaluate_model(self, models, batch_size):
         dataset = self._get_test_dataset(batch_size)
-        return self.model1.evaluate(dataset)
+        return models[0].evaluate(dataset)
 
-    def predict_with_model(self, batch_size):
+    def predict_with_model(self, models, batch_size):
         dataset = self._get_test_dataset(batch_size)
-        return self.model1.predict(dataset)
+        return models[0].predict(dataset)
 
-    def _get_optimizer(self):
-        return Adam(learning_rate=self.learning_rate)
+    def get_optimizer(self):
+        # tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        return tf.keras.optimizers.SGD(learning_rate=self.learning_rate)
+
+    def get_callback(self, checkpoint_storage_path, model):
+        raise NotImplementedError('get_callback method not implemented.')
 
     @staticmethod
     def _get_loss():
-        return CategoricalCrossentropy()
+        return tf.keras.losses.CategoricalCrossentropy()
 
     @staticmethod
     def _get_metrics():
-        return [Recall(), AUC(curve='PR'), Precision()]
+        return [tf.keras.metrics.Recall(), tf.keras.metrics.AUC(curve='PR'), tf.keras.metrics.Precision()]
 
     def _get_model_serialization_path(self):
         return self.model_utility.get_model_serialization_path(self._get_model_type())
@@ -69,12 +65,10 @@ class BaseModelExecutor:
     def _get_model_history_serialization_path(self):
         return self.model_utility.get_model_history_serialization_path(self._get_model_type())
 
-    def _get_train_dataset(self, batch_size):
-        dataset = self.dataset_preparer.prepare_train_dataset(batch_size)
+    def _get_train_dataset(self, dataset):
         return dataset
 
-    def _get_test_dataset(self, batch_size):
-        dataset = self.dataset_preparer.prepare_test_dataset(batch_size)
+    def _get_test_dataset(self, dataset):
         return dataset
 
     def _get_model_type(self):
