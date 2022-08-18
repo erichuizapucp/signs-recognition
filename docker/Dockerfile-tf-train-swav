@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.8.0-gpu
+FROM tensorflow/tensorflow:2.9.1-gpu
 
 SHELL ["/bin/bash", "-c"]
 
@@ -6,6 +6,7 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 RUN apt-get update
 RUN apt install -y protobuf-compiler
 RUN apt install -y git-all
+RUN apt install -y jq
 
 RUN mkdir signs-recognition
 WORKDIR signs-recognition
