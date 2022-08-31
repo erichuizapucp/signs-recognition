@@ -23,7 +23,7 @@ class RawDatasetPreparer(BaseDatasetPreparer):
                                                                         chunk_end_list],
                                                                   output_signature=gen_out_signature)
         dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
-        dataset = dataset.padded_batch(batch_size)
+        dataset = dataset.padded_batch(batch_size, drop_remainder=True)
 
         return dataset
 
