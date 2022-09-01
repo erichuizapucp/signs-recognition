@@ -28,6 +28,7 @@ hyper_parameters = {
     'batch_size': 3,
     'no_replicas': 4,
     'no_epochs': 20,
+    'no_steps': 1000,
 }
 estimator = Estimator(
     role=role,

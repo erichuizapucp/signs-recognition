@@ -48,11 +48,15 @@ class SwAVExecutor(BaseModelExecutor):
                     w = tf.math.l2_normalize(w, axis=1)
                     self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
-                    for i, inputs in enumerate(dataset):
+                    for step_index, inputs in enumerate(dataset):
                         loss = train_step_fn(inputs)
                         step_wise_loss.append(loss)
 
-                        self.training_logger.debug('training step: {}, step_loss: {:.3f};'.format(i + 1, loss))
+                        self.training_logger.debug('training step: {}, step_loss: {:.3f};'.format(step_index + 1, loss))
+
+                        if no_steps_per_epoch is not None and \
+                                0 < int(no_steps_per_epoch) <= step_index + 1:
+                            break
 
                     epoch_loss = np.mean(step_wise_loss)
                     epoch_wise_loss.append(epoch_loss)
@@ -133,7 +137,8 @@ class SwAVExecutor(BaseModelExecutor):
                             crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
                             crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
 
-                        crop_to_compare_prototype = prototype[crop_to_compare_prototype_start:crop_to_compare_prototype_end]
+                        crop_to_compare_prototype = prototype[
+                                                    crop_to_compare_prototype_start:crop_to_compare_prototype_end]
                         crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
                         cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
 

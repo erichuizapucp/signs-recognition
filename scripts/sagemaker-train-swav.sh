@@ -14,6 +14,7 @@ NO_REPLICAS=$(jq -r '.no_replicas' "${PARAMS_FILE:-4}")
 DETECT_PERSON=$(jq -r '.detect_person' "${PARAMS_FILE:-'True'}")
 MIRRORED_TRAINING=$(jq -r '.mirrored_training' "${PARAMS_FILE:-'True'}")
 NO_EPOCHS=$(jq -r '.no_epochs' "${PARAMS_FILE:-5}")
+NO_STEPS=$(jq -r '.no_steps' "${PARAMS_FILE}")
 
 MODEL='swav'
 TRAIN_DATASET_PATH='/opt/ml/input/data/training'
@@ -29,6 +30,7 @@ python $SCRIPT_PATH --model $MODEL \
         --checkpoint_storage_path "$CHECKPOINT_OUTPUT_PATH" \
         --failure_reason_path "$FAILURE_REASON_PATH" \
         --no_epochs "$NO_EPOCHS" \
+        --no_steps "$NO_STEPS" \
         --batch_size "$BATCH_SIZE" \
         --detect_person "$DETECT_PERSON" \
         --person_detection_model_name "$PERSON_DETECTION_MODEL_NAME" \
