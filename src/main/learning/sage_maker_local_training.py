@@ -7,8 +7,9 @@ hyper_parameters = {
     'detect_person': False,
     'mirrored_training': False,
     'batch_size': 1,
-    'no_replicas': 1,
+    'no_replicas': 2,
     'no_epochs': 5,
+    'no_steps': 2,
 }
 instance_type = "local"
 estimator = Estimator(
