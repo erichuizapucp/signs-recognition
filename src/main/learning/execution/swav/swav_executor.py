@@ -152,7 +152,7 @@ class SwAVExecutor(BaseModelExecutor):
 
             # back propagation
             variables = self.feature_backbone_model.trainable_variables + \
-                        self.prototype_projection_model.trainable_variables
+                self.prototype_projection_model.trainable_variables
 
             gradients = tape.gradient(loss, variables)
             self.optimizer.apply_gradients(zip(gradients, variables))
