@@ -6,8 +6,8 @@ from learning.common import model_type
 
 
 class NSDMExecutor(BaseModelExecutor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.logger = logging.getLogger(__name__)
 
     def _get_train_dataset(self, dataset):
@@ -22,6 +22,9 @@ class NSDMExecutor(BaseModelExecutor):
 
     def _get_model_type(self):
         return model_type.NSDM
+
+    def get_callback(self, checkpoint_storage_path, model):
+        pass
 
     @staticmethod
     def __map_combined_sample(opticalflow_feature, rgb_feature, label):

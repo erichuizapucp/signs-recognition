@@ -10,6 +10,8 @@ class BaseModelBuilder:
         self.logger = logging.getLogger(__name__)
         self.model_utility = ModelUtility()
 
+        self.num_channels = 3
+
     @abstractmethod
     def build(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError('build method not implemented.')

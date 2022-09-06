@@ -47,8 +47,13 @@ def get_nsdm_v2_model():
     return nsdm_v2_model,
 
 
-def get_swav_models():
-    model_builder = SwAVModelBuilder()
+def get_swav_models(**kwargs):
+    model_builder = SwAVModelBuilder(no_projection_1_neurons=kwargs['no_projection_1_neurons'],
+                                     no_projection_2_neurons=kwargs['no_projection_2_neurons'],
+                                     prototype_vector_dim=kwargs['prototype_vector_dim'],
+                                     lstm_cells=kwargs['lstm_cells'],
+                                     embedding_size=kwargs['embedding_size'],
+                                     l2_regularization_epsilon=kwargs['l2_regularization_epsilon'])
 
     feature_embeddings_model = model_builder.build()
     prototype_projections_model = model_builder.build2()
