@@ -30,5 +30,12 @@ RUN mkdir logs
 RUN mkdir ckpt
 RUN mkdir tensorboard_logs
 
+ENV MODEL='swav'
+ENV TRAIN_DATASET_PATH='/opt/ml/input/data/training'
+ENV MODEL_OUTPUT_PATH='/opt/ml/model'
+ENV CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoints'
+ENV FAILURE_REASON_PATH='/opt/ml/output/failure'
+ENV PARAMS_FILE='/opt/ml/input/config/hyperparameters.json'
+
 COPY scripts/sagemaker-train-swav.sh train
 RUN chmod +x train

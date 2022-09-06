@@ -7,13 +7,15 @@ from learning.common.model_utility import ModelUtility
 
 
 class BaseModelExecutor:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.logger = logging.getLogger(__name__)
         self.training_logger = logging.getLogger('training')
 
         self.working_dir = os.getenv('WORK_DIR', 'src/')
 
-        self.learning_rate = 0.001
+        self.learning_rate: float = kwargs['start_learning_rate']
+        self.momentum: float = kwargs['momentum']
+        self.clip_value: float = kwargs['clip_value']
 
         self.model_utility = ModelUtility()
 
@@ -24,7 +26,7 @@ class BaseModelExecutor:
 
         models[0].compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch, **kwargs):
         dataset = self._get_train_dataset(dataset)
         history = models[0].fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
 
@@ -45,8 +47,7 @@ class BaseModelExecutor:
         return models[0].predict(dataset)
 
     def get_optimizer(self):
-        # tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        return tf.keras.optimizers.SGD(learning_rate=self.learning_rate)
+        return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
     def get_callback(self, checkpoint_storage_path, model):
         raise NotImplementedError('get_callback method not implemented.')

@@ -5,15 +5,15 @@ from learning.common.model_utility import SWAV
 
 
 class SwAVModelBuilder(BaseModelBuilder):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
 
-        self.no_projection_1_neurons = 256
-        self.no_projection_2_neurons = 128
-        self.prototype_vector_dim = 64
-        self.num_channels = 3
-        self.lstm_cells = 256  # 2048
-        self.embedding_size = 512  # 4096
+        self.no_projection_1_neurons: int = kwargs['no_projection_1_neurons']
+        self.no_projection_2_neurons: int = kwargs['no_projection_2_neurons']
+        self.prototype_vector_dim: int = kwargs['prototype_vector_dim']
+        self.lstm_cells: int = kwargs['lstm_cells']
+        self.embedding_size: int = kwargs['embedding_size']
+        self.l2_regularization_epsilon: float = kwargs['l2_regularization_epsilon']
 
     # Features detection (Embeddings) / CNN-LSTM model
     def build(self, **kwargs) -> tf.keras.models.Model:
@@ -50,7 +50,8 @@ class SwAVModelBuilder(BaseModelBuilder):
 
         projection_2 = tf.keras.layers.Dense(self.no_projection_2_neurons)(projection_1)
         # L2 Norm (Euclidean Distance) -> Dot Product (Projection x Projection Transpose)
-        projection_2_normalize = tf.math.l2_normalize(projection_2, axis=1, name='projection')
+        projection_2_normalize = tf.math.l2_normalize(projection_2, axis=1, name='projection',
+                                                      epsilon=self.l2_regularization_epsilon)
 
         prototype = tf.keras.layers.Dense(self.prototype_vector_dim, use_bias=False,
                                           name='prototype')(projection_2_normalize)

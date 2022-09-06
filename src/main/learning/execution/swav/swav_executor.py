@@ -7,16 +7,19 @@ from learning.common.model_utility import SWAV
 
 
 class SwAVExecutor(BaseModelExecutor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.start_learning_rate: float = kwargs['start_learning_rate']
+        self.end_learning_rate: float = kwargs['end_learning_rate']
 
         # 224x224, 224x224, 96x96, 96x96, 96x96
-        self.num_crops = [2, 3]
+        self.num_crops: list[int] = kwargs['num_crops']
 
         # swapped assigment is intended only for 224x224 crops
-        self.crops_for_assign = [0, 1]
-        self.crop_sizes = [224, 224, 96, 96, 96]
-        self.temperature = 0.1
+        self.crops_for_assign: list[int] = kwargs['crops_for_assign']
+        self.crop_sizes: list[int] = kwargs['crop_sizes_list']
+        self.temperature: float = kwargs['temperature']
 
         # To be assigned on the train_model method
         self.optimizer = None
@@ -28,7 +31,7 @@ class SwAVExecutor(BaseModelExecutor):
         self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
                                   'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
 
-    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch, **kwargs):
         def train(train_step_fn, optimizer, callback):
             try:
                 self.feature_backbone_model = models[0]
@@ -52,16 +55,15 @@ class SwAVExecutor(BaseModelExecutor):
                         loss = train_step_fn(inputs)
                         step_wise_loss.append(loss)
 
-                        self.training_logger.debug('training step: {}, step_loss: {:.3f};'.format(step_index + 1, loss))
+                        self.training_logger.debug('training step: {}, step_loss: {:.4f};'.format(step_index + 1, loss))
 
-                        if no_steps_per_epoch is not None and \
-                                0 < int(no_steps_per_epoch) <= step_index + 1:
+                        if no_steps_per_epoch is not None and 0 < no_steps_per_epoch <= step_index + 1:
                             break
 
                     epoch_loss = np.mean(step_wise_loss)
                     epoch_wise_loss.append(epoch_loss)
 
-                    self.training_logger.info('epoch: {}, epoch_loss: {:.3f};'.format(epoch + 1, epoch_loss))
+                    self.training_logger.info('epoch: {}, epoch_loss: {:.4f};'.format(epoch + 1, epoch_loss))
 
                     callback.on_epoch_end(epoch, logs={'loss': epoch_loss})
 
@@ -151,11 +153,9 @@ class SwAVExecutor(BaseModelExecutor):
                 loss /= len(self.crops_for_assign)
 
             # back propagation
-            variables = self.feature_backbone_model.trainable_variables + \
-                self.prototype_projection_model.trainable_variables
-
-            gradients = tape.gradient(loss, variables)
-            self.optimizer.apply_gradients(zip(gradients, variables))
+            weights = self.feature_backbone_model.trainable_weights + self.prototype_projection_model.trainable_weights
+            gradients = tape.gradient(loss, weights)
+            self.optimizer.apply_gradients(zip(gradients, weights))
 
             return loss
 
@@ -198,6 +198,9 @@ class SwAVExecutor(BaseModelExecutor):
     def get_callback(self, checkpoint_storage_path, model):
         callback = SwAVCallback(model[0], model[1], checkpoint_storage_path)
         return callback
+
+    def get_optimizer(self):
+        return tf.keras.optimizers.SGD(learning_rate=self.learning_rate, momentum=self.momentum, clipvalue=self.clip_value)
 
     def configure(self, models):
         print('SwAV does not require a configure method.')

@@ -12,13 +12,14 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
     def __init__(self,
                  train_dataset_path,
                  test_dataset_path,
-                 person_detection_model=None):
+                 person_detection_model,
+                 **kwargs):
         super().__init__(train_dataset_path, test_dataset_path)
 
-        self.crop_sizes = [224, 96]
-        self.num_crops = [2, 3]
-        self.min_scale = [0.5, 0.14]
-        self.max_scale = [1., 0.5]
+        self.crop_sizes: list[int] = kwargs['crop_sizes']
+        self.num_crops: list[int] = kwargs['num_crops']
+        self.min_scale: list[float] = kwargs['min_scale']
+        self.max_scale: list[float] = kwargs['max_scale']
 
         self.multi_crop = MultiCropTransformer()
 
@@ -88,6 +89,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
                                                                           self.max_scale[idx],
                                                                           self.crop_sizes[idx])
                 crops += (transformed_video_fragment,)
+
         return crops
 
     def _get_raw_file_types(self):

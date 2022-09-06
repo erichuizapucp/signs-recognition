@@ -10,7 +10,6 @@ from learning.execution.legacy.rgb_executor import RGBExecutor
 from learning.execution.legacy.nsdm_executor import NSDMExecutor
 from learning.execution.legacy.nsdm_v2_executor import NSDMExecutorV2
 from learning.execution.swav.swav_executor import SwAVExecutor
-from learning.execution.swav.fake_swav_executor import FakeSwAVExecutor
 
 from learning.dataset.prepare.legacy.rgb_dataset_preparer import RGBDatasetPreparer
 from learning.dataset.prepare.legacy.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
@@ -18,47 +17,76 @@ from learning.dataset.prepare.legacy.combined_dataset_preparer import CombinedDa
 from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
 
 from learning.model import models
-from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV, FAKE_SWAV
+from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV
 from learning.common.model_utility import ModelUtility
-
-DEFAULT_NO_EPOCHS = 5
-DEFAULT_NO_STEPS_EPOCHS = None
-DEFAULT_NO_BATCH_SIZE = 64
 
 
 def get_cmd_args():
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="Peruvian Signs Language Self Supervised Learning")
 
-    parser.add_argument('-m', '--model', help='Model Name', required=True)
-    parser.add_argument('-tr', '--train_dataset_path', help='Train Dataset Path', required=True)
-    parser.add_argument('-mp', '--model_storage_path', help='Model Storage Path', required=True)
-    parser.add_argument('-ckp', '--checkpoint_storage_path', help='Checkpoint Storage Path', required=True)
-    parser.add_argument('-fp', '--failure_reason_path', help='Failure Reason', required=True)
-    parser.add_argument('-ne', '--no_epochs', help='Number of epochs', default=DEFAULT_NO_EPOCHS)
-    parser.add_argument('-ns', '--no_steps', help='Number of steps per epoch', default=DEFAULT_NO_STEPS_EPOCHS)
-    parser.add_argument('-bs', '--batch_size', help='Dataset batch size', default=DEFAULT_NO_BATCH_SIZE)
-    parser.add_argument('-dp', '--detect_person', help='Detect person on frames', default="False")
-    parser.add_argument('-odm', '--person_detection_model_name', help='Person Detection Model Name', required=False)
-    parser.add_argument('-odcp', '--person_detection_checkout_prefix', help='Person Detection Checkout Prefix',
-                        required=False)
-    parser.add_argument('-mt', '--mirrored_training', help='Use Mirrored Training', default="False")
-    parser.add_argument('-nr', '--no_replicas', help='No Replicas', required=False, default=0)
+    # General arguments
+    parser.add_argument('--model', type=str, help='Model Name', required=True)
+    parser.add_argument('--train_dataset_path', type=str, help='Train Dataset Path', required=True)
+    parser.add_argument('--model_storage_path', type=str, help='Model Storage Path', required=True)
+    parser.add_argument('--checkpoint_storage_path', type=str, help='Checkpoint Storage Path', required=True)
+    parser.add_argument('--failure_reason_path', type=str, help='Failure Reason', required=True)
+
+    # General training arguments
+    parser.add_argument('--no_epochs', type=int, help='Number of epochs', default=20)
+    parser.add_argument('--no_steps', type=int, help='Number of steps per epoch', default=1000)
+    parser.add_argument('--batch_size', type=int, help='Dataset batch size', default=3)
+    parser.add_argument('--start_learning_rate', type=float, help='Start Learning Rate', default=4.8)
+    parser.add_argument('--end_learning_rate', type=float, help='End Learning Rate', default=0.0)
+    parser.add_argument('--momentum', type=float, help='Momentum', default=0.9)
+    parser.add_argument('--clip_value', type=float, help='Clip Value', default=0.25)
+
+    # SwAV specific arguments
+    parser.add_argument('--num_crops', type=int, help='SwAV number of multi-crops', nargs='+', default=[2, 3])
+    parser.add_argument('--crops_for_assign', type=int, help='SwAV crops for assign', nargs='+', default=[0, 1])
+    parser.add_argument('--crop_sizes_list', type=int, help='SwAV crop sizes list', nargs='+',
+                        default=[224, 224, 96, 96, 96])
+    parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
+    parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
+    parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])
+
+    # SwAV models specific arguments
+    parser.add_argument('--temperature', type=float, help='SwAV temperature', nargs='+', default=0.1)
+    parser.add_argument('--no_projection_1_neurons', type=int, help='Dense Layer 1 inputs size', default=896)
+    parser.add_argument('--no_projection_2_neurons', type=int, help='Dense Layer 2 inputs size', default=768)
+    parser.add_argument('--prototype_vector_dim', type=int, help='Prototype vector size', default=512)
+    parser.add_argument('--lstm_cells', type=int, help='Number of LSTM cells', default=512)
+    parser.add_argument('--embedding_size', type=int, help='Embedding size', default=1024)
+    parser.add_argument('--l2_regularization_epsilon', type=float, help='L2 regularization epsilon', default=0.05)
+
+    # Mirrored training arguments
+    parser.add_argument('--mirrored_training', type=bool, help='Use Mirrored Training', default=False)
+    parser.add_argument('--no_replicas', type=int, help='No Replicas', default=4)
+
+    # Person detection arguments
+    parser.add_argument('--detect_person', type=bool, help='Detect person on frames', default=False)
+    parser.add_argument('--person_detection_model_name', help='Person Detection Model Name',
+                        default='centernet_resnet50_v1_fpn_512x512_coco17_tpu-8')
+    parser.add_argument('--person_detection_checkout_prefix', help='Person Detection Checkout Prefix', default='ckpt-0')
 
     return parser.parse_args()
 
 
-def get_model(model_name):
+def get_model(args):
     built_models = {
         OPTICAL_FLOW: lambda: models.get_opticalflow_model(),
         RGB: lambda: models.get_rgb_model(),
         NSDM: lambda: models.get_nsdm_model(),
         NSDMV2: lambda: models.get_nsdm_v2_model(),
-        SWAV: lambda: models.get_swav_models(),
-        FAKE_SWAV: lambda: models.get_swav_models()
+        SWAV: lambda: models.get_swav_models(no_projection_1_neurons=args.no_projection_1_neurons,
+                                             no_projection_2_neurons=args.no_projection_2_neurons,
+                                             prototype_vector_dim=args.prototype_vector_dim,
+                                             lstm_cells=args.lstm_cells,
+                                             embedding_size=args.embedding_size,
+                                             l2_regularization_epsilon=args.l2_regularization_epsilon)
     }
 
     def model_fn():
-        return built_models[model_name]()
+        return built_models[args.model]()
 
     return model_fn
 
@@ -86,10 +114,11 @@ def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
         NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
         SWAV: lambda: SwAVDatasetPreparer(train_dataset_path,
                                           test_dataset_path=None,
-                                          person_detection_model=person_detection_model),
-        FAKE_SWAV: lambda: SwAVDatasetPreparer(train_dataset_path,
-                                               test_dataset_path=None,
-                                               person_detection_model=person_detection_model),
+                                          person_detection_model=person_detection_model,
+                                          crop_sizes=kwargs['crop_sizes'],
+                                          num_crops=kwargs['num_crops'],
+                                          min_scale=kwargs['min_scale'],
+                                          max_scale=kwargs['max_scale'])
     }
     data_preparer = data_preparers[model_name]()
 
@@ -103,18 +132,36 @@ def get_distributed_dataset(distribute_strategy, get_dataset_fn):
     return distribute_strategy.experimental_distribute_dataset(get_dataset_fn())
 
 
-def get_executor(executor_name, models_to_execute):
+def get_executor(models_to_execute, args):
     executors = {
-        OPTICAL_FLOW: lambda: OpticalflowExecutor(),
-        RGB: lambda: RGBExecutor(),
-        NSDM: lambda: NSDMExecutor(),
-        NSDMV2: lambda: NSDMExecutorV2(),
-        SWAV: lambda: SwAVExecutor(),
-        FAKE_SWAV: lambda: FakeSwAVExecutor()
-    }
-    executor = executors[executor_name]()
+        OPTICAL_FLOW: lambda: OpticalflowExecutor(start_learning_rate=args.start_learning_rate,
+                                                  momentum=args.momentum,
+                                                  clip_value=args.clip_value),
 
-    if executor_name != SWAV or executor_name != FAKE_SWAV:
+        RGB: lambda: RGBExecutor(start_learning_rate=args.start_learning_rate,
+                                 momentum=args.momentum,
+                                 clip_value=args.clip_value),
+
+        NSDM: lambda: NSDMExecutor(start_learning_rate=args.start_learning_rate,
+                                   momentum=args.momentum,
+                                   clip_value=args.clip_value),
+
+        NSDMV2: lambda: NSDMExecutorV2(start_learning_rate=args.start_learning_rate,
+                                       momentum=args.momentum,
+                                       clip_value=args.clip_value),
+
+        SWAV: lambda: SwAVExecutor(start_learning_rate=args.start_learning_rate,
+                                   momentum=args.momentum,
+                                   clip_value=args.clip_value,
+                                   end_learning_rate=args.end_learning_rate,
+                                   num_crops=args.num_crops,
+                                   crops_for_assign=args.crops_for_assign,
+                                   crop_sizes_list=args.crop_sizes_list,
+                                   temperature=args.temperature),
+    }
+    executor = executors[args.model]()
+
+    if args.model != SWAV:
         executor.configure(models_to_execute)
 
     return executor
@@ -170,70 +217,59 @@ def main():
     logger = logging.getLogger(__name__)
 
     args = get_cmd_args()
-    no_epochs = int(args.no_epochs)
-    no_steps_per_epoch = args.no_steps
-    batch_size_per_replica = int(args.batch_size)
 
-    model_name = args.model
-    train_dataset_path = args.train_dataset_path
-    executor_name = model_name
-
-    detect_person = args.detect_person == "True"
-    person_detection_model_name = args.person_detection_model_name
-    person_detection_checkout_prefix = args.person_detection_checkout_prefix
-
-    mirrored_training = args.mirrored_training == "True"
-    no_replicas = int(args.no_replicas)
-
-    model_storage_path = args.model_storage_path
-    checkpoint_storage_path = args.checkpoint_storage_path
-    failure_reason_path = args.failure_reason_path
-
-    distribute_strategy = get_distributed_strategy(no_replicas, logger) if mirrored_training else None
-    batch_size = batch_size_per_replica * \
-        distribute_strategy.num_replicas_in_sync if mirrored_training else batch_size_per_replica
+    distribute_strategy = get_distributed_strategy(args.no_replicas, logger) if args.mirrored_training else None
+    batch_size = args.batch_size * \
+        distribute_strategy.num_replicas_in_sync if args.mirrored_training else args.batch_size
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
-    get_model_fn = get_model(model_name)
-    model = get_distributed_model(distribute_strategy, get_model_fn) if mirrored_training else get_model_fn()
+    get_model_fn = get_model(args)
+    model = get_distributed_model(distribute_strategy, get_model_fn) if args.mirrored_training else get_model_fn()
 
-    executor = get_executor(executor_name, model)
+    executor = get_executor(model, args)
 
-    if model_name == SWAV or model_name == FAKE_SWAV:
+    if args.model == SWAV:
         # Custom training loops require a distributed dataset to be passed
-        get_dataset_fn = get_dataset(model_name,
-                                     train_dataset_path,
+        get_dataset_fn = get_dataset(args.model,
+                                     args.train_dataset_path,
                                      batch_size,
-                                     detect_person=detect_person,
-                                     person_detection_model_name=person_detection_model_name,
-                                     person_detection_checkout_prefix=person_detection_checkout_prefix)
+                                     detect_person=args.detect_person,
+                                     person_detection_model_name=args.person_detection_model_name,
+                                     person_detection_checkout_prefix=args.person_detection_checkout_prefix,
+                                     crop_sizes=args.crop_sizes,
+                                     num_crops=args.num_crops,
+                                     min_scale=args.min_scale,
+                                     max_scale=args.max_scale)
 
-        dataset = get_distributed_dataset(distribute_strategy,
-                                          get_dataset_fn) if mirrored_training else get_dataset_fn()
+        dataset = get_distributed_dataset(distribute_strategy, get_dataset_fn) if args.mirrored_training else get_dataset_fn()
         optimizer = get_distributed_optimizer(distribute_strategy,
-                                              executor.get_optimizer) if mirrored_training else executor.get_optimizer()
-        callback = \
-            get_distributed_callback(distribute_strategy,
-                                     executor.get_callback,
-                                     checkpoint_storage_path,
-                                     model) if mirrored_training else executor.get_callback(checkpoint_storage_path, model)
-        train_step_fn = \
-            get_distributed_train_step(distribute_strategy,
-                                       executor.train_step(batch_size, batch_size_per_replica)) if mirrored_training else executor.train_step(batch_size, batch_size_per_replica)
+                                              executor.get_optimizer) if args.mirrored_training else executor.get_optimizer()
+
+        # callback assignation
+        callback = get_distributed_callback(distribute_strategy, executor.get_callback, args.checkpoint_storage_path, model) \
+            if args.mirrored_training \
+            else \
+            executor.get_callback(args.checkpoint_storage_path, model)
+
+        # training step function assignation
+        train_step_fn = get_distributed_train_step(distribute_strategy, executor.train_step(batch_size, args.batch_size)) \
+            if args.mirrored_training \
+            else \
+            executor.train_step(batch_size, args.batch_size)
 
         executor.train_model(model,
                              dataset,
-                             no_epochs,
-                             no_steps_per_epoch,
-                             ModelStoragePath=model_storage_path,
-                             FailureReasonPath=failure_reason_path)(train_step_fn, optimizer, callback)
+                             args.no_epochs,
+                             args.no_steps,
+                             model_storage_path=args.model_storage_path,
+                             failure_storege_path=args.failure_reason_path)(train_step_fn, optimizer, callback)
     else:
         # Keras model.fit loops don't require a distributed dataset to be passed
-        get_dataset_fn = get_dataset(model_name, train_dataset_path, batch_size, detect_person=detect_person)
+        get_dataset_fn = get_dataset(args.model, args.train_dataset_path, batch_size, detect_person=args.detect_person)
         dataset = get_dataset_fn()
 
-        executor.train_model(model, dataset, no_epochs, no_steps_per_epoch)
+        executor.train_model(model, dataset, args.no_epochs, args.no_steps)
 
     logger.debug('learning operation is completed')
 
