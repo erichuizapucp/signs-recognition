@@ -36,7 +36,7 @@ def get_cmd_args():
     parser.add_argument('--no_steps', type=int, help='Number of steps per epoch', default=1000)
     parser.add_argument('--batch_size', type=int, help='Dataset batch size', default=3)
     parser.add_argument('--start_learning_rate', type=float, help='Start Learning Rate', default=4.8)
-    parser.add_argument('--end_learning_rate', type=float, help='End Learning Rate', default=0.0)
+    parser.add_argument('--end_learning_rate', type=float, help='End Learning Rate', default=0.0001)
     parser.add_argument('--momentum', type=float, help='Momentum', default=0.9)
     parser.add_argument('--clip_value', type=float, help='Clip Value', default=0.25)
 
@@ -197,9 +197,9 @@ def get_distributed_train_step(distribute_strategy, train_step_fn):
     return step
 
 
-def get_distributed_optimizer(distribute_strategy, get_optimizer_fn):
+def get_distributed_optimizer(distribute_strategy, get_optimizer_fn, no_epochs, no_steps):
     with distribute_strategy.scope():
-        optimizer = get_optimizer_fn()
+        optimizer = get_optimizer_fn(no_epochs, no_steps)
         return optimizer
 
 
@@ -243,8 +243,10 @@ def main():
                                      max_scale=args.max_scale)
 
         dataset = get_distributed_dataset(distribute_strategy, get_dataset_fn) if args.mirrored_training else get_dataset_fn()
-        optimizer = get_distributed_optimizer(distribute_strategy,
-                                              executor.get_optimizer) if args.mirrored_training else executor.get_optimizer()
+        optimizer = get_distributed_optimizer(distribute_strategy, executor.get_optimizer, args.no_epochs, args.no_steps) \
+            if args.mirrored_training \
+            else \
+            executor.get_optimizer(args.no_epochs, args.no_steps)
 
         # callback assignation
         callback = get_distributed_callback(distribute_strategy, executor.get_callback, args.checkpoint_storage_path, model) \

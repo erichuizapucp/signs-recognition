@@ -46,7 +46,7 @@ class BaseModelExecutor:
         dataset = self._get_test_dataset(batch_size)
         return models[0].predict(dataset)
 
-    def get_optimizer(self):
+    def get_optimizer(self, no_epochs, no_steps):
         return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
     def get_callback(self, checkpoint_storage_path, model):

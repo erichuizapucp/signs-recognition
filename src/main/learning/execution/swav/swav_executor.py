@@ -199,8 +199,17 @@ class SwAVExecutor(BaseModelExecutor):
         callback = SwAVCallback(model[0], model[1], checkpoint_storage_path)
         return callback
 
-    def get_optimizer(self):
-        return tf.keras.optimizers.SGD(learning_rate=self.learning_rate, momentum=self.momentum, clipvalue=self.clip_value)
+    def get_optimizer(self, no_epochs, no_steps):
+        learning_rate_decay_factor = (self.end_learning_rate / self.start_learning_rate) ** (1 / no_epochs)
+        steps_per_epoch = no_steps
+
+        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.start_learning_rate,
+            decay_steps=steps_per_epoch,
+            decay_rate=learning_rate_decay_factor,
+            staircase=True)
+
+        return tf.keras.optimizers.SGD(learning_rate=lr_schedule, momentum=self.momentum, clipvalue=self.clip_value)
 
     def configure(self, models):
         print('SwAV does not require a configure method.')
