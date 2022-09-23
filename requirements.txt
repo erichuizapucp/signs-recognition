@@ -57,7 +57,7 @@ proglog==0.1.9
 promise==2.3
 prompt-toolkit==3.0.18
 proto-plus==1.20.3
-protobuf==3.19.4
+protobuf==3.19.5
 psutil==5.8.0
 ptyprocess==0.7.0
 py-cpuinfo==8.0.0
