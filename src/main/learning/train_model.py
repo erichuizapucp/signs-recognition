@@ -63,7 +63,7 @@ def get_cmd_args():
     parser.add_argument('--no_replicas', type=int, help='No Replicas', default=4)
 
     # Person detection arguments
-    parser.add_argument('--detect_person', type=bool, help='Detect person on frames', default=False)
+    parser.add_argument('--detect_person', type=bool, help='Detect person on frames', default=True)
     parser.add_argument('--person_detection_model_name', help='Person Detection Model Name',
                         default='centernet_resnet50_v1_fpn_512x512_coco17_tpu-8')
     parser.add_argument('--person_detection_checkout_prefix', help='Person Detection Checkout Prefix', default='ckpt-0')

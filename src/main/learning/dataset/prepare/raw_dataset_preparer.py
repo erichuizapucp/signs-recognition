@@ -16,14 +16,17 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
     def _prepare(self, dataset_path, batch_size):
         video_path_list, chunk_start_list, chunk_end_list = self._get_raw_file_list2(dataset_path)
+
         gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
         dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self._data_generator2,
                                                                   args=[video_path_list,
                                                                         chunk_start_list,
                                                                         chunk_end_list],
                                                                   output_signature=gen_out_signature)
-        dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
+
         dataset = dataset.padded_batch(batch_size, drop_remainder=True)
+        dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
+        # dataset.cache()
 
         return dataset
 
