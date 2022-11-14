@@ -63,7 +63,6 @@ def get_cmd_args():
     parser.add_argument('--no_replicas', type=int, help='No Replicas', default=4)
 
     # Person detection arguments
-    parser.add_argument('--detect_person', type=bool, help='Detect person on frames', default=False)
     parser.add_argument('--person_detection_model_name', help='Person Detection Model Name',
                         default='centernet_resnet50_v1_fpn_512x512_coco17_tpu-8')
     parser.add_argument('--person_detection_checkout_prefix', help='Person Detection Checkout Prefix', default='ckpt-0')
@@ -98,15 +97,12 @@ def get_distributed_model(distribute_strategy, get_model_fn):
 
 
 def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
-    detect_person = kwargs['detect_person'] if 'detect_person' in kwargs else False
-    person_detection_model = None
-    if detect_person:
-        person_detection_model_name = kwargs['person_detection_model_name']
-        person_detection_checkout_prefix = kwargs['person_detection_checkout_prefix']
+    person_detection_model_name = kwargs['person_detection_model_name']
+    person_detection_checkout_prefix = kwargs['person_detection_checkout_prefix']
 
-        model_utility = ModelUtility()
-        person_detection_model = model_utility.get_object_detection_model(person_detection_model_name,
-                                                                          person_detection_checkout_prefix)
+    model_utility = ModelUtility()
+    person_detection_model = model_utility.get_object_detection_model(person_detection_model_name,
+                                                                      person_detection_checkout_prefix)
     data_preparers = {
         OPTICAL_FLOW: lambda: OpticalflowDatasetPreparer(train_dataset_path, test_dataset_path=None),
         RGB: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=None),
@@ -234,7 +230,6 @@ def main():
         get_dataset_fn = get_dataset(args.model,
                                      args.train_dataset_path,
                                      batch_size,
-                                     detect_person=args.detect_person,
                                      person_detection_model_name=args.person_detection_model_name,
                                      person_detection_checkout_prefix=args.person_detection_checkout_prefix,
                                      crop_sizes=args.crop_sizes,
@@ -268,7 +263,7 @@ def main():
                              failure_storege_path=args.failure_reason_path)(train_step_fn, optimizer, callback)
     else:
         # Keras model.fit loops don't require a distributed dataset to be passed
-        get_dataset_fn = get_dataset(args.model, args.train_dataset_path, batch_size, detect_person=args.detect_person)
+        get_dataset_fn = get_dataset(args.model, args.train_dataset_path, batch_size)
         dataset = get_dataset_fn()
 
         executor.train_model(model, dataset, args.no_epochs, args.no_steps)

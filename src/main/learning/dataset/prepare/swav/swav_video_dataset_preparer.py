@@ -3,7 +3,7 @@ import random
 import tensorflow as tf
 
 from learning.dataset.prepare.raw_dataset_preparer import RawDatasetPreparer
-from pre_processing.isolated_detection.samples_generation.rgb_samples_extractor import RGBSamplesExtractor
+from pre_processing.isolated_detection.samples_generation.rgb_person_sample_extractor import RGBPersonSamplesExtractor
 from learning.dataset.prepare.swav.multi_crop import MultiCropTransformer
 from learning.common import video_utility
 
@@ -22,16 +22,14 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         self.max_scale: list[float] = kwargs['max_scale']
 
         self.multi_crop = MultiCropTransformer()
+        self.extractor = RGBPersonSamplesExtractor(person_detection_model)
 
-        self.person_detection_model = person_detection_model
         self.random_hash = {}
 
     def _prepare(self, dataset_path, batch_size):
         return super()._prepare(dataset_path, batch_size)
 
     def _data_generator(self, list_video_path):  # sequentially read video samples
-        extractor = RGBSamplesExtractor()
-
         for video_path in list_video_path:
             str_video_path = tf.compat.as_str_any(video_path)
 
@@ -40,10 +38,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
             end_time = self.__get_next_end_time(start_time=start_time)
 
             while end_time < duration:
-                fragment_frames = extractor.extract_sample(VideoPath=str_video_path,
-                                                           StartTime=start_time,
-                                                           EndTime=end_time,
-                                                           DetectionModel=self.person_detection_model)
+                fragment_frames = self.extractor.extract_sample(str_video_path, start_time, end_time)
 
                 start_time = end_time
                 end_time = self.__get_next_end_time(start_time=start_time)
@@ -52,8 +47,6 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
                     yield fragment_frames
 
     def _data_generator2(self, video_path_list, chunk_start_list, chunk_end_list):  # randomly read video samples
-        extractor = RGBSamplesExtractor()
-
         for index, video_path in enumerate(video_path_list):
             str_video_path = tf.compat.as_str_any(video_path)
             chunk_start = chunk_start_list[index]
@@ -63,10 +56,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
             end_time = self.__get_next_end_time(start_time=start_time)
 
             while end_time < chunk_end:
-                fragment_frames = extractor.extract_sample(VideoPath=str_video_path,
-                                                           StartTime=start_time,
-                                                           EndTime=end_time,
-                                                           DetectionModel=self.person_detection_model)
+                fragment_frames = self.extractor.extract_sample(str_video_path, start_time, end_time)
 
                 start_time = end_time
                 end_time = self.__get_next_end_time(start_time=start_time)

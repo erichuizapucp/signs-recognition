@@ -13,7 +13,7 @@ class RGBSamplesHandler(SamplesHandler):
         folder_path = kwargs['FolderPath']
 
         extractor = RGBSamplesExtractor()
-        frames = extractor.extract_sample(VideoPath=video_path, StartTime=start_time, EndTime=end_time)
+        frames = extractor.extract_sample(video_path, start_time, end_time)
 
         for frame_index, frame in enumerate(frames):
             frame_file_path = os.path.join(folder_path, str(frame_index).zfill(4) + '_frame.jpg')
