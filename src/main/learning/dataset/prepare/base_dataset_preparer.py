@@ -22,10 +22,10 @@ class BaseDatasetPreparer:
         self.rgb_feature_dim = self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels
 
     def prepare_train_dataset(self, batch_size):
-        return self._prepare(self.train_dataset_path, batch_size)
+        return self.prepare_dataset(self.train_dataset_path, batch_size)
 
     def prepare_test_dataset(self, batch_size):
-        return self._prepare(self.test_dataset_path, batch_size)
+        return self.prepare_dataset(self.test_dataset_path, batch_size)
 
     def prepare(self, batch_size):
         return self.prepare_train_dataset(batch_size), self.prepare_test_dataset(batch_size)
@@ -82,14 +82,14 @@ class BaseDatasetPreparer:
             transformed_images.extend([transformed_img])
         return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
 
-    def _prepare(self, dataset_path, batch_size):
+    def prepare_dataset(self, dataset_path, batch_size):
         raise NotImplementedError('_prepare method not implemented.')
 
-    def _prepare_sample(self, feature, label):
+    def prepare_sample(self, feature, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
-    def _prepare_sample2(self, feature1, feature2, label):
+    def prepare_sample2(self, feature1, feature2, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
-    def _prepare_sample3(self, feature):
+    def prepare_sample3(self, feature):
         raise NotImplementedError('_prepare_sample3 method not implemented.')
