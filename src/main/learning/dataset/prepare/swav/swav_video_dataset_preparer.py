@@ -20,10 +20,9 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         self.num_crops: list[int] = kwargs['num_crops']
         self.min_scale: list[float] = kwargs['min_scale']
         self.max_scale: list[float] = kwargs['max_scale']
+        self.sample_duration_range: list[float] = kwargs['sample_duration_range']
 
         self.extractor = RGBPersonSamplesExtractor(person_detection_model)
-
-        self.random_hash = {}
 
     def prepare_dataset(self, dataset_path, batch_size):
         return super().prepare_dataset(dataset_path, batch_size)
@@ -34,13 +33,13 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
 
             duration = video_utility.get_video_duration(str_video_path)
             start_time = 0.0
-            end_time = self.__get_next_end_time(start_time=start_time)
+            end_time = self.get_next_end_time(start_time=start_time)
 
             while end_time < duration:
                 fragment_frames = self.extractor.extract_sample(str_video_path, start_time, end_time)
 
                 start_time = end_time
-                end_time = self.__get_next_end_time(start_time=start_time)
+                end_time = self.get_next_end_time(start_time=start_time)
 
                 if len(fragment_frames) > 0:
                     yield fragment_frames
@@ -52,28 +51,35 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
             chunk_end = chunk_end_list[index]
 
             start_time = chunk_start
-            end_time = self.__get_next_end_time(start_time=start_time)
+            end_time = self.get_next_end_time(start_time=start_time)
 
-            while end_time < chunk_end:
+            while end_time <= chunk_end:
                 success, fragment_frames = self.extractor.extract_sample(str_video_path, start_time, end_time)
 
                 start_time = end_time
-                end_time = self.__get_next_end_time(start_time=start_time)
+                end_time = self.get_next_end_time(start_time=start_time)
 
                 if success:
                     yield fragment_frames
 
-    @staticmethod
-    def __get_next_end_time(start_time):
-        fragment_duration = random.uniform(0.3, 0.5)
-        end_time = start_time + fragment_duration
+    def get_next_end_time(self, start_time):
+        fragment_duration = self.get_sample_duration()
+        end_time = round(start_time + fragment_duration, 1)
+
         return end_time
 
-    def prepare_sample3(self, video_fragment):
+    def get_sample_duration(self):
+        duration_range_start = self.sample_duration_range[0]
+        duration_range_end = self.sample_duration_range[1]
+
+        fragment_duration = round(random.uniform(duration_range_start, duration_range_end), 1)
+        return fragment_duration
+
+    def prepare_sample3(self, input_data):
         crops = tuple()
         for idx, num_crop in enumerate(self.num_crops):
             for _ in range(num_crop):
-                transformed_video_fragment = multi_crop.tie_together(video_fragment,
+                transformed_video_fragment = multi_crop.tie_together(input_data,
                                                                      self.min_scale[idx],
                                                                      self.max_scale[idx],
                                                                      self.crop_sizes[idx])

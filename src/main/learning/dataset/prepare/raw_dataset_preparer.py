@@ -16,7 +16,8 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
     def prepare_dataset(self, dataset_path, batch_size):
         video_path_list, chunk_start_list, chunk_end_list = self.get_raw_file_list2(dataset_path)
-        gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
+        # gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
+        gen_out_signature = tf.TensorArraySpec(element_shape=(None, None, 3), dtype=tf.uint8, dynamic_size=True, infer_shape=False)
         dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self.data_generator2,
                                                                   args=[video_path_list, chunk_start_list, chunk_end_list],
                                                                   output_signature=gen_out_signature)

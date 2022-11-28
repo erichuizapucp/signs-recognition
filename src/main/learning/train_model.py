@@ -48,6 +48,7 @@ def get_cmd_args():
     parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
     parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
     parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])
+    parser.add_argument('--sample_duration_range', type=float, help='', nargs='+', default=[0.5, 1.0])
 
     # SwAV models specific arguments
     parser.add_argument('--temperature', type=float, help='SwAV temperature', nargs='+', default=0.1)
@@ -114,7 +115,8 @@ def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
                                           crop_sizes=kwargs['crop_sizes'],
                                           num_crops=kwargs['num_crops'],
                                           min_scale=kwargs['min_scale'],
-                                          max_scale=kwargs['max_scale'])
+                                          max_scale=kwargs['max_scale'],
+                                          sample_duration_range=kwargs['sample_duration_range'])
     }
     data_preparer = data_preparers[model_name]()
 
@@ -235,7 +237,8 @@ def main():
                                      crop_sizes=args.crop_sizes,
                                      num_crops=args.num_crops,
                                      min_scale=args.min_scale,
-                                     max_scale=args.max_scale)
+                                     max_scale=args.max_scale,
+                                     sample_duration_range=args.sample_duration_range)
 
         dataset = get_distributed_dataset(distribute_strategy, get_dataset_fn) if args.mirrored_training else get_dataset_fn()
         optimizer = get_distributed_optimizer(distribute_strategy, executor.get_optimizer, args.no_epochs, args.no_steps) \

@@ -18,6 +18,24 @@ high_res_multicrop_frame_mock = tf.random.uniform(shape=[224, 224, 3], maxval=1,
 low_res_multicrop_frame_mock = tf.random.uniform(shape=[96, 96, 3], maxval=1, dtype=tf.float32)
 
 
+video_path_list = ['fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-02-session-01-part-01-00.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-24-sesion-01-part-03.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                   'fixtures/consultant-12-sesion-01-part-02-section-02.mp4']
+chunk_start_list = [30.0, 80.0, 100.0, 110.0, 0.0, 10.0, 20.0, 60.0, 50.0, 0.0, 90.0, 0.0, 40.0, 70.0]
+chunk_end_list = [40.0, 90.0, 110.0, 125.64, 10.0, 20.0, 30.0, 70.0, 60.0, 6.006, 100.0, 5.005, 50.0, 80.0]
+
+
 def mock_cv2_cvt_color(frame, param):
     return video_frame_mock
 
@@ -49,6 +67,11 @@ def get_sample_mock(sample_path):
             index = index + 1
 
     return mock_sample
+
+
+def extract_sample_some_invalid(video_path, start_time, end_time):
+    return (True, get_sample_mock('fixtures/extracted_person_sample/')) \
+        if video_path == 'fixtures/consultant-12-sesion-01-part-02-section-02.mp4' else (False, None)
 
 
 def mock_multicrop_tie_together(video_fragment, min_scale, max_scale, crop_size):

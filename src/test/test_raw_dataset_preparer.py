@@ -24,5 +24,10 @@ class TestRawDatasetPreparer(unittest.TestCase):
         self.assertGreater(len(chunk_start_list), 0)
         self.assertGreater(len(chunk_end_list), 0)
 
-    def test_prepare_dataset(self):
-        pass
+        assert len(video_path_list) == len(chunk_start_list) == len(chunk_end_list)
+        assert len(list(filter(lambda x: x == 'fixtures/consultant-12-sesion-01-part-02-section-02.mp4',
+                               video_path_list))) == 12
+        assert len(list(filter(lambda x: x == 'fixtures/consultant-02-session-01-part-01-00.mp4',
+                               video_path_list))) == 1
+        assert len(list(filter(lambda x: x == 'fixtures/consultant-24-sesion-01-part-03.mp4',
+                               video_path_list))) == 1

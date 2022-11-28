@@ -1,9 +1,8 @@
 import tensorflow as tf
 
 
-def tie_together(video_fragment: tf.TensorArray, min_scale, max_scale, crop_size):
+def tie_together(video_fragment, min_scale, max_scale, crop_size):
     multi_cropped_sample = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=True)
-
     no_frames = video_fragment.size()
     current_frame_index = 0
     while current_frame_index < no_frames:
@@ -20,7 +19,7 @@ def tie_together(video_fragment: tf.TensorArray, min_scale, max_scale, crop_size
         multi_cropped_sample = multi_cropped_sample.write(current_frame_index, current_frame)
         current_frame_index += 1
 
-    return multi_cropped_sample
+    return multi_cropped_sample.stack()
 
 
 def random_resize_crop(frame, index, min_scale, max_scale, crop_size):

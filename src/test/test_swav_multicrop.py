@@ -141,12 +141,9 @@ class TestSwAVMultiCrop(unittest.TestCase):
         multi_cropped_sample = multi_crop.tie_together(self.mock_sample, self.min_scale_high_res,
                                                        self.max_scale_high_res, self.crop_size_high_res)
 
-        assert multi_cropped_sample.size() > 0
-        assert multi_cropped_sample.size() == 60
-        assert multi_cropped_sample.element_shape == (224, 224, 3)
+        assert multi_cropped_sample.shape == (60, 224, 224, 3)
 
-        # frames = multi_cropped_sample.stack()
-        # for index, frame in enumerate(frames):
+        # for index, frame in enumerate(multi_cropped_sample):
         #     file_name = 'fixtures/high_res_multicrop_sample/frame_{}.jpg'.format(index)
         #     tf.io.write_file(file_name, tf.image.encode_jpeg(tf.image.convert_image_dtype(frame, tf.uint8)))
 
@@ -154,12 +151,9 @@ class TestSwAVMultiCrop(unittest.TestCase):
         multi_cropped_sample = multi_crop.tie_together(self.mock_sample, self.min_scale_low_res,
                                                        self.max_scale_low_res, self.crop_size_low_res)
 
-        assert multi_cropped_sample.size() > 0
-        assert multi_cropped_sample.size() == 60
-        assert multi_cropped_sample.element_shape == (96, 96, 3)
+        assert multi_cropped_sample.shape == (60, 96, 96, 3)
 
-        # frames = multi_cropped_sample.stack()
-        # for index, frame in enumerate(frames):
+        # for index, frame in enumerate(multi_cropped_sample):
         #     file_name = 'fixtures/low_res_multicrop_sample/frame_{}.jpg'.format(index)
         #     tf.io.write_file(file_name, tf.image.encode_jpeg(tf.image.convert_image_dtype(frame, tf.uint8)))
 

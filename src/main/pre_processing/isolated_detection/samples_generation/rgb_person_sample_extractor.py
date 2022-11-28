@@ -28,13 +28,15 @@ class RGBPersonSamplesExtractor(SamplesExtractor):
         if not is_bounding_box_detected:
             return False, None
 
+        idx = 0
         while frame_no < end_frame_no and is_frame_captured:
             is_person_detected, person_crop = self.extract_person_from_frame(frame, bounding_box)
             if is_person_detected:
                 person_crop = tf.cast(person_crop, dtype=tf.uint8)
-                extracted_frames = extracted_frames.write(frame_no, person_crop)
+                extracted_frames = extracted_frames.write(idx, person_crop)
 
             frame_no += 1
+            idx += 1
             is_frame_captured, frame = video_capture.read()
             if is_frame_captured:
                 frame = cv2.cvtColor(frame, cv2.cv2.COLOR_BGR2RGB)
@@ -73,11 +75,8 @@ class RGBPersonSamplesExtractor(SamplesExtractor):
         return detections['detection_boxes'], detections['detection_classes'], detections['detection_scores']
 
     def extract_person_from_frame(self, image, detection_box):
-        if not image.shape == (720, 1280, 3):
-            return False, None
-
-        frame_width = 1280
-        frame_height = 720
+        frame_width = image.shape[1]
+        frame_height = image.shape[0]
 
         output_width = 448  # standard image width (ensuring 3X 224 crops horizontally)
         output_height = 672  # standard image height (ensuring 2X 224 crops vertically)
