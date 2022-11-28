@@ -5,7 +5,7 @@ export WORK_DIR=$(echo "$PWD")
 export PYTHONPATH="${PYTHONPATH}:${WORK_DIR}/src/main"
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 export TF_CPP_MIN_LOG_LEVEL=2
-#export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 SCRIPT_PATH='src/main/learning/train_model.py'
 MODEL='swav'
