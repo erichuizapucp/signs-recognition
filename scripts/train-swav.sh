@@ -19,7 +19,6 @@ python $SCRIPT_PATH \
         --model $MODEL \
         --train_dataset_path $TRAIN_DATASET_PATH \
         --batch_size $BATCH_SIZE \
-        --detect_person \
         --person_detection_model_name $PERSON_DETECTION_MODEL_NAME \
         --person_detection_checkout_prefix $PERSON_DETECTION_CHECKOUT_PREFIX \
         --mirrored_training \

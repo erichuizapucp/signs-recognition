@@ -52,11 +52,11 @@ def get_cmd_args():
 
     # SwAV models specific arguments
     parser.add_argument('--temperature', type=float, help='SwAV temperature', nargs='+', default=0.1)
-    parser.add_argument('--no_projection_1_neurons', type=int, help='Dense Layer 1 inputs size', default=896)
-    parser.add_argument('--no_projection_2_neurons', type=int, help='Dense Layer 2 inputs size', default=768)
-    parser.add_argument('--prototype_vector_dim', type=int, help='Prototype vector size', default=512)
-    parser.add_argument('--lstm_cells', type=int, help='Number of LSTM cells', default=512)
-    parser.add_argument('--embedding_size', type=int, help='Embedding size', default=1024)
+    parser.add_argument('--no_projection_1_neurons', type=int, help='Dense Layer 1 inputs size', default=256)
+    parser.add_argument('--no_projection_2_neurons', type=int, help='Dense Layer 2 inputs size', default=128)
+    parser.add_argument('--prototype_vector_dim', type=int, help='Prototype vector size', default=64)
+    parser.add_argument('--lstm_cells', type=int, help='Number of LSTM cells', default=256)
+    parser.add_argument('--embedding_size', type=int, help='Embedding size', default=512)
     parser.add_argument('--l2_regularization_epsilon', type=float, help='L2 regularization epsilon', default=0.05)
 
     # Mirrored training arguments

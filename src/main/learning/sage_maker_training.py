@@ -23,9 +23,8 @@ ecr_image = '{}.dkr.ecr.{}.amazonaws.com/{}:latest'.format(account, region, algo
 role = os.getenv('SAGEMAKER_ROLE')
 
 hyper_parameters = {
-    'detect_person': False,
     'mirrored_training': True,
-    'batch_size': 4,
+    'batch_size': 2,
     'no_replicas': 4,
     'no_epochs': 20,
     'no_steps': 1000,
