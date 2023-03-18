@@ -2,7 +2,8 @@ import os
 import tensorflow as tf
 import logging
 
-from learning.common.features import IMAGE_RAW, FRAMES_SEQ, LABEL
+from learning.common import features
+from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV
 
 
 class TFRecordUtility:
@@ -13,8 +14,8 @@ class TFRecordUtility:
 
     def serialize_opticalflow_sample(self, image_raw, label):
         feature = {
-            IMAGE_RAW: self.__bytes_feature(image_raw),
-            LABEL: self.__array_float_feature(label),
+            features.IMAGE_RAW: self.__bytes_feature(image_raw),
+            features.LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -22,8 +23,8 @@ class TFRecordUtility:
 
     def serialize_rgb_sample(self, rgb_frames, label):
         feature = {
-            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            LABEL: self.__array_float_feature(label),
+            features.FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
+            features.LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -31,58 +32,100 @@ class TFRecordUtility:
 
     def serialize_combined_sample(self, image_raw, rgb_frames, label):
         feature = {
-            IMAGE_RAW: self.__bytes_feature(image_raw),
-            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            LABEL: self.__array_float_feature(label),
+            features.IMAGE_RAW: self.__bytes_feature(image_raw),
+            features.FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
+            features.LABEL: self.__array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
+    def serialize_swav_sample(self, multicrop_crop_seqs):
+        high_res_frames_seq_1 = multicrop_crop_seqs[0]  # 224x224
+        high_res_frames_seq_2 = multicrop_crop_seqs[1]  # 224x224
+        low_res_frames_seq_1 = multicrop_crop_seqs[2]   # 96x96
+        low_res_frames_seq_2 = multicrop_crop_seqs[3]   # 96x96
+        low_res_frames_seq_3 = multicrop_crop_seqs[4]   # 96x96
+
+        feature = {
+            features.HIGH_RES_FRAMES_SEQ_1: self.__array_bytes_feature(high_res_frames_seq_1),
+            features.HIGH_RES_FRAMES_SEQ_2: self.__array_bytes_feature(high_res_frames_seq_2),
+            features.LOW_RES_FRAMES_SEQ_1: self.__array_bytes_feature(low_res_frames_seq_1),
+            features.LOW_RES_FRAMES_SEQ_2: self.__array_bytes_feature(low_res_frames_seq_2),
+            features.LOW_RES_FRAMES_SEQ_3: self.__array_bytes_feature(low_res_frames_seq_3),
+        }
+
+        example_proto = tf.train.Example(features=tf.train.Feature(feature=feature))
+        return example_proto.SerializeToString()
+
     @staticmethod
     def parse_opticalflow_dict_sample(sample):
         feature_description = {
-            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            LABEL: tf.io.VarLenFeature(tf.float32),
+            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.LABEL: tf.io.VarLenFeature(tf.float32),
         }
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[IMAGE_RAW]
-        label = tf.sparse.to_dense(feature[LABEL])
+        image_raw = feature[features.IMAGE_RAW]
+        label = tf.sparse.to_dense(feature[features.LABEL])
 
         return image_raw, label
 
     @staticmethod
     def parse_rgb_dict_sample(sample):
         feature_description = {
-            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            LABEL: tf.io.VarLenFeature(tf.float32),
+            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+            features.LABEL: tf.io.VarLenFeature(tf.float32),
         }
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[LABEL])
+        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
+        label = tf.sparse.to_dense(feature[features.LABEL])
 
         return dense_frames_seq, label
 
     @staticmethod
     def parse_combined_dict_sample(sample):
         feature_description = {
-            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            LABEL: tf.io.VarLenFeature(tf.float32),
+            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+            features.LABEL: tf.io.VarLenFeature(tf.float32),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[IMAGE_RAW]
-        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[LABEL])
+        image_raw = feature[features.IMAGE_RAW]
+        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
+        label = tf.sparse.to_dense(feature[features.LABEL])
 
         return image_raw, dense_frames_seq, label
 
-    def serialize_dataset(self, dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float,
-                          sample_serialization_func=serialize_combined_sample):
+    @staticmethod
+    def parse_swav_dict_sample(sample):
+        feature_description = {
+            features.HIGH_RES_FRAMES_SEQ_1: tf.io.VarLenFeature(tf.string),
+            features.HIGH_RES_FRAMES_SEQ_2: tf.io.VarLenFeature(tf.string),
+            features.LOW_RES_FRAMES_SEQ_1: tf.io.VarLenFeature(tf.string),
+            features.LOW_RES_FRAMES_SEQ_2: tf.io.VarLenFeature(tf.string),
+            features.LOW_RES_FRAMES_SEQ_3: tf.io.VarLenFeature(tf.string),
+        }
+        feature = tf.io.parse_single_example(sample, feature_description)
+
+        dense_high_res_seq_1 = tf.sparse.to_dense(feature[features.HIGH_RES_FRAMES_SEQ_1])  # 224x224
+        dense_high_res_seq_2 = tf.sparse.to_dense(feature[features.HIGH_RES_FRAMES_SEQ_2])  # 224x224
+        dense_low_res_seq_1 = tf.sparse.to_dense(feature[features.LOW_RES_FRAMES_SEQ_1])  # 96x96
+        dense_low_res_seq_2 = tf.sparse.to_dense(feature[features.LOW_RES_FRAMES_SEQ_2])  # 96x96
+        dense_low_res_seq_3 = tf.sparse.to_dense(feature[features.LOW_RES_FRAMES_SEQ_3])  # 96x96
+
+        return dense_high_res_seq_1, dense_high_res_seq_2, dense_low_res_seq_1, dense_low_res_seq_2, dense_low_res_seq_3
+
+    def serialize_dataset(self,
+                          dataset_type,
+                          dataset: tf.data.Dataset,
+                          output_dir_path,
+                          output_prefix,
+                          max_size_per_file: float,
+                          sample_serialization_func):
         file_index = 0
         file_size = 0
         output_file_path = self.__handle_split_file_name(output_dir_path, output_prefix, file_index)
@@ -91,7 +134,11 @@ class TFRecordUtility:
         index = 1
 
         for sample in dataset:
-            if len(sample) == 2:
+            if dataset_type == SWAV:
+                feature = sample[0]
+                example = sample_serialization_func(feature)
+                writer.write(example)
+            elif dataset_type in (OPTICAL_FLOW, RGB):
                 feature = sample[0]
                 label = sample[1]
 

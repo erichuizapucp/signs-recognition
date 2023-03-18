@@ -20,7 +20,7 @@ class SerializedDatasetPreparer(BaseDatasetPreparer):
     def prepare_sample2(self, feature1, feature2, label):
         pass
 
-    def _prepare_sample3(self, feature):
+    def prepare_sample3(self, feature):
         raise NotImplementedError('_prepare_sample3 method not implemented.')
 
     def _get_dataset_type(self):

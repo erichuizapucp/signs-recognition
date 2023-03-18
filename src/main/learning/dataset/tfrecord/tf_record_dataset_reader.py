@@ -1,7 +1,7 @@
 import logging
 
 from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
-from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB
+from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB, SWAV
 
 
 class TFRecordDatasetReader:
@@ -24,6 +24,9 @@ class TFRecordDatasetReader:
             RGB:
                 lambda: self.tf_record_util.deserialize_dataset(self.dataset_path,
                                                                 self.tf_record_util.parse_rgb_dict_sample),
+            SWAV:
+                lambda: self.tf_record_util.deserialize_dataset(self.dataset_path,
+                                                                self.tf_record_util.parse_swav_dict_sample),
         }
 
         if self.dataset_type in read_tfrecord_operations:

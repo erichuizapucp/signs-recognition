@@ -35,7 +35,7 @@ def get_cmd_args():
     parser.add_argument('--no_epochs', type=int, help='Number of epochs', default=20)
     parser.add_argument('--no_steps', type=int, help='Number of steps per epoch', default=1000)
     parser.add_argument('--batch_size', type=int, help='Dataset batch size', default=3)
-    parser.add_argument('--start_learning_rate', type=float, help='Start Learning Rate', default=4.8)
+    parser.add_argument('--start_learning_rate', type=float, help='Start Learning Rate', default=0.1)
     parser.add_argument('--end_learning_rate', type=float, help='End Learning Rate', default=0.0001)
     parser.add_argument('--momentum', type=float, help='Momentum', default=0.9)
     parser.add_argument('--clip_value', type=float, help='Clip Value', default=0.25)
@@ -48,7 +48,7 @@ def get_cmd_args():
     parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
     parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
     parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])
-    parser.add_argument('--sample_duration_range', type=float, help='', nargs='+', default=[0.5, 1.0])
+    parser.add_argument('--sample_duration_range', type=float, help='', nargs='+', default=[0.3, 0.5])
 
     # SwAV models specific arguments
     parser.add_argument('--temperature', type=float, help='SwAV temperature', nargs='+', default=0.1)

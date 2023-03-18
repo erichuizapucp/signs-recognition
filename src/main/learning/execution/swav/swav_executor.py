@@ -44,6 +44,7 @@ class SwAVExecutor(BaseModelExecutor):
                 self.training_logger.info('SwAV Training started with: no_epochs: %s', no_epochs)
 
                 callback.on_train_begin()
+
                 for epoch in range(no_epochs):
                     callback.on_epoch_begin(epoch=epoch)
                     w = self.prototype_projection_model.get_layer('prototype').get_weights()
@@ -51,14 +52,13 @@ class SwAVExecutor(BaseModelExecutor):
                     w = tf.math.l2_normalize(w, axis=1)
                     self.prototype_projection_model.get_layer('prototype').set_weights(tf.transpose(w))
 
-                    for step_index, inputs in enumerate(dataset):
+                    iter_dataset = iter(dataset)
+                    for step_index in range(no_steps_per_epoch):
+                        inputs = next(iter_dataset)
                         loss = train_step_fn(inputs)
                         step_wise_loss.append(loss)
 
                         self.training_logger.debug('training step: {}, step_loss: {:.4f};'.format(step_index + 1, loss))
-
-                        if no_steps_per_epoch is not None and 0 < no_steps_per_epoch <= step_index + 1:
-                            break
 
                     epoch_loss = np.mean(step_wise_loss)
                     epoch_wise_loss.append(epoch_loss)
@@ -209,7 +209,7 @@ class SwAVExecutor(BaseModelExecutor):
             decay_rate=learning_rate_decay_factor,
             staircase=True)
 
-        return tf.keras.optimizers.SGD(learning_rate=lr_schedule, momentum=self.momentum, clipvalue=self.clip_value)
+        return tf.keras.optimizers.legacy.SGD(learning_rate=lr_schedule, momentum=self.momentum, clipvalue=self.clip_value)
 
     def configure(self, models):
         print('SwAV does not require a configure method.')

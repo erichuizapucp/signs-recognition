@@ -4,37 +4,53 @@ import logging
 import numpy as np
 
 from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
-from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB
+from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB, SWAV
 from learning.common.labels import SIGNS_CLASSES
 from pathlib import Path
+from learning.train_model import get_dataset
 
 
 class TFRecordDatasetCreator:
-    def __init__(self, dataset_type, raw_files_path, shuffle_buffer_size):
+    def __init__(self, dataset_type, raw_files_path):
         self.logger = logging.getLogger(__name__)
 
         self.dataset_type = dataset_type
         self.raw_files_path = raw_files_path
-        self.shuffle_buffer_size = shuffle_buffer_size
 
         self.tf_record_util = TFRecordUtility()
 
-    def create(self, output_dir_path, output_prefix, output_max_size):
-        raw_dataset = self.__get_raw_dataset(self.raw_files_path, self.dataset_type, self.shuffle_buffer_size)
+    def create(self, output_dir_path, output_prefix, output_max_size, **kwargs):
+        raw_dataset = self.__get_raw_dataset(self.raw_files_path, self.dataset_type, **kwargs)
 
         create_tfrecord_operations = {
             COMBINED:
-                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
+                lambda: self.tf_record_util.serialize_dataset(COMBINED,
+                                                              raw_dataset,
+                                                              output_dir_path,
+                                                              output_prefix,
                                                               output_max_size,
                                                               self.tf_record_util.serialize_combined_sample),
             OPTICAL_FLOW:
-                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
+                lambda: self.tf_record_util.serialize_dataset(OPTICAL_FLOW,
+                                                              raw_dataset,
+                                                              output_dir_path,
+                                                              output_prefix,
                                                               output_max_size,
                                                               self.tf_record_util.serialize_opticalflow_sample),
             RGB:
-                lambda: self.tf_record_util.serialize_dataset(raw_dataset, output_dir_path, output_prefix,
+                lambda: self.tf_record_util.serialize_dataset(RGB,
+                                                              raw_dataset,
+                                                              output_dir_path,
+                                                              output_prefix,
                                                               output_max_size,
                                                               self.tf_record_util.serialize_rgb_sample),
+            SWAV:
+                lambda: self.tf_record_util.serialize_dataset(SWAV,
+                                                              raw_dataset,
+                                                              output_dir_path,
+                                                              output_prefix,
+                                                              output_max_size,
+                                                              self.tf_record_util.serialize_swav_sample),
         }
 
         if self.dataset_type in create_tfrecord_operations:
@@ -43,19 +59,33 @@ class TFRecordDatasetCreator:
         else:
             raise ValueError('Unrecognized operation "{}"'.format(self.dataset_type))
 
-    def __get_raw_dataset(self, raw_dataset_path, dataset_type, shuffle_buffer_size):
+    def __get_raw_dataset(self, raw_dataset_path, dataset_type, **kwargs):
         build_dataset_operations = {
-            COMBINED: lambda: self.__build_raw_dataset(raw_dataset_path, shuffle_buffer_size,
+            COMBINED: lambda: self.__build_raw_dataset(raw_dataset_path,
+                                                       kwargs['shuffle_buffer_size'],
                                                        self.__get_raw_combined_list,
                                                        self.__tf_get_combined_sample),
 
-            OPTICAL_FLOW: lambda: self.__build_raw_dataset(raw_dataset_path, shuffle_buffer_size,
+            OPTICAL_FLOW: lambda: self.__build_raw_dataset(raw_dataset_path,
+                                                           kwargs['shuffle_buffer_size'],
                                                            self.__get_raw_opticalflow_list,
                                                            self.__tf_get_opticalflow_sample),
 
-            RGB: lambda: self.__build_raw_dataset(raw_dataset_path, shuffle_buffer_size,
+            RGB: lambda: self.__build_raw_dataset(raw_dataset_path,
+                                                  kwargs['shuffle_buffer_size'],
                                                   self.__get_raw_rgb_list,
                                                   self.__tf_get_rgb_sample),
+
+            SWAV: lambda: get_dataset(SWAV,
+                                      raw_dataset_path,
+                                      batch_size=kwargs['batch_size'],
+                                      person_detection_model_name=kwargs['person_detection_model_name'],
+                                      person_detection_checkout_prefix=kwargs['person_detection_checkout_prefix'],
+                                      crop_sizes=kwargs['crop_sizes'],
+                                      num_crops=kwargs['num_crops'],
+                                      min_scale=kwargs['min_scale'],
+                                      max_scale=kwargs['max_scale'],
+                                      sample_duration_range=kwargs['sample_duration_range']),
         }
 
         if dataset_type in build_dataset_operations:
