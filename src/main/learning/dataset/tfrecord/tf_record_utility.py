@@ -8,6 +8,7 @@ from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV
 
 class TFRecordUtility:
     def __init__(self):
+        self.tf_record_opts = tf.io.TFRecordOptions(compression_type='ZLIB', compression_level=9)
         self.compression_type = 'ZLIB'
         self.max_file_length_size = 1048576  # 100MB
         self.logger = logging.getLogger(__name__)
@@ -41,21 +42,22 @@ class TFRecordUtility:
         return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
     def serialize_swav_sample(self, multicrop_crop_seqs):
-        high_res_frames_seq_1 = multicrop_crop_seqs[0]  # 224x224
-        high_res_frames_seq_2 = multicrop_crop_seqs[1]  # 224x224
-        low_res_frames_seq_1 = multicrop_crop_seqs[2]   # 96x96
-        low_res_frames_seq_2 = multicrop_crop_seqs[3]   # 96x96
-        low_res_frames_seq_3 = multicrop_crop_seqs[4]   # 96x96
+        high_res_frames_seq_1 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[0], axis=0), tf.uint8)  # 224x224
+        high_res_frames_seq_2 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[1], axis=0), tf.uint8)  # 224x224
+        low_res_frames_seq_1 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[2], axis=0), tf.uint8)   # 96x96
+        low_res_frames_seq_2 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[3], axis=0), tf.uint8)   # 96x96
+        low_res_frames_seq_3 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[4], axis=0), tf.uint8)  # 96x96
 
         feature = {
-            features.HIGH_RES_FRAMES_SEQ_1: self.__array_bytes_feature(high_res_frames_seq_1),
-            features.HIGH_RES_FRAMES_SEQ_2: self.__array_bytes_feature(high_res_frames_seq_2),
-            features.LOW_RES_FRAMES_SEQ_1: self.__array_bytes_feature(low_res_frames_seq_1),
-            features.LOW_RES_FRAMES_SEQ_2: self.__array_bytes_feature(low_res_frames_seq_2),
-            features.LOW_RES_FRAMES_SEQ_3: self.__array_bytes_feature(low_res_frames_seq_3),
+            features.HIGH_RES_FRAMES_SEQ_1: self.__bytes_feature(tf.io.serialize_tensor(high_res_frames_seq_1)),
+            features.HIGH_RES_FRAMES_SEQ_2: self.__bytes_feature(tf.io.serialize_tensor(high_res_frames_seq_2)),
+            features.LOW_RES_FRAMES_SEQ_1: self.__bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_1)),
+            features.LOW_RES_FRAMES_SEQ_2: self.__bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_2)),
+            features.LOW_RES_FRAMES_SEQ_3: self.__bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_3)),
+            features.NO_FRAMES: self.__int64_feature(high_res_frames_seq_1.shape[0])
         }
 
-        example_proto = tf.train.Example(features=tf.train.Feature(feature=feature))
+        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()
 
     @staticmethod
@@ -121,7 +123,7 @@ class TFRecordUtility:
 
     def serialize_dataset(self,
                           dataset_type,
-                          dataset: tf.data.Dataset,
+                          dataset,
                           output_dir_path,
                           output_prefix,
                           max_size_per_file: float,
@@ -130,13 +132,12 @@ class TFRecordUtility:
         file_size = 0
         output_file_path = self.__handle_split_file_name(output_dir_path, output_prefix, file_index)
 
-        writer = tf.io.TFRecordWriter(output_file_path, options=self.compression_type)
+        writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
         index = 1
 
         for sample in dataset:
             if dataset_type == SWAV:
-                feature = sample[0]
-                example = sample_serialization_func(feature)
+                example = sample_serialization_func(sample)
                 writer.write(example)
             elif dataset_type in (OPTICAL_FLOW, RGB):
                 feature = sample[0]
@@ -162,7 +163,7 @@ class TFRecordUtility:
 
                 file_index = file_index + 1
                 output_file_path = self.__handle_split_file_name(output_dir_path, output_prefix, file_index)
-                writer = tf.io.TFRecordWriter(output_file_path, options=self.compression_type)
+                writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
 
                 self.logger.debug('TFRecord file %s created.', output_file_path)
                 file_size = 0
@@ -208,7 +209,7 @@ class TFRecordUtility:
 
     @staticmethod
     def __array_float_feature(value):
-        return tf.train.Feature(float_list=tf.train.FloatList(value=value.numpy()))
+        return tf.train.Feature(float_list=tf.train.FloatList(value=tf.reshape(value, -1)))
 
     @staticmethod
     def __int64_feature(value):

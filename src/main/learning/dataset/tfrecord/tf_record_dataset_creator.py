@@ -85,7 +85,7 @@ class TFRecordDatasetCreator:
                                       num_crops=kwargs['num_crops'],
                                       min_scale=kwargs['min_scale'],
                                       max_scale=kwargs['max_scale'],
-                                      sample_duration_range=kwargs['sample_duration_range']),
+                                      sample_duration_range=kwargs['sample_duration_range'])(),
         }
 
         if dataset_type in build_dataset_operations:

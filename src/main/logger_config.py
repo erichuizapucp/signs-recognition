@@ -15,9 +15,10 @@ def setup_logging(working_folder, config_file_name, default_level=logging.INFO):
                 core_log_file_path = os.path.join(working_folder, config['handlers']['core_file_handler']['filename'])
                 config['handlers']['core_file_handler']['filename'] = core_log_file_path
 
-                training_log_file_path = os.path.join(working_folder,
-                                                      config['handlers']['training_file_handler']['filename'])
-                config['handlers']['training_file_handler']['filename'] = training_log_file_path
+                if 'training_file_handler' in config['handlers']:
+                    training_log_file_path = os.path.join(working_folder,
+                                                          config['handlers']['training_file_handler']['filename'])
+                    config['handlers']['training_file_handler']['filename'] = training_log_file_path
 
                 logging.config.dictConfig(config)
             except Exception as e:
