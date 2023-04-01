@@ -24,7 +24,7 @@ class OpticalflowDatasetPreparer(SerializedDatasetPreparer):
         return self.prepare_train_dataset(batch_size)
 
     def prepare_sample(self, opticalflow_sample, label):
-        transformed_img = self._transform_image(opticalflow_sample)
+        transformed_img = self.transform_image(opticalflow_sample)
         return transformed_img, label
 
     def prepare_sample2(self, feature1, feature2, label):
@@ -36,5 +36,5 @@ class OpticalflowDatasetPreparer(SerializedDatasetPreparer):
     def transform_feature_for_predict(self, **kwargs):
         raise NotImplementedError('This method is not supported for the Opticalflow dataset')
 
-    def _get_dataset_type(self):
+    def get_dataset_type(self):
         return OPTICAL_FLOW

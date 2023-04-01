@@ -28,15 +28,15 @@ class CombinedDatasetPreparer(SerializedDatasetPreparer):
         raise NotImplementedError('This method is not supported for the Combined dataset')
 
     def prepare_sample2(self, opticalflow_sample, rgb_sample, label):
-        transformed_img = self._transform_image(opticalflow_sample)
-        transformed_frames_seq = tf.py_function(self._py_transform_frame_seq, [rgb_sample], tf.float32)
+        transformed_img = self.transform_image(opticalflow_sample)
+        transformed_frames_seq = tf.py_function(self.py_transform_frame_seq, [rgb_sample], tf.float32)
 
         return transformed_img, transformed_frames_seq, label
 
     def _prepare_sample3(self, feature):
         raise NotImplementedError('This method is not supported for the Combined dataset')
 
-    def _get_dataset_type(self):
+    def get_dataset_type(self):
         return COMBINED
 
     def transform_feature_for_predict(self, **kwargs):
@@ -44,9 +44,9 @@ class CombinedDatasetPreparer(SerializedDatasetPreparer):
         rgb_feature = kwargs['RGBFeature']
 
         # add one dimension that is required by models e.g. 224x224x3 to 1x224x224x3
-        transformed_img = tf.expand_dims(self._transform_decoded_image(opticalflow_feature), axis=0)
+        transformed_img = tf.expand_dims(self.transform_decoded_image(opticalflow_feature), axis=0)
 
         # add one dimension that is required by models e.g. 1x14x150528
-        transformed_frames_seq = tf.expand_dims(self._py_transform_decoded_frame_seq(rgb_feature), axis=0)
+        transformed_frames_seq = tf.expand_dims(self.py_transform_decoded_frame_seq(rgb_feature), axis=0)
 
         return transformed_img, transformed_frames_seq

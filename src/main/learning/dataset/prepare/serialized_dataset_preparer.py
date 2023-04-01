@@ -7,7 +7,7 @@ class SerializedDatasetPreparer(BaseDatasetPreparer):
         super().__init__(train_dataset_path, test_dataset_path)
 
     def prepare_dataset(self, dataset_path, batch_size):
-        dataset_reader = TFRecordDatasetReader(self._get_dataset_type(), dataset_path)
+        dataset_reader = TFRecordDatasetReader(self.get_dataset_type(), dataset_path)
         dataset = dataset_reader.read()
         if batch_size:
             dataset = dataset.batch(batch_size)
@@ -23,7 +23,7 @@ class SerializedDatasetPreparer(BaseDatasetPreparer):
     def prepare_sample3(self, feature):
         raise NotImplementedError('_prepare_sample3 method not implemented.')
 
-    def _get_dataset_type(self):
+    def get_dataset_type(self):
         raise NotImplementedError('_get_dataset_type method not implemented.')
 
     def transform_feature_for_predict(self):

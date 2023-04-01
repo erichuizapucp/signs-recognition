@@ -29,9 +29,6 @@ def get_cmd_args():
 
     # SwAV specific arguments
     parser.add_argument('--num_crops', type=int, help='SwAV number of multi-crops', nargs='+', default=[2, 3])
-    parser.add_argument('--crops_for_assign', type=int, help='SwAV crops for assign', nargs='+', default=[0, 1])
-    parser.add_argument('--crop_sizes_list', type=int, help='SwAV crop sizes list', nargs='+',
-                        default=[224, 224, 96, 96, 96])
     parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
     parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
     parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])

@@ -14,11 +14,10 @@ from learning.execution.swav.swav_executor import SwAVExecutor
 from learning.dataset.prepare.legacy.rgb_dataset_preparer import RGBDatasetPreparer
 from learning.dataset.prepare.legacy.opticalflow_dataset_preparer import OpticalflowDatasetPreparer
 from learning.dataset.prepare.legacy.combined_dataset_preparer import CombinedDatasetPreparer
-from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
+from learning.dataset.prepare.swav.serialized_swav_video_dataset_preparer import SerializedSwAVDatasetPreparer
 
 from learning.model import models
 from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV
-from learning.common.model_utility import ModelUtility
 
 
 def get_cmd_args():
@@ -45,10 +44,6 @@ def get_cmd_args():
     parser.add_argument('--crops_for_assign', type=int, help='SwAV crops for assign', nargs='+', default=[0, 1])
     parser.add_argument('--crop_sizes_list', type=int, help='SwAV crop sizes list', nargs='+',
                         default=[224, 224, 96, 96, 96])
-    parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
-    parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
-    parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])
-    parser.add_argument('--sample_duration_range', type=float, help='', nargs='+', default=[0.3, 0.5])
 
     # SwAV models specific arguments
     parser.add_argument('--temperature', type=float, help='SwAV temperature', nargs='+', default=0.1)
@@ -62,11 +57,6 @@ def get_cmd_args():
     # Mirrored training arguments
     parser.add_argument('--mirrored_training', type=bool, help='Use Mirrored Training', default=False)
     parser.add_argument('--no_replicas', type=int, help='No Replicas', default=4)
-
-    # Person detection arguments
-    parser.add_argument('--person_detection_model_name', help='Person Detection Model Name',
-                        default='centernet_resnet50_v1_fpn_512x512_coco17_tpu-8')
-    parser.add_argument('--person_detection_checkout_prefix', help='Person Detection Checkout Prefix', default='ckpt-0')
 
     return parser.parse_args()
 
@@ -97,26 +87,13 @@ def get_distributed_model(distribute_strategy, get_model_fn):
     return model
 
 
-def get_dataset(model_name, train_dataset_path, batch_size, **kwargs):
-    person_detection_model_name = kwargs['person_detection_model_name']
-    person_detection_checkout_prefix = kwargs['person_detection_checkout_prefix']
-
-    model_utility = ModelUtility()
-    person_detection_model = model_utility.get_object_detection_model(person_detection_model_name,
-                                                                      person_detection_checkout_prefix)
+def get_dataset(model_name, train_dataset_path, batch_size):
     data_preparers = {
         OPTICAL_FLOW: lambda: OpticalflowDatasetPreparer(train_dataset_path, test_dataset_path=None),
         RGB: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=None),
         NSDM: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
         NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        SWAV: lambda: SwAVDatasetPreparer(train_dataset_path,
-                                          test_dataset_path=None,
-                                          person_detection_model=person_detection_model,
-                                          crop_sizes=kwargs['crop_sizes'],
-                                          num_crops=kwargs['num_crops'],
-                                          min_scale=kwargs['min_scale'],
-                                          max_scale=kwargs['max_scale'],
-                                          sample_duration_range=kwargs['sample_duration_range'])
+        SWAV: lambda: SerializedSwAVDatasetPreparer(train_dataset_path, test_dataset_path=None)
     }
     data_preparer = data_preparers[model_name]()
 
@@ -217,8 +194,7 @@ def main():
     args = get_cmd_args()
 
     distribute_strategy = get_distributed_strategy(args.no_replicas, logger) if args.mirrored_training else None
-    batch_size = args.batch_size * \
-        distribute_strategy.num_replicas_in_sync if args.mirrored_training else args.batch_size
+    batch_size = args.batch_size * distribute_strategy.num_replicas_in_sync if args.mirrored_training else args.batch_size
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
@@ -231,32 +207,29 @@ def main():
         # Custom training loops require a distributed dataset to be passed
         get_dataset_fn = get_dataset(args.model,
                                      args.train_dataset_path,
-                                     batch_size,
-                                     person_detection_model_name=args.person_detection_model_name,
-                                     person_detection_checkout_prefix=args.person_detection_checkout_prefix,
-                                     crop_sizes=args.crop_sizes,
-                                     num_crops=args.num_crops,
-                                     min_scale=args.min_scale,
-                                     max_scale=args.max_scale,
-                                     sample_duration_range=args.sample_duration_range)
+                                     batch_size)
 
-        dataset = get_distributed_dataset(distribute_strategy, get_dataset_fn) if args.mirrored_training else get_dataset_fn()
-        optimizer = get_distributed_optimizer(distribute_strategy, executor.get_optimizer, args.no_epochs, args.no_steps) \
-            if args.mirrored_training \
-            else \
-            executor.get_optimizer(args.no_epochs, args.no_steps)
+        dataset = get_distributed_dataset(distribute_strategy,
+                                          get_dataset_fn) if args.mirrored_training else get_dataset_fn()
+
+        optimizer = get_distributed_optimizer(distribute_strategy,
+                                              executor.get_optimizer,
+                                              args.no_epochs,
+                                              args.no_steps) if args.mirrored_training else executor.get_optimizer(args.no_epochs,
+                                                                                                                   args.no_steps)
 
         # callback assignation
-        callback = get_distributed_callback(distribute_strategy, executor.get_callback, args.checkpoint_storage_path, model) \
-            if args.mirrored_training \
-            else \
-            executor.get_callback(args.checkpoint_storage_path, model)
+        callback = get_distributed_callback(distribute_strategy,
+                                            executor.get_callback,
+                                            args.checkpoint_storage_path,
+                                            model) if args.mirrored_training else executor.get_callback(args.checkpoint_storage_path,
+                                                                                                        model)
 
         # training step function assignation
-        train_step_fn = get_distributed_train_step(distribute_strategy, executor.train_step(batch_size, args.batch_size)) \
-            if args.mirrored_training \
-            else \
-            executor.train_step(batch_size, args.batch_size)
+        non_dist_train_step = executor.train_step(batch_size, args.batch_size)
+        train_step_fn = get_distributed_train_step(distribute_strategy,
+                                                   non_dist_train_step) if args.mirrored_training else executor.train_step(batch_size,
+                                                                                                                           args.batch_size)
 
         executor.train_model(model,
                              dataset,

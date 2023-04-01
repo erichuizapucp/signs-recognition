@@ -13,7 +13,7 @@ class TestRGBPersonSamplesExtractor(unittest.TestCase):
 
         self.samples_extractor = RGBPersonSamplesExtractor(detection_model=mocks.person_detection_model_mock)
         self.model_utility = ModelUtility()
-        self.video_path = 'fixtures/consultant-02-session-01-part-01-00.mp4'
+        self.video_path = 'fixtures/raw_videos/consultant-02-session-01-part-01-00.mp4'
         self.person_detection_model_name = 'centernet_resnet50_v1_fpn_512x512_coco17_tpu-8'
         self.person_detection_checkout_prefix = 'ckpt-0'
 

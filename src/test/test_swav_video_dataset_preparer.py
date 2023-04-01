@@ -59,7 +59,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
     def test_data_generator2_some_invalid(self, get_sample_duration_mock, extract_sample_mock):
         sample_mock = mocks.get_sample_mock('fixtures/extracted_person_sample/')
         extract_sample_mock.side_effect = lambda video_path, start_time, end_time: \
-            (True, sample_mock) if video_path == 'fixtures/consultant-12-sesion-01-part-02-section-02.mp4' else (False, None)
+            (True, sample_mock) if video_path == 'fixtures/raw_videos/consultant-12-session-01-part-02-section-02.mp4' else (False, None)
 
         video_path_list = mocks.video_path_list
         chunk_start_list = mocks.chunk_start_list
