@@ -5,8 +5,8 @@ IMAGENET_CONFIG = {
 }
 
 FRAMES_SEQ_CONFIG = {
-    'img_width': 128,
-    'img_height':  128,
+    'img_width': 224,
+    'img_height':  224,
     'rgb_no_channels': 3
 }
 

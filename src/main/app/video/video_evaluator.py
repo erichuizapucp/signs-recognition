@@ -37,8 +37,7 @@ class VideoEvaluator:
         end_time = start_time + self.extract_length
         # extract samples for 1 second samples_generation and move 0.5 seconds through the end of the samples_generation.
         while end_time < video_duration:
-            rgb_sample = rgb_samples_extractor.extract_sample(VideoPath=video_path, StartTime=start_time,
-                                                              EndTime=end_time)
+            rgb_sample = rgb_samples_extractor.extract_sample(video_path, start_time, end_time)
             opticalflow_sample = opticalflow_samples_extractor.extract_sample(RGBSample=rgb_sample)
 
             transformed_input = self.data_preparer.transform_feature_for_predict(OpticalflowFeature=opticalflow_sample,

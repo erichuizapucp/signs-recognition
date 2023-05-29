@@ -15,7 +15,7 @@ class OpticalflowDatasetPreparer(SerializedDatasetPreparer):
         dataset = super().prepare_train_dataset(batch_size=None)
 
         # apply image transformation and data augmentation
-        dataset = dataset.map(self._prepare_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        dataset = dataset.map(self.prepare_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         dataset = dataset.batch(batch_size)
         return dataset
 
@@ -23,11 +23,11 @@ class OpticalflowDatasetPreparer(SerializedDatasetPreparer):
     def prepare_test_dataset(self, batch_size):
         return self.prepare_train_dataset(batch_size)
 
-    def _prepare_sample(self, opticalflow_sample, label):
-        transformed_img = self._transform_image(opticalflow_sample)
+    def prepare_sample(self, opticalflow_sample, label):
+        transformed_img = self.transform_image(opticalflow_sample)
         return transformed_img, label
 
-    def _prepare_sample2(self, feature1, feature2, label):
+    def prepare_sample2(self, feature1, feature2, label):
         raise NotImplementedError('This method is not supported for the Opticalflow dataset')
 
     def _prepare_sample3(self, feature):
@@ -36,5 +36,5 @@ class OpticalflowDatasetPreparer(SerializedDatasetPreparer):
     def transform_feature_for_predict(self, **kwargs):
         raise NotImplementedError('This method is not supported for the Opticalflow dataset')
 
-    def _get_dataset_type(self):
+    def get_dataset_type(self):
         return OPTICAL_FLOW

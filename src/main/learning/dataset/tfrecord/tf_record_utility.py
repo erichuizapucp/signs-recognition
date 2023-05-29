@@ -2,28 +2,30 @@ import os
 import tensorflow as tf
 import logging
 
-from learning.common.features import IMAGE_RAW, FRAMES_SEQ, LABEL
+from learning.common import features
+from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV, NSDMV3
 
 
 class TFRecordUtility:
     def __init__(self):
+        self.tf_record_opts = tf.io.TFRecordOptions(compression_type='ZLIB', compression_level=9)
         self.compression_type = 'ZLIB'
         self.max_file_length_size = 1048576  # 100MB
         self.logger = logging.getLogger(__name__)
 
-    def serialize_opticalflow_sample(self, image_raw, label):
-        feature = {
-            IMAGE_RAW: self.__bytes_feature(image_raw),
-            LABEL: self.__array_float_feature(label),
+        self.swav_feature_description = {
+            features.HIGH_RES_FRAMES_SEQ_1: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.HIGH_RES_FRAMES_SEQ_2: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.LOW_RES_FRAMES_SEQ_1: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.LOW_RES_FRAMES_SEQ_2: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.LOW_RES_FRAMES_SEQ_3: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.NO_FRAMES: tf.io.FixedLenFeature([], dtype=tf.int64),
         }
 
-        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-        return example_proto.SerializeToString()  # TFRecord requires scalar strings
-
-    def serialize_rgb_sample(self, rgb_frames, label):
+    def serialize_opticalflow_sample(self, image_raw, label):
         feature = {
-            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            LABEL: self.__array_float_feature(label),
+            features.IMAGE_RAW: self.bytes_feature(image_raw),
+            features.LABEL: self.array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -31,67 +33,140 @@ class TFRecordUtility:
 
     def serialize_combined_sample(self, image_raw, rgb_frames, label):
         feature = {
-            IMAGE_RAW: self.__bytes_feature(image_raw),
-            FRAMES_SEQ: self.__array_bytes_feature(rgb_frames),
-            LABEL: self.__array_float_feature(label),
+            features.IMAGE_RAW: self.bytes_feature(image_raw),
+            features.FRAMES_SEQ: self.array_bytes_feature(rgb_frames),
+            features.LABEL: self.array_float_feature(label),
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
-    @staticmethod
-    def parse_opticalflow_dict_sample(sample):
+    def serialize_rgb_sample(self, rgb_frames, label):
+        frames_seq = tf.image.convert_image_dtype(rgb_frames, tf.uint8)
+
+        feature = {
+            features.FRAMES_SEQ: self.bytes_feature(tf.io.serialize_tensor(frames_seq)),
+            features.LABEL: self.array_float_feature(label),
+        }
+
+        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+        return example_proto.SerializeToString()  # TFRecord requires scalar strings
+
+    def serialize_nsdmv3_sample(self, rgb_frames, label):
+        return self.serialize_rgb_sample(rgb_frames, label)
+
+    def serialize_swav_sample(self, multicrop_crop_seqs):
+        high_res_frames_seq_1 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[0], axis=0), tf.uint8)  # 224x224
+        high_res_frames_seq_2 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[1], axis=0), tf.uint8)  # 224x224
+        low_res_frames_seq_1 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[2], axis=0), tf.uint8)   # 96x96
+        low_res_frames_seq_2 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[3], axis=0), tf.uint8)   # 96x96
+        low_res_frames_seq_3 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[4], axis=0), tf.uint8)  # 96x96
+
+        feature = {
+            features.HIGH_RES_FRAMES_SEQ_1: self.bytes_feature(tf.io.serialize_tensor(high_res_frames_seq_1)),
+            features.HIGH_RES_FRAMES_SEQ_2: self.bytes_feature(tf.io.serialize_tensor(high_res_frames_seq_2)),
+            features.LOW_RES_FRAMES_SEQ_1: self.bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_1)),
+            features.LOW_RES_FRAMES_SEQ_2: self.bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_2)),
+            features.LOW_RES_FRAMES_SEQ_3: self.bytes_feature(tf.io.serialize_tensor(low_res_frames_seq_3)),
+            features.NO_FRAMES: self.int64_feature(high_res_frames_seq_1.shape[0])
+        }
+
+        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+        return example_proto.SerializeToString()
+
+    @tf.function
+    def parse_opticalflow_dict_sample(self, sample):
         feature_description = {
-            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            LABEL: tf.io.VarLenFeature(tf.float32),
+            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.LABEL: tf.io.VarLenFeature(tf.float32),
         }
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[IMAGE_RAW]
-        label = tf.sparse.to_dense(feature[LABEL])
+        image_raw = feature[features.IMAGE_RAW]
+        label = tf.sparse.to_dense(feature[features.LABEL])
 
         return image_raw, label
 
-    @staticmethod
-    def parse_rgb_dict_sample(sample):
+    @tf.function
+    def parse_combined_dict_sample(self, sample):
         feature_description = {
-            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            LABEL: tf.io.VarLenFeature(tf.float32),
-        }
-        feature = tf.io.parse_single_example(sample, feature_description)
-
-        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[LABEL])
-
-        return dense_frames_seq, label
-
-    @staticmethod
-    def parse_combined_dict_sample(sample):
-        feature_description = {
-            IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
-            FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            LABEL: tf.io.VarLenFeature(tf.float32),
+            features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
+            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
+            features.LABEL: tf.io.VarLenFeature(tf.float32),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
 
-        image_raw = feature[IMAGE_RAW]
-        dense_frames_seq = tf.sparse.to_dense(feature[FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[LABEL])
+        image_raw = feature[features.IMAGE_RAW]
+        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
+        label = tf.sparse.to_dense(feature[features.LABEL])
 
         return image_raw, dense_frames_seq, label
 
-    def serialize_dataset(self, dataset: tf.data.Dataset, output_dir_path, output_prefix, max_size_per_file: float,
-                          sample_serialization_func=serialize_combined_sample):
-        file_index = 0
-        file_size = 0
-        output_file_path = self.__handle_split_file_name(output_dir_path, output_prefix, file_index)
+    @tf.function
+    def parse_rgb_dict_sample(self, sample):
+        feature_description = {
+            features.FRAMES_SEQ: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.LABEL: tf.io.FixedLenFeature(shape=(15,), dtype=tf.float32),
+        }
 
-        writer = tf.io.TFRecordWriter(output_file_path, options=self.compression_type)
+        feature = tf.io.parse_single_example(sample, feature_description)
+
+        frames_seq = tf.io.parse_tensor(feature[features.FRAMES_SEQ], out_type=tf.uint8)
+        frames_seq = tf.ensure_shape(frames_seq, [None, 224, 224, 3])  # Image Net image size
+        frames_seq = tf.image.convert_image_dtype(frames_seq, tf.float32)
+        label = feature[features.LABEL]
+
+        return frames_seq, label
+
+    @tf.function
+    def parse_swav_dict_sample(self, sample):
+        feature = tf.io.parse_single_example(sample, self.swav_feature_description)
+
+        high_res_seq_1 = tf.io.parse_tensor(feature[features.HIGH_RES_FRAMES_SEQ_1], out_type=tf.uint8)  # 224x224
+        high_res_seq_2 = tf.io.parse_tensor(feature[features.HIGH_RES_FRAMES_SEQ_2], out_type=tf.uint8)  # 224x224
+        low_res_seq_1 = tf.io.parse_tensor(feature[features.LOW_RES_FRAMES_SEQ_1], out_type=tf.uint8)  # 96x96
+        low_res_seq_2 = tf.io.parse_tensor(feature[features.LOW_RES_FRAMES_SEQ_2], out_type=tf.uint8)  # 96x96
+        low_res_seq_3 = tf.io.parse_tensor(feature[features.LOW_RES_FRAMES_SEQ_3], out_type=tf.uint8)  # 96x96
+
+        high_res_seq_1 = tf.ensure_shape(high_res_seq_1, [None, 224, 224, 3])
+        high_res_seq_2 = tf.ensure_shape(high_res_seq_2, [None, 224, 224, 3])
+        low_res_seq_1 = tf.ensure_shape(low_res_seq_1, [None, 96, 96, 3])
+        low_res_seq_2 = tf.ensure_shape(low_res_seq_2, [None, 96, 96, 3])
+        low_res_seq_3 = tf.ensure_shape(low_res_seq_3, [None, 96, 96, 3])
+
+        high_res_seq_1 = tf.image.convert_image_dtype(high_res_seq_1, tf.float32)
+        high_res_seq_2 = tf.image.convert_image_dtype(high_res_seq_2, tf.float32)
+        low_res_seq_1 = tf.image.convert_image_dtype(low_res_seq_1, tf.float32)
+        low_res_seq_2 = tf.image.convert_image_dtype(low_res_seq_2, tf.float32)
+        low_res_seq_3 = tf.image.convert_image_dtype(low_res_seq_3, tf.float32)
+
+        return high_res_seq_1, high_res_seq_2, low_res_seq_1, low_res_seq_2, low_res_seq_3
+
+    def serialize_dataset(self,
+                          dataset_type,
+                          dataset,
+                          output_dir_path,
+                          output_prefix,
+                          max_size_per_file: float,
+                          sample_serialization_func):
+        file_index = 0
+        output_file_path = self.handle_split_file_name(output_dir_path, output_prefix, file_index)
+
         index = 1
 
+        writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
+        self.logger.debug('TFRecord file %s created.', output_file_path)
+
         for sample in dataset:
-            if len(sample) == 2:
+            if not os.path.exists(output_file_path):
+                writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
+                self.logger.debug('TFRecord file %s created.', output_file_path)
+
+            if dataset_type == SWAV:
+                example = sample_serialization_func(sample)
+                writer.write(example)
+            elif dataset_type in (OPTICAL_FLOW, RGB, NSDMV3):
                 feature = sample[0]
                 label = sample[1]
 
@@ -107,34 +182,33 @@ class TFRecordUtility:
 
             self.logger.debug('Sample %s serialization process completed.', str(index))
 
-            file_size = file_size + (len(example) / self.max_file_length_size)
+            file_size = os.stat(output_file_path).st_size >> 20
             if file_size > max_size_per_file:
                 self.logger.debug('TFRecord file %s exceed maximum allowed file size %sMB, a new file will be created',
                                   output_file_path, str(max_size_per_file))
                 writer.close()
 
                 file_index = file_index + 1
-                output_file_path = self.__handle_split_file_name(output_dir_path, output_prefix, file_index)
-                writer = tf.io.TFRecordWriter(output_file_path, options=self.compression_type)
-
-                self.logger.debug('TFRecord file %s created.', output_file_path)
-                file_size = 0
+                output_file_path = self.handle_split_file_name(output_dir_path, output_prefix, file_index)
 
             index = index + 1
 
         writer.close()
 
-    def deserialize_dataset(self, tf_records_folder_path, parse_dict_sample_func):
+    def deserialize_dataset(self, tf_records_folder_path, parse_dict_sample_func, batch_size):
         file_pattern = os.path.join(tf_records_folder_path, '*.tfrecord')
         files_dataset = tf.data.Dataset.list_files(file_pattern)
 
         dataset = tf.data.TFRecordDataset(files_dataset, compression_type=self.compression_type)
-        dataset = dataset.map(lambda sample: parse_dict_sample_func(sample))
+        dataset = dataset.map(lambda sample: parse_dict_sample_func(sample), num_parallel_calls=tf.data.AUTOTUNE,
+                              deterministic=False)
+
         return dataset
 
     @staticmethod
-    def __handle_split_file_name(output_dir_path, output_prefix, file_index):
-        output_file_path = os.path.join(output_dir_path, '{}_{}.tfrecord'.format(output_prefix, file_index))
+    def handle_split_file_name(output_dir_path, output_prefix, file_index):
+        output_file_path = os.path.join(output_dir_path,
+                                        '{}_{}.tfrecord'.format(output_prefix, str(file_index).zfill(5)))
         if os.path.exists(output_file_path):
             os.remove(output_file_path)
 
@@ -142,27 +216,27 @@ class TFRecordUtility:
         return output_file_path
 
     @staticmethod
-    def __bytes_feature(value):
+    def bytes_feature(value):
         if isinstance(value, type(tf.constant(0))):
             value = value.numpy()
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
     @staticmethod
-    def __array_bytes_feature(value):
+    def array_bytes_feature(value):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=value.numpy()))
 
     @staticmethod
-    def __array_int64_feature(value):
+    def array_int64_feature(value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=value.numpy()))
 
     @staticmethod
-    def __float_feature(value):
+    def float_feature(value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
     @staticmethod
-    def __array_float_feature(value):
-        return tf.train.Feature(float_list=tf.train.FloatList(value=value.numpy()))
+    def array_float_feature(value):
+        return tf.train.Feature(float_list=tf.train.FloatList(value=tf.reshape(value, -1)))
 
     @staticmethod
-    def __int64_feature(value):
+    def int64_feature(value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))

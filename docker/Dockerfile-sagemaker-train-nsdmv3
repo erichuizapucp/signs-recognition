@@ -1,0 +1,35 @@
+FROM tensorflow/tensorflow:2.11.0-gpu
+
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+RUN apt-get update
+RUN apt install -y protobuf-compiler
+RUN apt install -y git-all
+RUN apt install -y jq
+
+WORKDIR /opt/ml/code
+
+COPY src src
+COPY requirements.txt .
+COPY *.yaml .
+ENV PATH="/opt/ml/code:$PATH"
+
+RUN mkdir -p opt/ml/weights
+COPY weights/swav-04-15-2023/feature-model-weights.40-3.78.hdf5 opt/ml/weights/feature-model-weights.hdf5
+
+RUN python -m pip install -r requirements.txt
+
+RUN mkdir logs
+RUN mkdir ckpt
+RUN mkdir tensorboard_logs
+
+ENV MODEL='nsdmv3'
+ENV TRAIN_DATASET_PATH='/opt/ml/input/data/training'
+ENV MODEL_OUTPUT_PATH='/opt/ml/model'
+ENV CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoints'
+ENV FAILURE_REASON_PATH='/opt/ml/output/failure'
+ENV PARAMS_FILE='/opt/ml/input/config/hyperparameters.json'
+
+COPY scripts/sagemaker-train-nsdmv3.sh train
+RUN chmod +x train

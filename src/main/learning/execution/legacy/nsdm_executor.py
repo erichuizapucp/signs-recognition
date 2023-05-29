@@ -10,17 +10,17 @@ class NSDMExecutor(BaseModelExecutor):
         super().__init__(**kwargs)
         self.logger = logging.getLogger(__name__)
 
-    def _get_train_dataset(self, dataset):
+    def get_train_dataset(self, dataset):
         dataset = dataset.map(self.__map_combined_sample,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         return dataset
 
-    def _get_test_dataset(self, dataset):
+    def get_test_dataset(self, dataset):
         dataset = dataset.map(self.__map_combined_sample,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         return dataset
 
-    def _get_model_type(self):
+    def get_model_type(self):
         return model_type.NSDM
 
     def get_callback(self, checkpoint_storage_path, model):

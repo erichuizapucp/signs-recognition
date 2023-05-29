@@ -14,21 +14,20 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
         self.chunks_duration_in_sec = 10
 
-    def _prepare(self, dataset_path, batch_size):
-        video_path_list, chunk_start_list, chunk_end_list = self._get_raw_file_list2(dataset_path)
-        gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
-        dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self._data_generator2,
-                                                                  args=[video_path_list,
-                                                                        chunk_start_list,
-                                                                        chunk_end_list],
+    def prepare_dataset(self, dataset_path, batch_size):
+        video_path_list, chunk_start_list, chunk_end_list = self.get_raw_file_list2(dataset_path)
+        # gen_out_signature = tf.TensorSpec(shape=(None, None, None, 3), dtype=tf.int32)
+        gen_out_signature = tf.TensorArraySpec(element_shape=(None, None, 3), dtype=tf.uint8, dynamic_size=True, infer_shape=False)
+        dataset: tf.data.Dataset = tf.data.Dataset.from_generator(self.data_generator2,
+                                                                  args=[video_path_list, chunk_start_list, chunk_end_list],
                                                                   output_signature=gen_out_signature)
-        dataset = dataset.map(self._prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
+        dataset = dataset.map(self.prepare_sample3, num_parallel_calls=tf.data.AUTOTUNE, deterministic=False)
         dataset = dataset.padded_batch(batch_size, drop_remainder=True)
 
         return dataset
 
-    def _get_raw_file_list(self, dataset_path):
-        file_types = self._get_raw_file_types()
+    def get_raw_file_list(self, dataset_path):
+        file_types = self.get_raw_file_types()
         raw_file_list = []
 
         for file_type in file_types:
@@ -38,8 +37,8 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
         return raw_file_list
 
-    def _get_raw_file_list2(self, dataset_path):
-        file_types = self._get_raw_file_types()
+    def get_raw_file_list2(self, dataset_path):
+        file_types = self.get_raw_file_types()
         raw_file_list = []
 
         for file_type in file_types:
@@ -74,20 +73,20 @@ class RawDatasetPreparer(BaseDatasetPreparer):
 
         return video_path_list, chunk_start_list, chunk_end_list
 
-    def _prepare_sample(self, feature, label):
+    def prepare_sample(self, feature, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
-    def _prepare_sample2(self, feature1, feature2, label):
+    def prepare_sample2(self, feature1, feature2, label):
         raise NotImplementedError('_prepare_sample2 method not implemented.')
 
-    def _prepare_sample3(self, feature):
+    def prepare_sample3(self, feature):
         raise NotImplementedError('_prepare_sample3 method not implemented.')
 
-    def _get_raw_file_types(self):
+    def get_raw_file_types(self):
         raise NotImplementedError('_get_raw_file_types method not implemented.')
 
-    def _data_generator(self, list_video_path):
+    def data_generator(self, list_video_path):
         raise NotImplementedError('_data_generator method not implemented.')
 
-    def _data_generator2(self, video_path_list, chunk_start_list, chunk_end_list):
+    def data_generator2(self, video_path_list, chunk_start_list, chunk_end_list):
         raise NotImplementedError('_data_generator method not implemented.')

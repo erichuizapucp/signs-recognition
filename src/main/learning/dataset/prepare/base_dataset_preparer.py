@@ -22,15 +22,15 @@ class BaseDatasetPreparer:
         self.rgb_feature_dim = self.frames_seq_img_width * self.frames_seq_img_height * self.frames_seq_no_channels
 
     def prepare_train_dataset(self, batch_size):
-        return self._prepare(self.train_dataset_path, batch_size)
+        return self.prepare_dataset(self.train_dataset_path, batch_size)
 
     def prepare_test_dataset(self, batch_size):
-        return self._prepare(self.test_dataset_path, batch_size)
+        return self.prepare_dataset(self.test_dataset_path, batch_size)
 
     def prepare(self, batch_size):
         return self.prepare_train_dataset(batch_size), self.prepare_test_dataset(batch_size)
 
-    def _transform_image(self, img, resize_shape=None):
+    def transform_image(self, img, resize_shape=None):
         if resize_shape is None:
             resize_shape = [self.imagenet_img_width, self.imagenet_img_height]
 
@@ -41,7 +41,7 @@ class BaseDatasetPreparer:
         # resize the image to the desired size.
         return tf.image.resize(img, resize_shape)
 
-    def _transform_decoded_image(self, img, resize_shape=None):
+    def transform_decoded_image(self, img, resize_shape=None):
         if resize_shape is None:
             resize_shape = [self.imagenet_img_width, self.imagenet_img_height]
 
@@ -51,17 +51,17 @@ class BaseDatasetPreparer:
         return tf.image.resize(img, resize_shape)
 
     @staticmethod
-    def _transform(input_data, trans_ops):
+    def transform(input_data, trans_ops):
         transformed_input = input_data
         for op in trans_ops:
             transformed_input = op(transformed_input)
         return transformed_input
 
-    def _py_transform_frame_seq(self, sample):
+    def py_transform_frame_seq(self, sample):
         transformed_images = []
         for image in sample:  # iterate over each frame in the sample
             # decode, scale and resize frame
-            transformed_img = self._transform_image(image, [self.frames_seq_img_width, self.frames_seq_img_height])
+            transformed_img = self.transform_image(image, [self.frames_seq_img_width, self.frames_seq_img_height])
 
             # reshape a frame from 2D to 1D
             transformed_img = tf.reshape(transformed_img, [self.rgb_feature_dim])
@@ -69,12 +69,12 @@ class BaseDatasetPreparer:
             transformed_images.extend([transformed_img])
         return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
 
-    def _py_transform_decoded_frame_seq(self, sample):
+    def py_transform_decoded_frame_seq(self, sample):
         transformed_images = []
         for image in sample:  # iterate over each frame in the sample
             # decode, scale and resize frame
-            transformed_img = self._transform_decoded_image(image,
-                                                            [self.frames_seq_img_width, self.frames_seq_img_height])
+            transformed_img = self.transform_decoded_image(image,
+                                                           [self.frames_seq_img_width, self.frames_seq_img_height])
 
             # reshape a frame from 2D to 1D
             transformed_img = tf.reshape(transformed_img, [self.rgb_feature_dim])
@@ -82,14 +82,14 @@ class BaseDatasetPreparer:
             transformed_images.extend([transformed_img])
         return tf.stack(transformed_images)  # shape (no_frames, flattened_dim)
 
-    def _prepare(self, dataset_path, batch_size):
+    def prepare_dataset(self, dataset_path, batch_size):
         raise NotImplementedError('_prepare method not implemented.')
 
-    def _prepare_sample(self, feature, label):
+    def prepare_sample(self, feature, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
-    def _prepare_sample2(self, feature1, feature2, label):
+    def prepare_sample2(self, feature1, feature2, label):
         raise NotImplementedError('_prepare_sample method not implemented.')
 
-    def _prepare_sample3(self, feature):
+    def prepare_sample3(self, feature):
         raise NotImplementedError('_prepare_sample3 method not implemented.')

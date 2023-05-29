@@ -3,8 +3,8 @@
 # shellcheck disable=SC2116
 export WORK_DIR=$(echo "$PWD")
 export PYTHONPATH="${PYTHONPATH}:${WORK_DIR}/src/main"
-export TF_CPP_MIN_LOG_LEVEL=2
-export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=3
+#export TF_FORCE_GPU_ALLOW_GROWTH=true
 
 SCRIPT_PATH='src/main/learning/train_model.py'
 PARAMS_FILE=${PARAMS_FILE}
