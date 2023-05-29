@@ -11,10 +11,11 @@ class RGBDatasetPreparer(SerializedDatasetPreparer):
         self.logger = logging.getLogger(__name__)
 
     def prepare_train_dataset(self, batch_size):
-        dataset = super().prepare_train_dataset(batch_size=None)
+        dataset = super().prepare_train_dataset(batch_size=batch_size)
         # apply image transformation and data augmentation
-        dataset = dataset.map(self.prepare_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataset = dataset.padded_batch(batch_size, padded_shapes=([None, None], [None]))
+        # dataset = dataset.map(self.prepare_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        # dataset = dataset.padded_batch(batch_size, padded_shapes=([None, None], [None]))
+        dataset = dataset.padded_batch(batch_size, drop_remainder=True)
         return dataset
 
     # TODO: implement prepare_test_dataset

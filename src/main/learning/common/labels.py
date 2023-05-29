@@ -1,2 +1,4 @@
-SIGNS_CLASSES = ['vídeo', 'terror', 'parque', 'pareja', 'noche', 'montón', 'fantasmas', 'espíritu',
-                'enseñas', 'dos', 'cosas', 'cine', 'casa', 'apariciones', 'ahorita']
+import tensorflow as tf
+
+SIGNS_CLASSES = tf.constant(['video', 'terror', 'parque', 'pareja', 'noche', 'monton', 'fantasmas', 'espiritu',
+                             'ensenas', 'dos', 'cosas', 'cine', 'casa', 'apariciones', 'ahorita'], dtype=tf.string)

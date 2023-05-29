@@ -5,7 +5,7 @@ import tensorflow as tf
 from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
 from pre_processing.isolated_detection.samples_generation.rgb_person_sample_extractor import RGBPersonSamplesExtractor
 from unittest.mock import patch, call
-from learning.common.model_utility import ModelUtility
+from learning.common.object_detection_utility import ObjectDetectionUtility
 from mocks import video_processing_mocks as mocks
 
 
@@ -21,7 +21,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
                                                     min_scale=[0.14, 0.05],
                                                     max_scale=[1., 0.14],
                                                     sample_duration_range=[0.5, 1])
-        self.model_utility = ModelUtility()
+        self.object_detection_utility = ObjectDetectionUtility()
         self.person_detection_model_name = 'centernet_resnet50_v1_fpn_512x512_coco17_tpu-8'
         self.person_detection_checkout_prefix = 'ckpt-0'
 
@@ -97,8 +97,8 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
 
     @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
     def test_integration_data_generator2(self, get_sample_duration_mock):
-        detection_model = self.model_utility.get_object_detection_model(self.person_detection_model_name,
-                                                                        self.person_detection_checkout_prefix)
+        detection_model = self.object_detection_utility.get_object_detection_model(self.person_detection_model_name,
+                                                                                   self.person_detection_checkout_prefix)
         self.dataset_preparer.detection_model = detection_model
         self.dataset_preparer.extractor.detection_model = detection_model
 
@@ -117,8 +117,8 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
 
     @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
     def test_integration_prepare_dataset(self, get_sample_duration_mock):
-        detection_model = self.model_utility.get_object_detection_model(self.person_detection_model_name,
-                                                                        self.person_detection_checkout_prefix)
+        detection_model = self.object_detection_utility.get_object_detection_model(self.person_detection_model_name,
+                                                                                   self.person_detection_checkout_prefix)
         self.dataset_preparer.detection_model = detection_model
         self.dataset_preparer.extractor.detection_model = detection_model
 

@@ -1,14 +1,14 @@
-import tensorflow as tf
 import os
 import logging
-import numpy as np
+import tensorflow as tf
 
-from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
-from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB, SWAV
-from learning.common.labels import SIGNS_CLASSES
 from pathlib import Path
+from learning.common.labels import SIGNS_CLASSES
+from learning.common.common_config import IMAGENET_CONFIG
+from learning.dataset.tfrecord.tf_record_utility import TFRecordUtility
+from learning.common.object_detection_utility import ObjectDetectionUtility
+from learning.common.dataset_type import COMBINED, OPTICAL_FLOW, RGB, SWAV, NSDMV3
 from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatasetPreparer
-from learning.common.model_utility import ModelUtility
 
 
 class TFRecordDatasetCreator:
@@ -20,38 +20,44 @@ class TFRecordDatasetCreator:
 
         self.tf_record_util = TFRecordUtility()
 
+        self.imagenet_img_width = IMAGENET_CONFIG['img_width']
+        self.imagenet_img_height = IMAGENET_CONFIG['img_height']
+        self.imagenet_rgb_no_channels = IMAGENET_CONFIG['rgb_no_channels']
+
     def create(self, output_dir_path, output_prefix, output_max_size, **kwargs):
         raw_dataset = self.get_raw_dataset(self.raw_files_path, self.dataset_type, **kwargs)
 
         create_tfrecord_operations = {
-            COMBINED:
-                lambda: self.tf_record_util.serialize_dataset(COMBINED,
-                                                              raw_dataset,
-                                                              output_dir_path,
-                                                              output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_combined_sample),
-            OPTICAL_FLOW:
-                lambda: self.tf_record_util.serialize_dataset(OPTICAL_FLOW,
-                                                              raw_dataset,
-                                                              output_dir_path,
-                                                              output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_opticalflow_sample),
-            RGB:
-                lambda: self.tf_record_util.serialize_dataset(RGB,
-                                                              raw_dataset,
-                                                              output_dir_path,
-                                                              output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_rgb_sample),
-            SWAV:
-                lambda: self.tf_record_util.serialize_dataset(SWAV,
-                                                              raw_dataset,
-                                                              output_dir_path,
-                                                              output_prefix,
-                                                              output_max_size,
-                                                              self.tf_record_util.serialize_swav_sample),
+            COMBINED: lambda: self.tf_record_util.serialize_dataset(COMBINED,
+                                                                    raw_dataset,
+                                                                    output_dir_path,
+                                                                    output_prefix,
+                                                                    output_max_size,
+                                                                    self.tf_record_util.serialize_combined_sample),
+            OPTICAL_FLOW: lambda: self.tf_record_util.serialize_dataset(OPTICAL_FLOW,
+                                                                        raw_dataset,
+                                                                        output_dir_path,
+                                                                        output_prefix,
+                                                                        output_max_size,
+                                                                        self.tf_record_util.serialize_opticalflow_sample),
+            RGB: lambda: self.tf_record_util.serialize_dataset(RGB,
+                                                               raw_dataset,
+                                                               output_dir_path,
+                                                               output_prefix,
+                                                               output_max_size,
+                                                               self.tf_record_util.serialize_rgb_sample),
+            NSDMV3: lambda: self.tf_record_util.serialize_dataset(NSDMV3,
+                                                                  raw_dataset,
+                                                                  output_dir_path,
+                                                                  output_prefix,
+                                                                  output_max_size,
+                                                                  self.tf_record_util.serialize_nsdmv3_sample),
+            SWAV: lambda: self.tf_record_util.serialize_dataset(SWAV,
+                                                                raw_dataset,
+                                                                output_dir_path,
+                                                                output_prefix,
+                                                                output_max_size,
+                                                                self.tf_record_util.serialize_swav_sample),
         }
 
         if self.dataset_type in create_tfrecord_operations:
@@ -66,17 +72,18 @@ class TFRecordDatasetCreator:
                                                      kwargs['shuffle_buffer_size'],
                                                      self.get_raw_combined_list,
                                                      self.tf_get_combined_sample),
-
             OPTICAL_FLOW: lambda: self.build_raw_dataset(raw_dataset_path,
                                                          kwargs['shuffle_buffer_size'],
                                                          self.get_raw_opticalflow_list,
                                                          self.tf_get_opticalflow_sample),
-
             RGB: lambda: self.build_raw_dataset(raw_dataset_path,
                                                 kwargs['shuffle_buffer_size'],
                                                 self.get_raw_rgb_list,
-                                                self.tf_get_rgb_sample),
-
+                                                self.get_rgb_sample),
+            NSDMV3: lambda: self.build_raw_dataset(raw_dataset_path,
+                                                   kwargs['shuffle_buffer_size'],
+                                                   self.get_raw_rgb_list,
+                                                   self.get_rgb_sample),
             SWAV: lambda: self.get_swav_raw_dataset(
                                       raw_dataset_path,
                                       batch_size=kwargs['batch_size'],
@@ -102,9 +109,9 @@ class TFRecordDatasetCreator:
         person_detection_model_name = kwargs['person_detection_model_name']
         person_detection_checkout_prefix = kwargs['person_detection_checkout_prefix']
 
-        model_utility = ModelUtility()
-        person_detection_model = model_utility.get_object_detection_model(person_detection_model_name,
-                                                                          person_detection_checkout_prefix)
+        object_detection_utility = ObjectDetectionUtility()
+        person_detection_model = object_detection_utility.get_object_detection_model(person_detection_model_name,
+                                                                                     person_detection_checkout_prefix)
         data_preparer = SwAVDatasetPreparer(train_dataset_path,
                                             test_dataset_path=None,
                                             person_detection_model=person_detection_model,
@@ -121,24 +128,30 @@ class TFRecordDatasetCreator:
         label = self.get_label(file_path)
         return img_raw, label
 
-    def py_get_rgb_sample(self, folder_path):
+    def get_rgb_sample(self, folder_path):
         pattern = tf.strings.join([folder_path, tf.constant('*.jpg')], separator='/')
         sample_files_paths = tf.io.matching_files(pattern)
 
-        rgb_frames = []
-        for sample_file_path in sample_files_paths:
-            raw_frame = tf.io.read_file(sample_file_path)
-            rgb_frames.extend([raw_frame])
+        rgb_frames = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=True)
+        frame_index = 0
 
-        label = self.get_label(folder_path)
-        return rgb_frames, label
+        for sample_file_path in sample_files_paths:
+            frame = tf.io.read_file(sample_file_path)
+            frame = tf.io.decode_jpeg(frame, channels=self.imagenet_rgb_no_channels)
+            frame = tf.image.convert_image_dtype(frame, tf.float32)
+            frame = tf.image.resize(frame, [self.imagenet_img_width, self.imagenet_img_height])
+            rgb_frames = rgb_frames.write(frame_index, frame)
+            frame_index += 1
+
+        _, label_sparse = self.get_label(folder_path)
+        return rgb_frames.stack(), label_sparse
 
     def py_get_combined_sample(self, sample_path):
         opticalflow_sample_path = sample_path[0]
         rgb_sample_path = sample_path[1]
 
         opticalflow_sample, label1 = self.py_get_opticalflow_sample(opticalflow_sample_path)
-        rgb_sample, label2 = self.py_get_rgb_sample(rgb_sample_path)
+        rgb_sample, label2 = self.get_rgb_sample(rgb_sample_path)
 
         if tf.reduce_all(tf.not_equal(label1, label2)).numpy():
             raise ValueError('labels for Opticalflow and RGB samples do not match')
@@ -182,17 +195,24 @@ class TFRecordDatasetCreator:
     @staticmethod
     def get_label(file_path):
         sign_name = tf.strings.split(file_path, os.path.sep)[-2]
-        decoded_sign_name = sign_name.numpy().decode('UTF-8')
-        class_index = SIGNS_CLASSES.index(decoded_sign_name)
-        sparse_label = np.zeros(len(SIGNS_CLASSES))
-        sparse_label[class_index] = 1
-        return sparse_label
+
+        class_index = tf.argmax(
+            tf.cast(tf.map_fn(lambda x: tf.strings.regex_full_match(sign_name, x),
+                              SIGNS_CLASSES, dtype=tf.bool), tf.int32))
+
+        sparse_label = tf.zeros(len(SIGNS_CLASSES))
+        indices = [[0, class_index]]
+        values = [1.]
+        shape = [1, len(SIGNS_CLASSES)]
+        delta = tf.SparseTensor(indices, values, shape)
+
+        return sign_name, tf.add(sparse_label, tf.sparse.to_dense(delta))
 
     def tf_get_opticalflow_sample(self, file_path):
         return tf.py_function(self.py_get_opticalflow_sample, [file_path], (tf.string, tf.float32))
 
-    def tf_get_rgb_sample(self, sample_folder_path):
-        return tf.py_function(self.py_get_rgb_sample, [sample_folder_path], (tf.string, tf.float32))
+    # def tf_get_rgb_sample(self, sample_folder_path):
+    #     return tf.py_function(self.py_get_rgb_sample, [sample_folder_path], (tf.string, tf.float32))
 
     def tf_get_combined_sample(self, sample_path):
         return tf.py_function(self.py_get_combined_sample, [sample_path], (tf.string, tf.string, tf.float32))

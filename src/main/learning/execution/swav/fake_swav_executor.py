@@ -24,7 +24,7 @@ class FakeSwAVExecutor(BaseModelExecutor):
         self.feature_backbone_model = None
         self.prototype_projection_model = None
 
-        self.loss = self._get_loss()
+        self.loss = self.get_loss()
 
         self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
                                   'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
@@ -72,11 +72,11 @@ class FakeSwAVExecutor(BaseModelExecutor):
 
         return step
 
-    def _get_model_type(self):
+    def get_model_type(self):
         return SWAV
 
     @staticmethod
-    def _get_loss():
+    def get_loss():
         return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
 
     def get_callback(self, checkpoint_storage_path, model):

@@ -7,10 +7,9 @@ role = os.getenv("SAGEMAKER_ROLE")
 hyper_parameters = {
     'mirrored_training': 'True',
     'batch_size': '1',
-    'no_replicas': '2',
+    'no_replicas': '1',
     'no_epochs': '5',
     'no_steps': '2',
-    'sample_duration_range': '0.3 0.5',
 }
 instance_type = "local"
 estimator = Estimator(

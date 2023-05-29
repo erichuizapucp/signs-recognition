@@ -3,7 +3,7 @@ import unittest
 import tensorflow as tf
 from unittest.mock import patch
 from pre_processing.isolated_detection.samples_generation.rgb_person_sample_extractor import RGBPersonSamplesExtractor
-from learning.common.model_utility import ModelUtility
+from learning.common.object_detection_utility import ObjectDetectionUtility
 from mocks import video_processing_mocks as mocks
 
 
@@ -12,14 +12,14 @@ class TestRGBPersonSamplesExtractor(unittest.TestCase):
         os.environ['WORK_DIR'] = '../../'
 
         self.samples_extractor = RGBPersonSamplesExtractor(detection_model=mocks.person_detection_model_mock)
-        self.model_utility = ModelUtility()
+        self.object_detection_utility = ObjectDetectionUtility()
         self.video_path = 'fixtures/raw_videos/consultant-02-session-01-part-01-00.mp4'
         self.person_detection_model_name = 'centernet_resnet50_v1_fpn_512x512_coco17_tpu-8'
         self.person_detection_checkout_prefix = 'ckpt-0'
 
     def test_extract_sample_with_person_detect(self):
-        detection_model = self.model_utility.get_object_detection_model(self.person_detection_model_name,
-                                                                        self.person_detection_checkout_prefix)
+        detection_model = self.object_detection_utility.get_object_detection_model(self.person_detection_model_name,
+                                                                                   self.person_detection_checkout_prefix)
         self.samples_extractor.detection_model = detection_model
         success, extracted_frames = self.samples_extractor.extract_sample(self.video_path, 0.00, 2.00)
 

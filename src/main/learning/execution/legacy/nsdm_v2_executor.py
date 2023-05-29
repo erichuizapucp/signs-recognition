@@ -9,5 +9,5 @@ class NSDMExecutorV2(NSDMExecutor):
         super().__init__(**kwargs)
         self.logger = logging.getLogger(__name__)
 
-    def _get_model_type(self):
+    def get_model_type(self):
         return model_type.NSDMV2

@@ -15,27 +15,21 @@ COPY requirements.txt .
 COPY *.yaml .
 ENV PATH="/opt/ml/code:$PATH"
 
+RUN mkdir -p opt/ml/weights
+COPY weights/swav-04-15-2023/feature-model-weights.40-3.78.hdf5 opt/ml/weights/feature-model-weights.hdf5
+
 RUN python -m pip install -r requirements.txt
-
-#COPY tf_models models
-#WORKDIR models/research
-#RUN protoc object_detection/protos/*.proto --python_out=.
-#RUN cp object_detection/packages/tf2/setup.py .
-#RUN python -m pip install --use-feature=2020-resolver .
-
-#WORKDIR ..
-#WORKDIR ..
 
 RUN mkdir logs
 RUN mkdir ckpt
 RUN mkdir tensorboard_logs
 
-ENV MODEL='swav'
+ENV MODEL='nsdmv3'
 ENV TRAIN_DATASET_PATH='/opt/ml/input/data/training'
 ENV MODEL_OUTPUT_PATH='/opt/ml/model'
 ENV CHECKPOINT_OUTPUT_PATH='/opt/ml/checkpoints'
 ENV FAILURE_REASON_PATH='/opt/ml/output/failure'
 ENV PARAMS_FILE='/opt/ml/input/config/hyperparameters.json'
 
-COPY scripts/sagemaker-train-swav.sh train
+COPY scripts/sagemaker-train-nsdmv3.sh train
 RUN chmod +x train

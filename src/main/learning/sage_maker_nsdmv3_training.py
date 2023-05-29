@@ -17,18 +17,25 @@ account = client.get_caller_identity()['Account']
 my_session = boto3.session.Session()
 region = my_session.region_name
 
-algorithm_name = 'self-supervised-psl-training-swav'
+algorithm_name = 'self-supervised-psl-training-nsdmv3'
 ecr_image = '{}.dkr.ecr.{}.amazonaws.com/{}:latest'.format(account, region, algorithm_name)
 
 role = os.getenv('SAGEMAKER_ROLE')
 
 hyper_parameters = {
     'mirrored_training': 'True',
-    'batch_size': '1',
+    'batch_size': '4',
     'no_replicas': '4',
-    'no_epochs': '20',
-    'no_steps': '1000',
+    'no_epochs': '80',
+    'start_learning_rate': '0.0001',
+    'no_dense_layer1_neurons': '256',
+    'no_dense_layer2_neurons': '128',
+    'no_dense_layer3_neurons': '64',
+    'lstm_cells': '512',
+    'load_weights': 'True',
+    'swav_features_weights_path': 'opt/ml/weights/feature-model-weights.hdf5'
 }
+
 estimator = Estimator(
     role=role,
     instance_count=1,

@@ -26,8 +26,6 @@ class SwAVExecutor(BaseModelExecutor):
         self.feature_backbone_model = None
         self.prototype_projection_model = None
 
-        self.loss = self._get_loss()
-
         self.training_logger.info('SwAV initialized with: num_crops: %s, crops_for_assign: %s, '
                                   'temperature: %s', self.num_crops, self.crops_for_assign, self.temperature)
 
@@ -55,6 +53,7 @@ class SwAVExecutor(BaseModelExecutor):
                     iter_dataset = iter(dataset)
                     for step_index in range(no_steps_per_epoch):
                         inputs = next(iter_dataset)
+
                         loss = train_step_fn(inputs)
                         step_wise_loss.append(loss)
 
@@ -74,8 +73,7 @@ class SwAVExecutor(BaseModelExecutor):
 
         return train
 
-    def train_step(self, global_batch_size, per_replica_batch_size):
-        @tf.function
+    def train_step(self, global_batch_size, per_replica_batch_size, compute_loss_fn):
         def step(input_views):
             inputs = tf.TensorArray(dtype=tf.float32, size=5, clear_after_read=False, infer_shape=False)
             for index in range(5):
@@ -117,7 +115,7 @@ class SwAVExecutor(BaseModelExecutor):
                         crop_prototype_end = per_replica_batch_size * (crop_id + 1)
                         crop_prototype = tf.gather(prototype, tf.range(crop_prototype_start, crop_prototype_end))
                         # Cluster assignment prediction
-                        # Get cluster assignments using Sinkhorn Knopp: Optical Transport
+                        # Get cluster assignments using Sinkhorn Knopp: Optimal Transport
                         # The code q is considered the "ground truth" - or a tuned prototype
                         crop_prototype_q_code = self.sinkhorn(crop_prototype)
 
@@ -142,13 +140,17 @@ class SwAVExecutor(BaseModelExecutor):
                         crop_to_compare_prototype = prototype[
                                                     crop_to_compare_prototype_start:crop_to_compare_prototype_end]
                         crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
-                        cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
 
-                        # average loss entropy
-                        # use compute_average_loss instead of reduce_mean to allow distributed training
-                        sub_loss += tf.nn.compute_average_loss(cross_entropy_loss, global_batch_size=global_batch_size)
+                        sub_loss += compute_loss_fn(crop_prototype_q_code, crop_probability,
+                                                    self.prototype_projection_model.losses)
 
-                    loss += sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32)
+                        # cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
+                        #
+                        # # average loss entropy
+                        # # use compute_average_loss instead of reduce_mean to allow distributed training
+                        # sub_loss += tf.nn.compute_average_loss(cross_entropy_loss, global_batch_size=global_batch_size)
+
+                    loss += (sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32))
 
                 loss /= len(self.crops_for_assign)
 
@@ -161,16 +163,16 @@ class SwAVExecutor(BaseModelExecutor):
 
         return step
 
-    @staticmethod
-    def current_crop_size(batch_size, start_index):
+    @tf.function
+    def current_crop_size(self, batch_size, start_index):
         def high_res_shape_fn(): return tf.constant([batch_size * 2, -1, 224, 224, 3])
 
         def low_res_shape_fn(): return tf.constant([batch_size * 3, -1, 96, 96, 3])
 
         return tf.cond(tf.equal(start_index, 0), high_res_shape_fn, low_res_shape_fn)
 
-    @staticmethod
-    def sinkhorn(sample_prototype_batch):
+    @tf.function
+    def sinkhorn(self, sample_prototype_batch):
         q_codes = tf.transpose(tf.exp(sample_prototype_batch / 0.05))
         q_codes /= tf.keras.backend.sum(q_codes)
         k_dim, b_dim = q_codes.shape
@@ -188,12 +190,18 @@ class SwAVExecutor(BaseModelExecutor):
 
         return final_quantity
 
-    def _get_model_type(self):
+    def get_model_type(self):
         return SWAV
 
-    @staticmethod
-    def _get_loss():
-        return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
+    # @staticmethod
+    # def get_loss():
+    #     # return tf.keras.losses.CategoricalCrossentropy(axis=1)
+    #     return tf.keras.losses.CategoricalCrossentropy()
+    #
+    # @staticmethod
+    # def get_distributed_loss():
+    #     # return tf.keras.losses.CategoricalCrossentropy(axis=1, reduction=tf.keras.losses.Reduction.NONE)
+    #     return tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE);
 
     def get_callback(self, checkpoint_storage_path, model):
         callback = SwAVCallback(model[0], model[1], checkpoint_storage_path)

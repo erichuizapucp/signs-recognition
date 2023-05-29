@@ -51,11 +51,7 @@ class TestTFRecordUtility(unittest.TestCase):
         serialized_sample = tf.io.read_file('fixtures/serialized_sample/consultant_02_sample.dat')
         parsed_sample = self.tf_record_utility.parse_swav_dict_sample(serialized_sample)
 
-        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_high_res_1_sample, parsed_sample[0])), tf.constant(True))
-        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_high_res_2_sample, parsed_sample[1])), tf.constant(True))
-        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_low_res_1_sample, parsed_sample[2])), tf.constant(True))
-        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_low_res_2_sample, parsed_sample[3])), tf.constant(True))
-        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_los_res_3_sample, parsed_sample[4])), tf.constant(True))
+        self.assert_parsed_swav_sample(parsed_sample)
 
     def test_swav_serialize_dataset_single_file(self):
         shutil.rmtree('temp')
@@ -109,3 +105,13 @@ class TestTFRecordUtility(unittest.TestCase):
                                                      tf.TensorSpec(shape=(None, 96, 96, 3), dtype=tf.float32),
                                                      tf.TensorSpec(shape=(None, 96, 96, 3), dtype=tf.float32),
                                                      tf.TensorSpec(shape=(None, 96, 96, 3), dtype=tf.float32))
+
+        for sample in deserialized_dataset:
+            self.assert_parsed_swav_sample(sample)
+
+    def assert_parsed_swav_sample(self, sample):
+        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_high_res_1_sample, sample[0])), tf.constant(True))
+        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_high_res_2_sample, sample[1])), tf.constant(True))
+        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_low_res_1_sample, sample[2])), tf.constant(True))
+        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_low_res_2_sample, sample[3])), tf.constant(True))
+        self.assertEqual(tf.math.reduce_all(tf.equal(self.mock_los_res_3_sample, sample[4])), tf.constant(True))

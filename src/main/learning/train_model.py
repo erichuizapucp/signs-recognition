@@ -9,6 +9,7 @@ from learning.execution.legacy.opticalflow_executor import OpticalflowExecutor
 from learning.execution.legacy.rgb_executor import RGBExecutor
 from learning.execution.legacy.nsdm_executor import NSDMExecutor
 from learning.execution.legacy.nsdm_v2_executor import NSDMExecutorV2
+from learning.execution.nsdmv3.nsdm_v3_executor import NSDMExecutorV3
 from learning.execution.swav.swav_executor import SwAVExecutor
 
 from learning.dataset.prepare.legacy.rgb_dataset_preparer import RGBDatasetPreparer
@@ -16,8 +17,7 @@ from learning.dataset.prepare.legacy.opticalflow_dataset_preparer import Optical
 from learning.dataset.prepare.legacy.combined_dataset_preparer import CombinedDatasetPreparer
 from learning.dataset.prepare.swav.serialized_swav_video_dataset_preparer import SerializedSwAVDatasetPreparer
 
-from learning.model import models
-from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, SWAV
+from learning.common.model_type import OPTICAL_FLOW, RGB, NSDM, NSDMV2, NSDMV3, SWAV
 
 
 def get_cmd_args():
@@ -38,6 +38,7 @@ def get_cmd_args():
     parser.add_argument('--end_learning_rate', type=float, help='End Learning Rate', default=0.0001)
     parser.add_argument('--momentum', type=float, help='Momentum', default=0.9)
     parser.add_argument('--clip_value', type=float, help='Clip Value', default=0.25)
+    parser.add_argument('--load_backbone_weights', type=bool, help='Load backbone weights', default=True)
 
     # SwAV specific arguments
     parser.add_argument('--num_crops', type=int, help='SwAV number of multi-crops', nargs='+', default=[2, 3])
@@ -50,9 +51,16 @@ def get_cmd_args():
     parser.add_argument('--no_projection_1_neurons', type=int, help='Dense Layer 1 inputs size', default=256)
     parser.add_argument('--no_projection_2_neurons', type=int, help='Dense Layer 2 inputs size', default=128)
     parser.add_argument('--prototype_vector_dim', type=int, help='Prototype vector size', default=64)
-    parser.add_argument('--lstm_cells', type=int, help='Number of LSTM cells', default=256)
+    parser.add_argument('--lstm_cells', type=int, help='Number of LSTM cells', default=512)
     parser.add_argument('--embedding_size', type=int, help='Embedding size', default=512)
     parser.add_argument('--l2_regularization_epsilon', type=float, help='L2 regularization epsilon', default=0.05)
+
+    # NSDMV3 model specific arguments
+    parser.add_argument('--load_weights', type=bool, help='SwAV Features Weights Path', required=False, default=False)
+    parser.add_argument('--swav_features_weights_path', type=str, help='SwAV Features Weights Path', required=False)
+    parser.add_argument('--no_dense_layer1_neurons', type=int, help='Dense Layer 1 inputs size', default=256)
+    parser.add_argument('--no_dense_layer2_neurons', type=int, help='Dense Layer 2 inputs size', default=128)
+    parser.add_argument('--no_dense_layer3_neurons', type=int, help='Dense Layer 3 inputs size', default=64)
 
     # Mirrored training arguments
     parser.add_argument('--mirrored_training', type=bool, help='Use Mirrored Training', default=False)
@@ -62,11 +70,20 @@ def get_cmd_args():
 
 
 def get_model(args):
+    from learning.model import models
+
     built_models = {
         OPTICAL_FLOW: lambda: models.get_opticalflow_model(),
         RGB: lambda: models.get_rgb_model(),
         NSDM: lambda: models.get_nsdm_model(),
         NSDMV2: lambda: models.get_nsdm_v2_model(),
+        NSDMV3: lambda: models.get_nsdm_v3_model(lstm_cells=args.lstm_cells,
+                                                 embedding_size=args.embedding_size,
+                                                 load_weights=args.load_weights,
+                                                 swav_features_weights_path=args.swav_features_weights_path,
+                                                 no_dense_layer1_neurons=args.no_dense_layer1_neurons,
+                                                 no_dense_layer2_neurons=args.no_dense_layer2_neurons,
+                                                 no_dense_layer3_neurons=args.no_dense_layer3_neurons),
         SWAV: lambda: models.get_swav_models(no_projection_1_neurons=args.no_projection_1_neurons,
                                              no_projection_2_neurons=args.no_projection_2_neurons,
                                              prototype_vector_dim=args.prototype_vector_dim,
@@ -87,13 +104,14 @@ def get_distributed_model(distribute_strategy, get_model_fn):
     return model
 
 
-def get_dataset(model_name, train_dataset_path, batch_size):
+def get_dataset(model_name, batch_size, train_dataset_path, test_dataset_path=None):
     data_preparers = {
-        OPTICAL_FLOW: lambda: OpticalflowDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        RGB: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        NSDM: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=None),
-        SWAV: lambda: SerializedSwAVDatasetPreparer(train_dataset_path, test_dataset_path=None)
+        OPTICAL_FLOW: lambda: OpticalflowDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path),
+        RGB: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path),
+        NSDM: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path),
+        NSDMV2: lambda: CombinedDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path),
+        NSDMV3: lambda: RGBDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path),
+        SWAV: lambda: SerializedSwAVDatasetPreparer(train_dataset_path, test_dataset_path=test_dataset_path)
     }
     data_preparer = data_preparers[model_name]()
 
@@ -125,6 +143,10 @@ def get_executor(models_to_execute, args):
                                        momentum=args.momentum,
                                        clip_value=args.clip_value),
 
+        NSDMV3: lambda: NSDMExecutorV3(start_learning_rate=args.start_learning_rate,
+                                       momentum=args.momentum,
+                                       clip_value=args.clip_value),
+
         SWAV: lambda: SwAVExecutor(start_learning_rate=args.start_learning_rate,
                                    momentum=args.momentum,
                                    clip_value=args.clip_value,
@@ -136,8 +158,8 @@ def get_executor(models_to_execute, args):
     }
     executor = executors[args.model]()
 
-    if args.model != SWAV:
-        executor.configure(models_to_execute)
+    # if args.model != SWAV:
+    #     executor.configure(models_to_execute)
 
     return executor
 
@@ -163,8 +185,8 @@ def get_distributed_strategy(no_replicas: 0, logger):
                 if no_replicas > 0 else tf.distribute.MirroredStrategy()
 
 
-def get_distributed_train_step(distribute_strategy, train_step_fn):
-    @tf.function
+def get_distributed_train_step(distribute_strategy, train_step_fn, input_spec):
+    @tf.function(input_signature=(input_spec,))
     def step(inputs):
         per_replica_losses = distribute_strategy.run(train_step_fn, args=(inputs,))
         return distribute_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
@@ -184,6 +206,48 @@ def get_distributed_callback(distribute_strategy, get_callback_fn, checkpoint_st
         return callback
 
 
+def configure_model(executor, models_to_execute):
+    def configure():
+        executor.configure(models_to_execute)
+    return configure
+
+
+def distributed_configure_model(distribute_strategy, configure_model_fn):
+    with distribute_strategy.scope():
+        configure_model_fn()
+
+
+def get_distributed_compute_loss(distributed_strategy, get_loss_fn, global_batch_size):
+    with distributed_strategy.scope():
+        loss_object = get_loss_fn()
+
+        @tf.function
+        def compute_loss(true_val, pred_val, model_losses):
+            per_example_loss = loss_object(true_val, pred_val)
+            loss = tf.nn.compute_average_loss(per_example_loss, global_batch_size=global_batch_size)
+
+            if model_losses:
+                loss += tf.nn.scale_regularization_loss(tf.add_n(model_losses))
+
+            return loss
+
+        return compute_loss
+
+
+def get_compute_loss(get_loss_fn):
+    loss_object = get_loss_fn()
+
+    @tf.function
+    def compute_loss(true_val, pred_val, model_losses):
+        per_example_loss = loss_object(true_val, pred_val)
+        if model_losses:
+            per_example_loss += tf.nn.scale_regularization_loss(tf.add_n(model_losses))
+
+        return per_example_loss
+
+    return compute_loss
+
+
 def main():
     working_folder = os.getenv('WORK_DIR', './')
 
@@ -194,7 +258,8 @@ def main():
     args = get_cmd_args()
 
     distribute_strategy = get_distributed_strategy(args.no_replicas, logger) if args.mirrored_training else None
-    batch_size = args.batch_size * distribute_strategy.num_replicas_in_sync if args.mirrored_training else args.batch_size
+    global_batch_size = args.batch_size
+    per_replica_batch_size = int(args.batch_size / distribute_strategy.num_replicas_in_sync) if args.mirrored_training else args.batch_size
 
     logger.debug('learning operation started with the following parameters: %s', args)
 
@@ -206,8 +271,8 @@ def main():
     if args.model == SWAV:
         # Custom training loops require a distributed dataset to be passed
         get_dataset_fn = get_dataset(args.model,
-                                     args.train_dataset_path,
-                                     batch_size)
+                                     global_batch_size,
+                                     args.train_dataset_path)
 
         dataset = get_distributed_dataset(distribute_strategy,
                                           get_dataset_fn) if args.mirrored_training else get_dataset_fn()
@@ -217,6 +282,9 @@ def main():
                                               args.no_epochs,
                                               args.no_steps) if args.mirrored_training else executor.get_optimizer(args.no_epochs,
                                                                                                                    args.no_steps)
+        compute_loss_fn = get_distributed_compute_loss(distribute_strategy,
+                                                       executor.get_distributed_loss,
+                                                       global_batch_size=global_batch_size) if args.mirrored_training else get_compute_loss(executor.get_loss)
 
         # callback assignation
         callback = get_distributed_callback(distribute_strategy,
@@ -226,10 +294,10 @@ def main():
                                                                                                         model)
 
         # training step function assignation
-        non_dist_train_step = executor.train_step(batch_size, args.batch_size)
+        non_dist_train_step = executor.train_step(global_batch_size, per_replica_batch_size, compute_loss_fn)
         train_step_fn = get_distributed_train_step(distribute_strategy,
-                                                   non_dist_train_step) if args.mirrored_training else executor.train_step(batch_size,
-                                                                                                                           args.batch_size)
+                                                   non_dist_train_step,
+                                                   dataset.element_spec) if args.mirrored_training else non_dist_train_step
 
         executor.train_model(model,
                              dataset,
@@ -239,10 +307,15 @@ def main():
                              failure_storege_path=args.failure_reason_path)(train_step_fn, optimizer, callback)
     else:
         # Keras model.fit loops don't require a distributed dataset to be passed
-        get_dataset_fn = get_dataset(args.model, args.train_dataset_path, batch_size)
+        get_dataset_fn = get_dataset(args.model, global_batch_size, args.train_dataset_path)
         dataset = get_dataset_fn()
+        configure_fn = configure_model(executor, [model])
+        if args.mirrored_training:
+            distributed_configure_model(distribute_strategy, configure_fn)
+        else:
+            configure_fn()
 
-        executor.train_model(model, dataset, args.no_epochs, args.no_steps)
+        executor.train_model([model], dataset, args.no_epochs)
 
     logger.debug('learning operation is completed')
 

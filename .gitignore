@@ -26,3 +26,4 @@ test_images
 ckpt
 tf_models
 temp
+weights

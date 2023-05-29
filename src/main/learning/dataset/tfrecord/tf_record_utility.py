@@ -3,7 +3,7 @@ import tensorflow as tf
 import logging
 
 from learning.common import features
-from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV
+from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV, NSDMV3
 
 
 class TFRecordUtility:
@@ -31,15 +31,6 @@ class TFRecordUtility:
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()  # TFRecord requires scalar strings
 
-    def serialize_rgb_sample(self, rgb_frames, label):
-        feature = {
-            features.FRAMES_SEQ: self.array_bytes_feature(rgb_frames),
-            features.LABEL: self.array_float_feature(label),
-        }
-
-        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-        return example_proto.SerializeToString()  # TFRecord requires scalar strings
-
     def serialize_combined_sample(self, image_raw, rgb_frames, label):
         feature = {
             features.IMAGE_RAW: self.bytes_feature(image_raw),
@@ -49,6 +40,20 @@ class TFRecordUtility:
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()  # TFRecord requires scalar strings
+
+    def serialize_rgb_sample(self, rgb_frames, label):
+        frames_seq = tf.image.convert_image_dtype(rgb_frames, tf.uint8)
+
+        feature = {
+            features.FRAMES_SEQ: self.bytes_feature(tf.io.serialize_tensor(frames_seq)),
+            features.LABEL: self.array_float_feature(label),
+        }
+
+        example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+        return example_proto.SerializeToString()  # TFRecord requires scalar strings
+
+    def serialize_nsdmv3_sample(self, rgb_frames, label):
+        return self.serialize_rgb_sample(rgb_frames, label)
 
     def serialize_swav_sample(self, multicrop_crop_seqs):
         high_res_frames_seq_1 = tf.image.convert_image_dtype(tf.squeeze(multicrop_crop_seqs[0], axis=0), tf.uint8)  # 224x224
@@ -69,8 +74,8 @@ class TFRecordUtility:
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()
 
-    @staticmethod
-    def parse_opticalflow_dict_sample(sample):
+    @tf.function
+    def parse_opticalflow_dict_sample(self, sample):
         feature_description = {
             features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
             features.LABEL: tf.io.VarLenFeature(tf.float32),
@@ -82,21 +87,8 @@ class TFRecordUtility:
 
         return image_raw, label
 
-    @staticmethod
-    def parse_rgb_dict_sample(sample):
-        feature_description = {
-            features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
-            features.LABEL: tf.io.VarLenFeature(tf.float32),
-        }
-        feature = tf.io.parse_single_example(sample, feature_description)
-
-        dense_frames_seq = tf.sparse.to_dense(feature[features.FRAMES_SEQ])
-        label = tf.sparse.to_dense(feature[features.LABEL])
-
-        return dense_frames_seq, label
-
-    @staticmethod
-    def parse_combined_dict_sample(sample):
+    @tf.function
+    def parse_combined_dict_sample(self, sample):
         feature_description = {
             features.IMAGE_RAW: tf.io.FixedLenFeature([], tf.string, default_value=''),
             features.FRAMES_SEQ: tf.io.VarLenFeature(tf.string),
@@ -110,6 +102,22 @@ class TFRecordUtility:
         label = tf.sparse.to_dense(feature[features.LABEL])
 
         return image_raw, dense_frames_seq, label
+
+    @tf.function
+    def parse_rgb_dict_sample(self, sample):
+        feature_description = {
+            features.FRAMES_SEQ: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            features.LABEL: tf.io.FixedLenFeature(shape=(15,), dtype=tf.float32),
+        }
+
+        feature = tf.io.parse_single_example(sample, feature_description)
+
+        frames_seq = tf.io.parse_tensor(feature[features.FRAMES_SEQ], out_type=tf.uint8)
+        frames_seq = tf.ensure_shape(frames_seq, [None, 224, 224, 3])  # Image Net image size
+        frames_seq = tf.image.convert_image_dtype(frames_seq, tf.float32)
+        label = feature[features.LABEL]
+
+        return frames_seq, label
 
     @tf.function
     def parse_swav_dict_sample(self, sample):
@@ -147,6 +155,9 @@ class TFRecordUtility:
 
         index = 1
 
+        writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
+        self.logger.debug('TFRecord file %s created.', output_file_path)
+
         for sample in dataset:
             if not os.path.exists(output_file_path):
                 writer = tf.io.TFRecordWriter(output_file_path, options=self.tf_record_opts)
@@ -155,7 +166,7 @@ class TFRecordUtility:
             if dataset_type == SWAV:
                 example = sample_serialization_func(sample)
                 writer.write(example)
-            elif dataset_type in (OPTICAL_FLOW, RGB):
+            elif dataset_type in (OPTICAL_FLOW, RGB, NSDMV3):
                 feature = sample[0]
                 label = sample[1]
 
@@ -196,7 +207,8 @@ class TFRecordUtility:
 
     @staticmethod
     def handle_split_file_name(output_dir_path, output_prefix, file_index):
-        output_file_path = os.path.join(output_dir_path, '{}_{}.tfrecord'.format(output_prefix, file_index))
+        output_file_path = os.path.join(output_dir_path,
+                                        '{}_{}.tfrecord'.format(output_prefix, str(file_index).zfill(5)))
         if os.path.exists(output_file_path):
             os.remove(output_file_path)
 

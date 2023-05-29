@@ -35,7 +35,7 @@ class TFRecordDatasetReader:
         }
 
         if self.dataset_type in read_tfrecord_operations:
-            self.logger.debug('An %s dataset read was selected', self.dataset_type)
+            self.logger.debug('%s dataset read was selected', self.dataset_type)
             dataset = read_tfrecord_operations[self.dataset_type]()
         else:
             raise ValueError('Unrecognized operation "{}"'.format(self.dataset_type))

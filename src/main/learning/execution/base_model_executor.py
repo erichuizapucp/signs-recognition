@@ -21,56 +21,60 @@ class BaseModelExecutor:
 
     def configure(self, models):
         optimizer = self.get_optimizer()
-        loss = self._get_loss()
-        metrics = self._get_metrics()
+        loss = self.get_loss()
+        metrics = self.get_metrics()
 
         models[0].compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
-    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch, **kwargs):
-        dataset = self._get_train_dataset(dataset)
-        history = models[0].fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=2)
+    def train_model(self, models, dataset, no_epochs, no_steps_per_epoch=None, **kwargs):
+        dataset = self.get_train_dataset(dataset)
+        history = models[0].fit(dataset, epochs=no_epochs, steps_per_epoch=no_steps_per_epoch, verbose=1)
 
-        # save training history in fs for further review
-        history_serialization_path = self._get_model_history_serialization_path()
-        np.save(history_serialization_path, history.history)
-
-        # save trained model and weights to the file system for future use
-        model_serialization_path = self._get_model_serialization_path()
-        models[0].save(model_serialization_path)
+        # # save training history in fs for further review
+        # history_serialization_path = self.get_model_history_serialization_path()
+        # np.save(history_serialization_path, history.history)
+        #
+        # # save trained model and weights to the file system for future use
+        # model_serialization_path = self.get_model_serialization_path()
+        # models[0].save(model_serialization_path)
 
     def evaluate_model(self, models, batch_size):
-        dataset = self._get_test_dataset(batch_size)
+        dataset = self.get_test_dataset(batch_size)
         return models[0].evaluate(dataset)
 
     def predict_with_model(self, models, batch_size):
-        dataset = self._get_test_dataset(batch_size)
+        dataset = self.get_test_dataset(batch_size)
         return models[0].predict(dataset)
 
-    def get_optimizer(self, no_epochs, no_steps):
+    def get_optimizer(self, no_epochs=None, no_steps=None):
         return tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
     def get_callback(self, checkpoint_storage_path, model):
         raise NotImplementedError('get_callback method not implemented.')
 
     @staticmethod
-    def _get_loss():
+    def get_loss():
         return tf.keras.losses.CategoricalCrossentropy()
 
     @staticmethod
-    def _get_metrics():
+    def get_distributed_loss():
+        return tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE)
+
+    @staticmethod
+    def get_metrics():
         return [tf.keras.metrics.Recall(), tf.keras.metrics.AUC(curve='PR'), tf.keras.metrics.Precision()]
 
-    def _get_model_serialization_path(self):
-        return self.model_utility.get_model_serialization_path(self._get_model_type())
+    def get_model_serialization_path(self):
+        return self.model_utility.get_model_serialization_path(self.get_model_type())
 
-    def _get_model_history_serialization_path(self):
-        return self.model_utility.get_model_history_serialization_path(self._get_model_type())
+    def get_model_history_serialization_path(self):
+        return self.model_utility.get_model_history_serialization_path(self.get_model_type())
 
-    def _get_train_dataset(self, dataset):
+    def get_train_dataset(self, dataset):
         return dataset
 
-    def _get_test_dataset(self, dataset):
+    def get_test_dataset(self, dataset):
         return dataset
 
-    def _get_model_type(self):
+    def get_model_type(self):
         raise NotImplementedError('_get_model_type method not implemented.')

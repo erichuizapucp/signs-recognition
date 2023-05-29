@@ -6,7 +6,7 @@ from learning.dataset.prepare.swav.swav_video_dataset_preparer import SwAVDatase
 from learning.dataset.preview.swav_dataset_previewer import SwAVDatasetPreviewer
 from learning.common.dataset_type import SWAV
 
-from learning.common.model_utility import ModelUtility
+from learning.common.object_detection_utility import ObjectDetectionUtility
 
 
 def get_cmd_args():
@@ -52,9 +52,9 @@ def main():
     if os.path.exists(logs_folder):
         shutil.rmtree(logs_folder)
 
-    model_utility = ModelUtility()
-    object_detection_model = model_utility.get_object_detection_model(object_detection_model_name,
-                                                                      object_detection_checkout_prefix)
+    object_detection_utility = ObjectDetectionUtility()
+    object_detection_model = object_detection_utility.get_object_detection_model(object_detection_model_name,
+                                                                                 object_detection_checkout_prefix)
 
     # Object Detection is needed to focus only on person images and not on other elements in video frames that
     # are not relevant for our use case.
