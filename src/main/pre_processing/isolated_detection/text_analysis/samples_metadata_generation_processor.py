@@ -44,21 +44,21 @@ class SamplesMetadataGenerationProcessor(Processor):
         self.logger.debug('Samples Metadata File created at: %s', metadata_file_path)
 
         # find syntax occurrence within video_transcription files
-        transcription_paths = io_utils.get_files_in_folder(self._work_dir,
+        transcription_paths = io_utils.get_files_in_folder(self.work_dir,
                                                            self.__transcription_local_folder_path, "*.json")
         for transcription_file_path in transcription_paths:
             self.logger.debug('Processing %s', transcription_file_path)
 
             transcription_items = self.__get_transcription_items(transcription_file_path)
 
-            transcription_file_relative_path = transcription_file_path.replace(self._work_dir + '/', '')
+            transcription_file_relative_path = transcription_file_path.replace(self.work_dir + '/', '')
             self.__handle_transcription_items(transcription_items, syntax_tokens, transcription_file_relative_path,
                                               metadata_file_path, metadata_file_columns)
 
     def __get_syntax_tokens(self, local_folder_path):
         syntax_tokens = []
 
-        syntax_paths = io_utils.get_files_in_folder(self._work_dir, local_folder_path, "*.csv")
+        syntax_paths = io_utils.get_files_in_folder(self.work_dir, local_folder_path, "*.csv")
         for syntax_file_local_path in syntax_paths:
             with open(syntax_file_local_path, 'r') as syntax_file:
                 reader = csv.reader(syntax_file)
@@ -83,7 +83,7 @@ class SamplesMetadataGenerationProcessor(Processor):
             wr = csv.DictWriter(metadata_file, fieldnames=file_columns)
             wr.writeheader()
 
-        return os.path.join(self._work_dir, metadata_file_path)
+        return os.path.join(self.work_dir, metadata_file_path)
 
     def __handle_transcription_items(self, transcription_items, syntax_tokens, transcription_file_path,
                                      metadata_file_path, file_columns):

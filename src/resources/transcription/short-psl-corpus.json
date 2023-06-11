@@ -1,0 +1,6 @@
+{
+  "operation": "transcribe-audio",
+  "payload": {
+    "id": "short-psl-corpus/"
+  }
+}

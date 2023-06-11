@@ -1,6 +1,6 @@
 import logging
 
-from common.enums import PreProcessingOperation as PreProcOp
+from common import processing_ops
 from isolated_detection.text_analysis.keywords_detection_processor import KeywordsDetectionProcessor
 from isolated_detection.text_analysis.transcription_syntax_detection_processor \
     import TranscriptionSyntaxDetectionProcessor
@@ -19,13 +19,20 @@ class FileProcessingHandler:
         operation = data['operation']
 
         operations = {
-            PreProcOp.SAMPLES_GENERATION_SPLIT: lambda x: VideoSplittingProcessor().process(x),
-            PreProcOp.AUDIO_TRANSCRIPTION: lambda x: TranscriptionProcessor().process(x),
-            PreProcOp.TRANSCRIPTION_SYNTAX_DETECTION: lambda x: TranscriptionSyntaxDetectionProcessor().process(x),
-            PreProcOp.TRANSCRIPTION_KEYWORDS_DETECTION: lambda x: KeywordsDetectionProcessor().process(x),
-            PreProcOp.ISOLATED_SAMPLES_METADATA_GENERATION: lambda x: SamplesMetadataGenerationProcessor().process(x),
-            PreProcOp.ISOLATED_RGB_SAMPLES_GENERATION: lambda x: RGBSamplesProcessor().process(x),
-            PreProcOp.ISOLATED_OPTICALFLOW_SAMPLES_GENERATION: lambda x: OpticalflowSamplesProcessor().process(x)
+            processing_ops.SAMPLES_GENERATION_SPLIT:
+                lambda payload: VideoSplittingProcessor().process(payload),
+            processing_ops.AUDIO_TRANSCRIPTION:
+                lambda payload: TranscriptionProcessor().process(payload),
+            processing_ops.TRANSCRIPTION_SYNTAX_DETECTION:
+                lambda payload: TranscriptionSyntaxDetectionProcessor().process(payload),
+            processing_ops.TRANSCRIPTION_KEYWORDS_DETECTION:
+                lambda payload: KeywordsDetectionProcessor().process(payload),
+            processing_ops.ISOLATED_SAMPLES_METADATA_GENERATION:
+                lambda payload: SamplesMetadataGenerationProcessor().process(payload),
+            processing_ops.ISOLATED_RGB_SAMPLES_GENERATION:
+                lambda payload: RGBSamplesProcessor().process(payload),
+            processing_ops.ISOLATED_OPTICALFLOW_SAMPLES_GENERATION:
+                lambda payload: OpticalflowSamplesProcessor().process(payload)
         }
 
         if operation in operations:

@@ -17,14 +17,14 @@ class RGBSamplesProcessor(Processor):
         self.logger = logging.getLogger(__name__)
         
     def process(self, data):
-        metadata_file_path = os.path.join(self._work_dir, data['metadata'])
+        metadata_file_path = os.path.join(self.work_dir, data['metadata'])
         if not os.path.exists(metadata_file_path):
             self.logger.debug('the %s metadata file does not exist, the process cannot continue', metadata_file_path)
             return
 
         reset_dataset = bool(data['reset_dataset'])
-        if reset_dataset and os.path.exists(os.path.join(self._work_dir, self.__videos_dataset_rgb_path)):
-            shutil.rmtree(os.path.join(self._work_dir, self.__videos_dataset_rgb_path))
+        if reset_dataset and os.path.exists(os.path.join(self.work_dir, self.__videos_dataset_rgb_path)):
+            shutil.rmtree(os.path.join(self.work_dir, self.__videos_dataset_rgb_path))
 
         delay_factor = float(data['translation_delay_factor'])
         metadata_fields = ['token', 'video_path', 'start_time', 'end_time']
@@ -40,7 +40,7 @@ class RGBSamplesProcessor(Processor):
     def __handle_sample_metadata(self, metadata, delay_factor: float):
         token = metadata['token']
         video_key = metadata['video_path']
-        video_local_path = os.path.join(self._work_dir, metadata['video_path'])
+        video_local_path = os.path.join(self.work_dir, metadata['video_path'])
 
         original_start_time = float(metadata['start_time'])
         original_end_time = float(metadata['end_time'])
@@ -63,7 +63,7 @@ class RGBSamplesProcessor(Processor):
                               FolderPath=sample_folder_path)
 
     def __get_sample_folder_path(self, token):
-        token_folder_path = os.path.join(self._work_dir, self.__videos_dataset_rgb_path, token)
+        token_folder_path = os.path.join(self.work_dir, self.__videos_dataset_rgb_path, token)
         io_utils.check_path_dir(token_folder_path)
 
         num_dirs = len([folder for folder in os.listdir(token_folder_path) if os.path.isdir(

@@ -50,7 +50,7 @@ class VideoSplittingProcessor(Downloader):
         if check_call(shlex.split(cmd), universal_newlines=True) == 0:
             self.logger.debug('%s was created successfully', chunk_path)
 
-            chunk_key = io_utils.get_video_chunk_path(self._video_key, idx)
+            chunk_key = io_utils.get_video_chunk_path(self.video_key, idx)
             self.upload_file(chunk_path, chunk_key)
             self.logger.debug('%s was uploaded to s3 successfully.', chunk_path)
 

@@ -25,8 +25,8 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
         total_nouns = []
         total_nums = []
 
-        transcription_folders = self._s3.list_objects_v2(
-            Bucket=self._bucketName,
+        transcription_folders = self.s3.list_objects_v2(
+            Bucket=self.bucketName,
             StartAfter=self.__transcription_files_prefix)
 
         for transcription_dict in transcription_folders['Contents']:
@@ -36,7 +36,7 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
 
             self.logger.debug('Extracting audio video_transcription from: %s', transcription_key)
 
-            file_obj = self._s3.get_object(Bucket=self._bucketName, Key=transcription_key)
+            file_obj = self.s3.get_object(Bucket=self.bucketName, Key=transcription_key)
             file_content = file_obj['Body'].read().decode('utf-8')
             json_content = json.loads(file_content)
 
@@ -55,7 +55,7 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
         total_nouns = sorted(dict(Counter(total_nouns)).items(), key=lambda kv: kv[1], reverse=True)
         total_nums = sorted(dict(Counter(total_nums)).items(), key=lambda kv: kv[1], reverse=True)
 
-        local_path = os.path.join(self._work_dir, data['localPath'])
+        local_path = os.path.join(self.work_dir, data['localPath'])
         s3_path = data['s3Path']
 
         self.__handle_syntax_file_writing(local_path, s3_path, self.__nouns_file_name, total_nouns)
