@@ -52,13 +52,16 @@ class Processor(ABC):
     def s3_delete_object(self, source_key):
         self.s3.delete_object(Bucket=self.bucketName, Key=source_key)
 
-    def s3_batch_download_files(self, s3_folder_path, allowed_extensions):
+    def s3_batch_download_files(self, s3_folder_path, excluded_path, allowed_extensions):
         s3_files = self.s3.list_objects_v2(
             Bucket=self.bucketName,
             Prefix=s3_folder_path)
 
         for s3_file in s3_files['Contents']:
             file_key = s3_file['Key']
+
+            if excluded_path in file_key:
+                continue
 
             if not io_utils.get_file_extension(file_key) in allowed_extensions:
                 continue

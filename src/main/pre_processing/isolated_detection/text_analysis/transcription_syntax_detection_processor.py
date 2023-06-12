@@ -17,7 +17,7 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
         self.comprehend = boto3.client('comprehend')
 
         self.transcription_files_prefix = "transcriptions/"
-        self.excluded_folder = "old_transcriptions/"
+        self.excluded_folder = "excluded/"
         self.nouns_file_name = "detected-nouns.csv"
         self.numbers_file_name = "detected-numbers.csv"
         self.preferred_language_code = 'es'
