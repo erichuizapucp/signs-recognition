@@ -10,16 +10,20 @@ from collections import Counter
 
 
 class TranscriptionSyntaxDetectionProcessor(Processor):
-    __transcription_files_prefix = "transcriptions/"
-    __nouns_file_name = "detected-nouns.csv"
-    __numbers_file_name = "detected-numbers.csv"
-    __preferred_language_code = 'es'
-
     def __init__(self):
         super().__init__()
 
         self.logger = logging.getLogger(__name__)
-        self._comprehend = boto3.client('comprehend')
+        self.comprehend = boto3.client('comprehend')
+
+        self.transcription_files_prefix = "transcriptions/"
+        self.excluded_folder = "old_transcriptions/"
+        self.nouns_file_name = "detected-nouns.csv"
+        self.numbers_file_name = "detected-numbers.csv"
+        self.preferred_language_code = 'es'
+
+        self.transcription_batch_max_size = 25
+        self.single_syntax_detection_bytes_limit = 4000
 
     def process(self, data):
         total_nouns = []
@@ -27,10 +31,14 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
 
         transcription_folders = self.s3.list_objects_v2(
             Bucket=self.bucketName,
-            StartAfter=self.__transcription_files_prefix)
+            Prefix=self.transcription_files_prefix)
 
         for transcription_dict in transcription_folders['Contents']:
             transcription_key = transcription_dict['Key']
+
+            if self.excluded_folder in transcription_key:
+                continue
+
             if not transcription_key.endswith('.json'):
                 continue
 
@@ -43,12 +51,10 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
             transcriptions = json_content['results']['transcripts']
             for index, transcription in enumerate(transcriptions):
                 transcript = transcription['transcript']
-                if len(transcript.encode('utf-8')) > 5000:
-                    self.logger.error("The transcript %d in %s cannot be processed because its size is over 5000 bytes",
-                                      index, transcription_key)
-                    continue
+                encoded_transcript = transcript.encode('utf-8')
 
-                nouns, nums = self.__handle_syntax(transcript)
+                is_batched = len(encoded_transcript) > self.single_syntax_detection_bytes_limit
+                nouns, nums = self.batch_detect_nouns_nums(transcript) if is_batched else self.single_detect_nouns_nums(transcript)
                 total_nouns.extend(nouns)
                 total_nums.extend(nums)
 
@@ -58,10 +64,10 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
         local_path = os.path.join(self.work_dir, data['localPath'])
         s3_path = data['s3Path']
 
-        self.__handle_syntax_file_writing(local_path, s3_path, self.__nouns_file_name, total_nouns)
-        self.__handle_syntax_file_writing(local_path, s3_path, self.__numbers_file_name, total_nums)
+        self.handle_syntax_file_writing(local_path, s3_path, self.nouns_file_name, total_nouns)
+        self.handle_syntax_file_writing(local_path, s3_path, self.numbers_file_name, total_nums)
 
-    def __check_syntax_file(self, local_path, s3_path, syntax_file_name):
+    def check_syntax_file(self, local_path, s3_path, syntax_file_name):
         local_file_path = os.path.join(local_path, syntax_file_name)
         s3_key = os.path.join(s3_path, syntax_file_name)
 
@@ -80,12 +86,35 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
 
         return local_file_path, s3_key
 
-    def __handle_syntax(self, transcription):
-        resp = self._comprehend.detect_syntax(
-            Text=transcription,
-            LanguageCode=self.__preferred_language_code
+    def single_detect_nouns_nums(self, transcript):
+        resp = self.comprehend.detect_syntax(
+            Text=transcript,
+            LanguageCode=self.preferred_language_code
         )
 
+        return self.detect_nouns_nums(resp)
+
+    def batch_detect_nouns_nums(self, transcript):
+        transcriptions_batch = self.split_large_transcription(transcript)
+
+        batch_nouns = []
+        batch_nums = []
+
+        # for batch_index in range(len(transcriptions_batch)):
+        #     batch = transcriptions_batch[batch_index]
+        response = self.comprehend.batch_detect_syntax(TextList=transcriptions_batch,
+                                                       LanguageCode=self.preferred_language_code)
+
+        for resp in response['ResultList']:
+            nouns, nums = self.detect_nouns_nums(resp)
+
+            batch_nouns.extend(nouns)
+            batch_nums.extend(nums)
+
+        return batch_nouns, batch_nums
+
+    @staticmethod
+    def detect_nouns_nums(resp):
         nouns = []
         nums = []
         for token in resp['SyntaxTokens']:
@@ -97,13 +126,13 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
             if token_score < 0.8:
                 continue
 
-            token_text = token['Text']
+            token_text = token['Text'].lower()
             nouns.append(token_text) if token_tag == 'NOUN' else nums.append(token_text)
 
         return nouns, nums
 
-    def __handle_syntax_file_writing(self, local_path, s3_path, syntax_file_name, detected_tokens):
-        local_file_path, s3_key = self.__check_syntax_file(local_path, s3_path, syntax_file_name)
+    def handle_syntax_file_writing(self, local_path, s3_path, syntax_file_name, detected_tokens):
+        local_file_path, s3_key = self.check_syntax_file(local_path, s3_path, syntax_file_name)
 
         with open(local_file_path, 'w') as f:
             field_names = ['token', 'count']
@@ -118,3 +147,20 @@ class TranscriptionSyntaxDetectionProcessor(Processor):
 
         self.upload_file(local_file_path, s3_key)
         self.logger.debug('audio video_transcription syntax uploaded to: %s', s3_key)
+
+    def split_large_transcription(self, large_transcription):
+        words = large_transcription.split()
+        result = []
+        chunk = ''
+
+        for word in words:
+            if len(chunk) + len(word) + 1 > self.single_syntax_detection_bytes_limit:
+                result.append(chunk.rstrip())
+                chunk = word
+            else:
+                chunk += ' ' + word
+
+        if chunk:
+            result.append(chunk)
+
+        return result
