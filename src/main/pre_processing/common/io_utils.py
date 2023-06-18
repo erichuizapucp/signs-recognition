@@ -32,7 +32,7 @@ def get_video_chunk_path(video_path, idx):
     return os.path.join(base_dir, chunks_folder, add_prefix_to_filename(video_path, str(idx).zfill(2)))
 
 
-def get_video_chunk_base_key(video_key):
+def get_video_chunk_key(video_key):
     return os.path.join(os.path.dirname(video_key), chunks_folder)
 
 

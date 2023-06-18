@@ -119,25 +119,25 @@ Our proposed self supervised architecture goal is to achieve successful metrics 
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
 \toprule
-\multicolumn{5}{c}{\textbf{nSDmV2 Training Results with the 5\% of the dataset}} \\
+\multicolumn{3}{c}{\textbf{nSDmV2 Training Results}} \\
 \hline
 \hline
-\textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\
+\textbf{Epoch}&	\textbf{Loss}		&\textbf{AUC} \\
 \hline
 \midrule
-Epoch 1&	2.7568&	0.0000e+00&	0.0000e+00&	0.0911\\
-Epoch 2&	2.6647&	0.0000e+00&	0.0000e+00&	0.1008\\
-Epoch 3&	2.6455&	0.0000e+00&	0.0000e+00&	0.1017\\
-Epoch 4&	2.6296&	0.0000e+00&	0.0000e+00&	0.1193\\
-Epoch 5&	2.6121&	0.0000e+00&	0.0000e+00&	0.1222\\
-Epoch 6&	2.6032&	0.0000e+00&	0.0000e+00&	0.1222\\
-Epoch 7&	2.5943&	0.0000e+00&	0.0000e+00&	0.1229\\
-Epoch 8&	2.5875&	0.0000e+00&	0.0000e+00&	0.1229\\
-Epoch 9&	2.5825&	0.0000e+00&	0.0000e+00&	0.1229\\
-Epoch 10&	2.5790&	0.0000e+00&	0.0000e+00&	0.1229\\
+Epoch 1&	2.7568&	0.0911\\
+Epoch 2&	2.6647&	0.1008\\
+Epoch 3&	2.6455&	0.1017\\
+Epoch 4&	2.6296&	0.1193\\
+Epoch 5&	2.6121&	0.1222\\
+Epoch 6&	2.6032&	0.1222\\
+Epoch 7&	2.5943&	0.1229\\
+Epoch 8&	2.5875&	0.1229\\
+Epoch 9&	2.5825&	0.1229\\
+Epoch 10&	2.5790&	0.1229\\
 \bottomrule
 \end{tabular}
-\caption{Shows results of training the nSDmV2 model with the 5\% of the labeled PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
+\caption{Shows results of training the nSDmV2 model with the labeled train PSL dataset: (1)\textit{Epoch} identifies the epoch in in the training process (2)\textit{Loss} obtained loss (3)\textit{Precision} obtained precision (4)\textit{Recall} obtained recall (5)\textit{AUC} area under the precision-recall curve.}
 \label{tab:nSDmV2-detection-results-5-percent}
 \end{table*}
 
@@ -147,7 +147,7 @@ Epoch 10&	2.5790&	0.0000e+00&	0.0000e+00&	0.1229\\
 \centering
 \begin{tabular}{ p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} p{2.8cm} }
 \toprule
-\multicolumn{5}{c}{\textbf{nSDmV3 Test Results with the 5\% of the dataset}} \\
+\multicolumn{5}{c}{\textbf{nSDmV3 Train Results}} \\
 \hline
 \hline
 \textbf{Epoch}&	\textbf{Loss}	&\textbf{Precision}	&\textbf{Recall}	&\textbf{AUC} \\

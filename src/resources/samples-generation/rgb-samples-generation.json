@@ -2,7 +2,11 @@
   "operation": "rgb-samples-generation",
   "payload": {
     "metadata": "detected-syntax/samples-generation-metadata.csv",
+    "dataset_path": "../../dataset/rgb",
+    "s3_video_prefix": "short-psl-corpus",
+    "local_video_prefix": "../../dataset/swav",
     "reset_dataset": "true",
-    "translation_delay_factor": "3"
+    "translation_delay_factor": "4",
+    "end_time_bound_in_seconds": "0.5"
   }
 }

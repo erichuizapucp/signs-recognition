@@ -12,37 +12,37 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
-#  core_file_handler:
-#    class: logging.handlers.RotatingFileHandler
-#    level: DEBUG
-#    formatter: standard
-#    filename: pre-processing.log
-#    maxBytes: 10485760 # 10MB
-#    backupCount: 20
-#    encoding: utf8
+  core_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: standard
+    filename: logs/pre-processing.log
+    maxBytes: 10485760 # 10MB
+    backupCount: 20
+    encoding: utf8
 
 root:
   level: DEBUG
-  handlers: [console]
+  handlers: [console, core_file_handler]
 
 loggers:
   common:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   transcription:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   video:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   text_analysis:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no
   audio:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, core_file_handler]
     propagate: no

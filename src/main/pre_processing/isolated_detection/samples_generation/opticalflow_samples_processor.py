@@ -19,12 +19,12 @@ class OpticalflowSamplesProcessor(Processor):
         self.logger = logging.getLogger(__name__)
 
     def process(self, data):
-        rgb_dataset_path = os.path.join(self._work_dir, self.__rgb_dataset_relative_path)
+        rgb_dataset_path = os.path.join(self.work_dir, self.__rgb_dataset_relative_path)
         if not os.path.exists(rgb_dataset_path):
             self.logger.debug('The RGB dataset does not exist at %s, the process cannot continue.', rgb_dataset_path)
             return
 
-        opticalflow_dataset_path = os.path.join(self._work_dir, self.__opticalflow_dataset_relative_path)
+        opticalflow_dataset_path = os.path.join(self.work_dir, self.__opticalflow_dataset_relative_path)
         reset_dataset = bool(data['reset_dataset'])
         if reset_dataset and os.path.exists(opticalflow_dataset_path):
             shutil.rmtree(opticalflow_dataset_path)
