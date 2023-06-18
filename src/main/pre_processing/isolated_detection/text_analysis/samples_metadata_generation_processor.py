@@ -17,6 +17,9 @@ class SamplesMetadataGenerationProcessor(Processor):
         self.override_local_files = False
         self.min_instances_per_sample = 10
 
+        self.transcription_path_prefix = 'transcriptions'
+        self.video_extension = '.mp4'
+
         self.logger = logging.getLogger(__name__)
 
     def process(self, data):
@@ -25,6 +28,8 @@ class SamplesMetadataGenerationProcessor(Processor):
 
         transcription_local_folder_path = os.path.join(self.work_dir, data['transcription']['localFolderPath'])
         transcription_s3_folder_path = data['transcription']['s3Path']
+
+        video_path_prefix = data['output']['video_path_prefix']
 
         if self.override_local_files:
             # download syntax detection files (e.g. nouns and numbers)
@@ -36,7 +41,7 @@ class SamplesMetadataGenerationProcessor(Processor):
         syntax_tokens = self.get_syntax_tokens(syntax_local_folder_path)
 
         # create the samples metadata file
-        metadata_file_columns = ['token', 'video_path', 'start_time', 'end_time']
+        metadata_file_columns = ['token', 'video_name', 'start_time', 'end_time']
         metadata_file_path = self.create_metadata_file(metadata_file_columns, syntax_local_folder_path)
         self.logger.debug('Samples Metadata File created at: %s', metadata_file_path)
 
@@ -50,7 +55,7 @@ class SamplesMetadataGenerationProcessor(Processor):
 
             transcription_file_relative_path = transcription_file_path.replace(self.work_dir + '/', '')
             self.handle_transcription_items(transcription_items, syntax_tokens, transcription_file_relative_path,
-                                            metadata_file_path, metadata_file_columns)
+                                            video_path_prefix, metadata_file_path, metadata_file_columns)
 
         self.upload_file(metadata_file_path, syntax_s3_folder_path + self.metadata_file_name)
         self.logger.debug('samples generation metadata uploaded to: %s', syntax_s3_folder_path + self.metadata_file_name)
@@ -93,7 +98,7 @@ class SamplesMetadataGenerationProcessor(Processor):
         return os.path.join(self.work_dir, metadata_file_path)
 
     def handle_transcription_items(self, transcription_items, syntax_tokens, transcription_file_path,
-                                   metadata_file_path, file_columns):
+                                   video_path_prefix, metadata_file_path, file_columns):
 
         with open(metadata_file_path, 'a') as metadata_file:
             wr = csv.DictWriter(metadata_file, fieldnames=file_columns)
@@ -102,12 +107,14 @@ class SamplesMetadataGenerationProcessor(Processor):
                 content = transcription_item['alternatives'][0]['content']
                 if content in syntax_tokens:
                     self.logger.debug('Found a match: %s', content)
-                    video_local_path = io_utils.change_extension(transcription_file_path, '.mp4')
-                    video_path = video_local_path.replace('transcriptions', 'not-annotated-videos')
+                    video_local_path = io_utils.change_extension(transcription_file_path, self.video_extension)
+                    video_path = os.path.basename(video_local_path)
 
-                    wr.writerow({
+                    metadata_object = {
                         'token': content,
-                        'video_path': video_path,
+                        'video_name': video_path,
                         'start_time': transcription_item['start_time'],
                         'end_time': transcription_item['end_time']
-                    })
+                    }
+
+                    wr.writerow(metadata_object)

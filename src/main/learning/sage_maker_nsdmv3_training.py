@@ -26,7 +26,7 @@ hyper_parameters = {
     'mirrored_training': 'True',
     'batch_size': '4',
     'no_replicas': '4',
-    'no_epochs': '80',
+    'no_epochs': '60',
     'start_learning_rate': '0.0001',
     'no_dense_layer1_neurons': '256',
     'no_dense_layer2_neurons': '128',
@@ -44,12 +44,12 @@ estimator = Estimator(
     hyperparameters=hyper_parameters,
     metric_definitions=[
         {
-            'Name': 'train:EpochCrossEntropyLoss',
-            'Regex': 'epoch_loss: (.*?);',
+            'Name': 'train:EpochLoss',
+            'Regex': 'loss: \d+\.\d+',
         },
         {
-            'Name': 'train:StepCrossEntropyLoss',
-            'Regex': 'step_loss: (.*?);',
+            'Name': 'train:EpochAUC',
+            'Regex': 'auc: \d+\.\d+',
         }
     ],
     checkpoint_s3_uri=checkpoint_location,

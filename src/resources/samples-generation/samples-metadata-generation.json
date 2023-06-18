@@ -8,6 +8,9 @@
     "transcription": {
       "localFolderPath": "transcriptions/",
       "s3Path": "transcriptions/"
+    },
+    "output": {
+      "video_path_prefix": "../../dataset/swav"
     }
   }
 }
