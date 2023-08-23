@@ -3,6 +3,7 @@ import tensorflow as tf
 import logging
 
 from learning.common import features
+# from learning.common.labels import SIGNS_CLASSES
 from learning.common.dataset_type import OPTICAL_FLOW, RGB, SWAV, NSDMV3
 
 
@@ -12,6 +13,8 @@ class TFRecordUtility:
         self.compression_type = 'ZLIB'
         self.max_file_length_size = 1048576  # 100MB
         self.logger = logging.getLogger(__name__)
+
+        self.classes = 10
 
         self.swav_feature_description = {
             features.HIGH_RES_FRAMES_SEQ_1: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
@@ -107,7 +110,7 @@ class TFRecordUtility:
     def parse_rgb_dict_sample(self, sample):
         feature_description = {
             features.FRAMES_SEQ: tf.io.FixedLenFeature(shape=(), dtype=tf.string),
-            features.LABEL: tf.io.FixedLenFeature(shape=(15,), dtype=tf.float32),
+            features.LABEL: tf.io.FixedLenFeature(shape=(self.classes,), dtype=tf.float32),
         }
 
         feature = tf.io.parse_single_example(sample, feature_description)
