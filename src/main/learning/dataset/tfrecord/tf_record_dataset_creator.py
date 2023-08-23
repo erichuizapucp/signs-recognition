@@ -162,8 +162,8 @@ class TFRecordDatasetCreator:
     def build_raw_dataset(dataset_path, shuffle_buffer_size, raw_sample_list_func, map_func):
         raw_samples_list = raw_sample_list_func(dataset_path)
         dataset: tf.data.Dataset = tf.data.Dataset.from_tensor_slices(raw_samples_list)
-        dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
         dataset = dataset.map(map_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        dataset = dataset.shuffle(buffer_size=shuffle_buffer_size)
         return dataset
 
     @staticmethod
