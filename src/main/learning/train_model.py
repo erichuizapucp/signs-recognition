@@ -189,7 +189,8 @@ def get_distributed_train_step(distribute_strategy, train_step_fn, input_spec):
     @tf.function(input_signature=(input_spec,))
     def step(inputs):
         per_replica_losses = distribute_strategy.run(train_step_fn, args=(inputs,))
-        return distribute_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
+        # return distribute_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
+        return per_replica_losses
 
     return step
 

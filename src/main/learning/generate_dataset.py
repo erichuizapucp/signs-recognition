@@ -32,7 +32,8 @@ def get_cmd_args():
     parser.add_argument('--crop_sizes', type=int, help='SwAV crop sizes', nargs='+', default=[224, 96])
     parser.add_argument('--min_scale', type=float, help='SwAV Multi-crop min scale', nargs='+', default=[0.14, 0.05])
     parser.add_argument('--max_scale', type=float, help='SwAV Multi-crop max scale', nargs='+', default=[1., 0.14])
-    parser.add_argument('--sample_duration_range', type=float, help='', nargs='+', default=[0.3, 0.5])
+    parser.add_argument('--sample_duration_range', type=float, help='Random Sample Duration', nargs='+', default=[0.3, 0.5])
+    parser.add_argument('--fixed_sample_duration', type=float, help='Fixed Sample Duration', default=0.5)
 
     # Person detection arguments
     parser.add_argument('--person_detection_model_name', help='Person Detection Model Name',
@@ -74,7 +75,8 @@ def main():
                                num_crops=args.num_crops,
                                min_scale=args.min_scale,
                                max_scale=args.max_scale,
-                               sample_duration_range=args.sample_duration_range)
+                               sample_duration_range=args.sample_duration_range,
+                               fixed_sample_duration=args.fixed_sample_duration)
     else:
         dataset_creator.create(output_dir_path,
                                output_prefix,

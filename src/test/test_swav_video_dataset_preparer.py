@@ -20,13 +20,14 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
                                                     num_crops=[2, 3],
                                                     min_scale=[0.14, 0.05],
                                                     max_scale=[1., 0.14],
-                                                    sample_duration_range=[0.5, 1])
+                                                    sample_duration_range=[0.5, 1],
+                                                    fixed_sample_duration=1.0)
         self.object_detection_utility = ObjectDetectionUtility()
         self.person_detection_model_name = 'centernet_resnet50_v1_fpn_512x512_coco17_tpu-8'
         self.person_detection_checkout_prefix = 'ckpt-0'
 
     @patch.object(RGBPersonSamplesExtractor, 'extract_sample')
-    @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
+    @patch.object(SwAVDatasetPreparer, 'get_random_sample_duration', return_value=1.0)
     def test_data_generator2_all_valid(self, get_sample_duration_mock, extract_sample_mock):
         extract_sample_mock.return_value = (True, mocks.get_sample_mock('fixtures/extracted_person_sample/'))
 
@@ -42,7 +43,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
         assert extract_sample_mock.call_count == 136
 
     @patch.object(RGBPersonSamplesExtractor, 'extract_sample', return_value=(False, None))
-    @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
+    @patch.object(SwAVDatasetPreparer, 'get_random_sample_duration', return_value=1.0)
     def test_data_generator2_all_invalid(self, get_sample_duration_mock, extract_sample_mock):
         video_path_list = mocks.video_path_list
         chunk_start_list = mocks.chunk_start_list
@@ -55,7 +56,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
         assert extract_sample_mock.call_count == 136
 
     @patch.object(RGBPersonSamplesExtractor, 'extract_sample')
-    @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
+    @patch.object(SwAVDatasetPreparer, 'get_random_sample_duration', return_value=1.0)
     def test_data_generator2_some_invalid(self, get_sample_duration_mock, extract_sample_mock):
         sample_mock = mocks.get_sample_mock('fixtures/extracted_person_sample/')
         extract_sample_mock.side_effect = lambda video_path, start_time, end_time: \
@@ -95,7 +96,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
         self.assertEqual(sample[3].shape, (96, 96, 3))
         self.assertEqual(sample[4].shape, (96, 96, 3))
 
-    @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
+    @patch.object(SwAVDatasetPreparer, 'get_random_sample_duration', return_value=1.0)
     def test_integration_data_generator2(self, get_sample_duration_mock):
         detection_model = self.object_detection_utility.get_object_detection_model(self.person_detection_model_name,
                                                                                    self.person_detection_checkout_prefix)
@@ -115,7 +116,7 @@ class TestSwAVDatasetPreparer(unittest.TestCase):
 
         assert count == 136
 
-    @patch.object(SwAVDatasetPreparer, 'get_sample_duration', return_value=1.0)
+    @patch.object(SwAVDatasetPreparer, 'get_random_sample_duration', return_value=1.0)
     def test_integration_prepare_dataset(self, get_sample_duration_mock):
         detection_model = self.object_detection_utility.get_object_detection_model(self.person_detection_model_name,
                                                                                    self.person_detection_checkout_prefix)

@@ -85,15 +85,16 @@ class TFRecordDatasetCreator:
                                                    self.get_raw_rgb_list,
                                                    self.get_rgb_sample),
             SWAV: lambda: self.get_swav_raw_dataset(
-                                      raw_dataset_path,
-                                      batch_size=kwargs['batch_size'],
-                                      person_detection_model_name=kwargs['person_detection_model_name'],
-                                      person_detection_checkout_prefix=kwargs['person_detection_checkout_prefix'],
-                                      crop_sizes=kwargs['crop_sizes'],
-                                      num_crops=kwargs['num_crops'],
-                                      min_scale=kwargs['min_scale'],
-                                      max_scale=kwargs['max_scale'],
-                                      sample_duration_range=kwargs['sample_duration_range']),
+                                        raw_dataset_path,
+                                        batch_size=kwargs['batch_size'],
+                                        person_detection_model_name=kwargs['person_detection_model_name'],
+                                        person_detection_checkout_prefix=kwargs['person_detection_checkout_prefix'],
+                                        crop_sizes=kwargs['crop_sizes'],
+                                        num_crops=kwargs['num_crops'],
+                                        min_scale=kwargs['min_scale'],
+                                        max_scale=kwargs['max_scale'],
+                                        sample_duration_range=kwargs['sample_duration_range'],
+                                        fixed_sample_duration=kwargs['fixed_sample_duration']),
         }
 
         if dataset_type in build_dataset_operations:
@@ -119,7 +120,8 @@ class TFRecordDatasetCreator:
                                             num_crops=kwargs['num_crops'],
                                             min_scale=kwargs['min_scale'],
                                             max_scale=kwargs['max_scale'],
-                                            sample_duration_range=kwargs['sample_duration_range'])
+                                            sample_duration_range=kwargs['sample_duration_range'],
+                                            fixed_sample_duration=kwargs['fixed_sample_duration'])
 
         return data_preparer.prepare_train_dataset(batch_size)
 

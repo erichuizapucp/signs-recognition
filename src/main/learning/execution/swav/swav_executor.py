@@ -74,90 +74,71 @@ class SwAVExecutor(BaseModelExecutor):
         return train
 
     def train_step(self, global_batch_size, per_replica_batch_size, compute_loss_fn):
+        @tf.function(jit_compile=True)
         def step(input_views):
-            inputs = tf.TensorArray(dtype=tf.float32, size=5, clear_after_read=False, infer_shape=False)
-            for index in range(5):
-                inputs = inputs.write(index, input_views[index])
-
-            # e.g. [2, 3] -> needed for grouping same size crops so that embeddings
-            unique_consecutive_count = tf.unique_with_counts(self.crop_sizes).count
-            # e.g. [2, 5] -> needed for slicing inputs to include grouped crops
-            consecutive_crops = tf.cumsum(unique_consecutive_count)
-            # multi-res forward passes
-            start_idx = 0
-
             with tf.GradientTape() as tape:
-                embeddings = tf.TensorArray(dtype=tf.float32, size=2, infer_shape=False)
-
-                for idx_consecutive_crops in range(2):
-                    with tape.stop_recording():
-                        end_idx = consecutive_crops[idx_consecutive_crops]
-                        concat_reshape = self.current_crop_size(per_replica_batch_size, start_idx)
-                        # need to reshape because inputs.gather would add an extra dimension.
-                        concat_input = tf.reshape(inputs.gather(tf.range(start_idx, end_idx)),
-                                                  shape=concat_reshape)
-                        start_idx = end_idx
-                    _embedding = self.feature_backbone_model(concat_input)  # get embedding of same dim views together
-                    embeddings = embeddings.write(idx_consecutive_crops, _embedding)
-
-                projection, prototype = self.prototype_projection_model(embeddings.concat())
-                _ = tf.stop_gradient(projection)
+                high_res_embeddings = self.feature_backbone_model(tf.concat(input_views[:2], axis=0))
+                # low_res_embeddings = self.feature_backbone_model(tf.concat(input_views[2:], axis=0))
+                # embeddings = tf.concat([high_res_embeddings, low_res_embeddings], axis=0)
+                #
+                # projection, prototype = self.prototype_projection_model(embeddings)
+                # _ = tf.stop_gradient(projection)
 
                 loss = 0.0
                 # Swap Assigment only happens on 224x224 crops
                 # crops_for_assign = [0, 1] -> first and second crops are 224x224
-                for idx_crop_for_assign in range(2):
-                    with tape.stop_recording():
-                        crop_id = self.crops_for_assign[idx_crop_for_assign]
+                # for idx_crop_for_assign in range(2):
+                #     with tape.stop_recording():
+                #         crop_id = self.crops_for_assign[idx_crop_for_assign]
+                #
+                #         # prototype slice for the current 224x224 crop
+                #         crop_prototype_start = per_replica_batch_size * crop_id
+                #         crop_prototype_end = per_replica_batch_size * (crop_id + 1)
+                #         crop_prototype = tf.gather(prototype, tf.range(crop_prototype_start, crop_prototype_end))
+                #         # Cluster assignment prediction
+                #         # Get cluster assignments using Sinkhorn Knopp: Optimal Transport
+                #         # The code q is considered the "ground truth" - or a tuned prototype
+                #         crop_prototype_q_code = self.sinkhorn(crop_prototype)
+                #
+                #         # Swapped comparison initialization
+                #         # sum([2, 3] = 5
+                #         crops_interval = tf.reduce_sum(self.num_crops)
+                #         # [0, 1, 2, 3, 4]
+                #         all_crops_indexes = tf.range(crops_interval)
+                #
+                #         # take out one 224x224 crop and compare with the rest (Swap Assigment)
+                #         # [1, 2, 3, 4] or [0, 2, 3, 4]
+                #         crops_to_compare_indexes = tf.boolean_mask(all_crops_indexes,
+                #                                                    tf.not_equal(all_crops_indexes, crop_id))
+                #
+                #     sub_loss = 0.0
 
-                        # prototype slice for the current 224x224 crop
-                        crop_prototype_start = per_replica_batch_size * crop_id
-                        crop_prototype_end = per_replica_batch_size * (crop_id + 1)
-                        crop_prototype = tf.gather(prototype, tf.range(crop_prototype_start, crop_prototype_end))
-                        # Cluster assignment prediction
-                        # Get cluster assignments using Sinkhorn Knopp: Optimal Transport
-                        # The code q is considered the "ground truth" - or a tuned prototype
-                        crop_prototype_q_code = self.sinkhorn(crop_prototype)
+                    # for crop_to_compare_index in crops_to_compare_indexes:
+                    #     # with tape.stop_recording():
+                    #     crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
+                    #     crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
+                    #
+                    #     crop_to_compare_prototype = prototype[
+                    #                                 crop_to_compare_prototype_start:crop_to_compare_prototype_end]
+                    #     crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
+                    #
+                    #     sub_loss += compute_loss_fn(crop_prototype_q_code, crop_probability,
+                    #                                 self.prototype_projection_model.losses)
+                    #
+                    #     # cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
+                    #     #
+                    #     # # average loss entropy
+                    #     # # use compute_average_loss instead of reduce_mean to allow distributed training
+                    #     # sub_loss += tf.nn.compute_average_loss(cross_entropy_loss, global_batch_size=global_batch_size)
+                    #
+                    # loss += (sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32))
 
-                        # Swapped comparison initialization
-                        # sum([2, 3] = 5
-                        crops_interval = tf.reduce_sum(self.num_crops)
-                        # [0, 1, 2, 3, 4]
-                        all_crops_indexes = tf.range(crops_interval)
-
-                        # take out one 224x224 crop and compare with the rest (Swap Assigment)
-                        # [1, 2, 3, 4] or [0, 2, 3, 4]
-                        crops_to_compare_indexes = tf.boolean_mask(all_crops_indexes,
-                                                                   tf.not_equal(all_crops_indexes, crop_id))
-
-                    sub_loss = 0.0
-
-                    for crop_to_compare_index in crops_to_compare_indexes:
-                        with tape.stop_recording():
-                            crop_to_compare_prototype_start = per_replica_batch_size * crop_to_compare_index
-                            crop_to_compare_prototype_end = per_replica_batch_size * (crop_to_compare_index + 1)
-
-                        crop_to_compare_prototype = prototype[
-                                                    crop_to_compare_prototype_start:crop_to_compare_prototype_end]
-                        crop_probability = tf.nn.softmax(crop_to_compare_prototype / self.temperature)
-
-                        sub_loss += compute_loss_fn(crop_prototype_q_code, crop_probability,
-                                                    self.prototype_projection_model.losses)
-
-                        # cross_entropy_loss = self.loss(crop_prototype_q_code, crop_probability)
-                        #
-                        # # average loss entropy
-                        # # use compute_average_loss instead of reduce_mean to allow distributed training
-                        # sub_loss += tf.nn.compute_average_loss(cross_entropy_loss, global_batch_size=global_batch_size)
-
-                    loss += (sub_loss / tf.cast((tf.reduce_sum(self.num_crops) - 1), tf.float32))
-
-                loss /= len(self.crops_for_assign)
+                # loss /= len(self.crops_for_assign)
 
             # back propagation
-            weights = self.feature_backbone_model.trainable_weights + self.prototype_projection_model.trainable_weights
-            gradients = tape.gradient(loss, weights)
-            self.optimizer.apply_gradients(zip(gradients, weights))
+            # weights = self.feature_backbone_model.trainable_weights + self.prototype_projection_model.trainable_weights
+            # gradients = tape.gradient(loss, weights)
+            # self.optimizer.apply_gradients(zip(gradients, weights))
 
             return loss
 

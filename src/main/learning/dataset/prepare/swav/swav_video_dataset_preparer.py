@@ -21,6 +21,7 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
         self.min_scale: list[float] = kwargs['min_scale']
         self.max_scale: list[float] = kwargs['max_scale']
         self.sample_duration_range: list[float] = kwargs['sample_duration_range']
+        self.fixed_sample_duration = kwargs['fixed_sample_duration']
 
         self.extractor = RGBPersonSamplesExtractor(person_detection_model)
 
@@ -63,12 +64,14 @@ class SwAVDatasetPreparer(RawDatasetPreparer):
                     yield fragment_frames
 
     def get_next_end_time(self, start_time):
-        fragment_duration = self.get_sample_duration()
+        # due to XLA performance improvements we are using a fixed sample duration.
+        # XLA does not support dynamic shape tensors
+        fragment_duration = self.fixed_sample_duration
         end_time = round(start_time + fragment_duration, 1)
 
         return end_time
 
-    def get_sample_duration(self):
+    def get_random_sample_duration(self):
         duration_range_start = self.sample_duration_range[0]
         duration_range_end = self.sample_duration_range[1]
 
